@@ -51,22 +51,18 @@ Superteam keeps the workflow grounded in explicit teammate ownership, written de
 For example:
 
 ```text
-For a resumed issue, invoke Superteam with the same runtime-specific entry point and tell it to continue from the current teammate or artifact state.
-For a new requirement, invoke Superteam with the documented runtime-specific form and include the requirement change in the prompt so it can route back through the right gate.
+Continue issue #16 with Superteam from the current Planner artifact state and pick up from the next required teammate.
+Add this new requirement to issue #16: make issue titles plain-language summaries, then route the workflow back through the right design and planning gates.
 ```
 
 ## Install surfaces
 
-- The repository root is the Claude Code plugin surface discovered via `.claude-plugin/plugin.json`.
-- `plugins/superteam/` is the packaged Codex install surface.
+- The repository root is the local Claude Code plugin surface discovered via `.claude-plugin/plugin.json`.
+- `plugins/superteam/` is the packaged Codex install surface used by the Codex marketplace flow.
 
 ## Installation
 
-Install Superpowers first by following the setup instructions in:
-
-```text
-https://github.com/obra/superpowers
-```
+Install Superpowers first by following the setup instructions in [`obra/superpowers`](https://github.com/obra/superpowers).
 
 ### Claude Code
 
@@ -82,7 +78,7 @@ https://github.com/obra/superpowers
 /plugin install superteam@patinaproject-skills
 ```
 
-3. Start from a GitHub issue and invoke:
+3. Open the relevant GitHub issue in your Claude Code session, then invoke:
 
 ```text
 /superteam:superteam
@@ -90,9 +86,21 @@ https://github.com/obra/superpowers
 
 ### Optional: Enable Agent Teams
 
-If you want a team-oriented runtime, enable Agent Teams in your Claude Code setup and then run the same workflow through Superteam.
+If you want Claude Code to use Agent Teams for this workflow, enable Agent Teams in your Claude configuration before invoking Superteam.
 
-Agent Teams lets multiple agents coordinate through the staged workflow. The regular setup runs the same workflow with a single agent or subagents.
+For local setup, add `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` to the `env` block in `~/.claude/settings.json` for your user-wide config or `.claude/settings.json` for a project-specific config:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+Then run the same Superteam workflow as usual.
+
+Agent Teams is optional. If you do not enable it, Superteam still works with the regular single-agent or subagent flow described above.
 
 ### OpenAI Codex CLI
 
@@ -104,7 +112,7 @@ codex plugin marketplace upgrade
 ```
 
 2. Open the Codex Plugin Directory, open the `Patina Project` marketplace, and install `Superteam`.
-3. Open the relevant GitHub issue in your working context, then invoke:
+3. Open the relevant GitHub issue in your working context, then invoke Superteam:
 
 ```text
 Use $superteam to route this issue through teammate-owned design, planning, execution, review, and Finisher-owned publish follow-through.
@@ -120,7 +128,7 @@ codex plugin marketplace upgrade
 ```
 
 2. In the Codex app, open the Plugin Directory, open the `Patina Project` marketplace, and install `Superteam`.
-3. Open the relevant GitHub issue in the app context, then invoke:
+3. Open the relevant GitHub issue in the app context, then invoke Superteam:
 
 ```text
 Use $superteam to route this issue through teammate-owned design, planning, execution, review, and Finisher-owned publish follow-through.
@@ -128,7 +136,7 @@ Use $superteam to route this issue through teammate-owned design, planning, exec
 
 ## First use
 
-After setup in any supported tool, start from a GitHub issue and invoke Superteam. The workflow then drives the issue through teammate-owned design, planning, execution, review, and finish handoffs.
+After setup in any supported tool, start from a GitHub issue and invoke Superteam through the same teammate-owned workflow. The issue then moves through design, planning, execution, review, and finish handoffs.
 
 ## Inspiration
 
