@@ -153,9 +153,21 @@ For this repository, the README should include:
 
 Each runtime section should include a concrete install-to-first-use path rather than relying on a shared generic setup block.
 
+### Superpowers Prerequisite
+
+Superteam should treat Superpowers as an explicit dependency rather than silently assuming it is already installed.
+
+The README should therefore add a prerequisite step before the Superteam-specific runtime sections:
+
+- explain that Superpowers must be installed first
+- link users to the Superpowers repository for installation guidance: `https://github.com/obra/superpowers`
+- avoid duplicating the full Superpowers installation instructions inside this repository
+
+This keeps the README focused on the Superteam-specific setup path while making the dependency boundary clear.
+
 ### Marketplace Setup Guidance
 
-Each runtime section should instruct users how to set up access to the `patinaproject/skills` marketplace before they try to use Superteam.
+Each runtime section should instruct users how to set up access to the `patinaproject/skills` marketplace after Superpowers is installed and before they try to use Superteam.
 
 The runtime-specific setup path should therefore explain:
 
@@ -163,7 +175,12 @@ The runtime-specific setup path should therefore explain:
 - how the user accesses Superteam once the marketplace is available
 - what the first-use action looks like in that runtime
 
-This matters because the marketplace setup is part of the real install experience. Without it, the runtime sections are incomplete even if the rest of the README is clear.
+This matters because the real install experience has two dependency steps:
+
+1. install Superpowers
+2. set up access to the `patinaproject/skills` marketplace for Superteam
+
+Without both steps, the runtime sections are incomplete even if the rest of the README is clear.
 
 ### Claude Code Setup Guidance
 
@@ -214,6 +231,7 @@ Validation for this work should focus on clarity and narrative flow rather than 
 - verify that the landing page does not imply an unvalidated runtime preference
 - verify that the flagship workflow and continuity story are understandable before installation details
 - verify that install guidance leads into an explicit first-use next step
+- verify that the README makes Superpowers an explicit prerequisite and links to the Superpowers repository for installation
 - verify that the README includes separate setup sections for Claude Code, OpenAI Codex CLI, and OpenAI Codex App
 - verify that each runtime section explains the `patinaproject/skills` marketplace setup path
 - verify that the Claude Code install path includes an optional Agent Teams subsection with a brief explanation of how it differs from regular setup
@@ -230,6 +248,7 @@ Validation for this work should focus on clarity and narrative flow rather than 
 - AC-7-8: The README includes separate setup sections for Claude Code, OpenAI Codex CLI, and OpenAI Codex App
 - AC-7-9: Each runtime section explains how to set up access to the `patinaproject/skills` marketplace before first use
 - AC-7-10: Maintainer-oriented packaging guidance is not mixed into the user-facing runtime setup flow
+- AC-7-11: The README makes Superpowers an explicit prerequisite and links to the Superpowers repository for installation guidance
 
 ## Implementation Notes
 

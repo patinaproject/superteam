@@ -169,11 +169,18 @@ Update the lower half of `README.md` so the installation details appear after th
 
 ## Installation
 
+Install Superpowers first by following the instructions in:
+
+```text
+https://github.com/obra/superpowers
+```
+
 ### Claude Code
 
-1. Set up access to the `patinaproject/skills` marketplace in Claude Code.
-2. Install or enable Superteam from that marketplace source.
-3. Load Superteam in Claude Code and start from a GitHub issue.
+1. Install Superpowers first by following the setup instructions in `https://github.com/obra/superpowers`.
+2. Set up access to the `patinaproject/skills` marketplace in Claude Code.
+3. Install or enable Superteam from that marketplace source.
+4. Load Superteam in Claude Code and start from a GitHub issue.
 
 Use the repository root as the Claude plugin directory during local testing:
 
@@ -195,15 +202,17 @@ Agent Teams lets multiple agents coordinate through the staged workflow. The reg
 
 ### OpenAI Codex CLI
 
-1. Set up access to the `patinaproject/skills` marketplace in Codex CLI.
-2. Install or enable Superteam from that marketplace source.
-3. Start from a GitHub issue and invoke Superteam in Codex CLI.
+1. Install Superpowers first by following the setup instructions in `https://github.com/obra/superpowers`.
+2. Set up access to the `patinaproject/skills` marketplace in Codex CLI.
+3. Install or enable Superteam from that marketplace source.
+4. Start from a GitHub issue and invoke Superteam in Codex CLI.
 
 ### OpenAI Codex App
 
-1. Set up access to the `patinaproject/skills` marketplace in the Codex app.
-2. Add Superteam from that marketplace source.
-3. Start from a GitHub issue and invoke Superteam in the app.
+1. Install Superpowers first by following the setup instructions in `https://github.com/obra/superpowers`.
+2. Set up access to the `patinaproject/skills` marketplace in the Codex app.
+3. Add Superteam from that marketplace source.
+4. Start from a GitHub issue and invoke Superteam in the app.
 
 ## First use
 
@@ -237,6 +246,7 @@ sed -n '1,220p' README.md
 Expected:
 - a short scan explains what Superteam is
 - runtime compatibility is visible without implying a preference
+- the README makes Superpowers an explicit prerequisite and links to its repo
 - the README includes separate sections for Claude Code, OpenAI Codex CLI, and OpenAI Codex App
 - each runtime path explains the `patinaproject/skills` marketplace setup path
 - the optional Agent Teams subsection is present under the Claude Code section with a brief difference explanation
@@ -322,6 +332,7 @@ AC-7-7 -> Task 3
 AC-7-8 -> Task 3
 AC-7-9 -> Task 3
 AC-7-10 -> Task 3
+AC-7-11 -> Task 3
 ```
 
 - [ ] **Step 2: Verify the plan file follows the branch-based naming rule**
