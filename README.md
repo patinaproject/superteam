@@ -31,6 +31,16 @@ flowchart LR
 
 Each stage owns specific artifacts and verification gates, so work stays understandable across handoffs instead of becoming ad hoc subagent output.
 
+## Agent roster
+
+| Stage | Agent | Superpowers skill |
+| --- | --- | --- |
+| Brainstorm | Brainstormer | `superpowers:brainstorming` |
+| Plan | Planner | `superpowers:writing-plans` |
+| Execute | Implementer | `superpowers:subagent-driven-development` |
+| Review | Reviewer | `superpowers:requesting-code-review` |
+| Finish | Finisher | `superpowers:finishing-a-development-branch` |
+
 ## Why teams can pick up where they left off
 
 Superteam is built around explicit stage ownership, written design and plan artifacts, verification before completion, and finish-stage review follow-through. That structure gives the next agent enough context to continue intelligently instead of starting over.
