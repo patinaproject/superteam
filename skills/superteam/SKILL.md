@@ -161,16 +161,23 @@ Before resolving or replying to comments tied to a prior branch state:
 - `Reviewer` failing to classify findings as `implementation-level`, `plan-level`, or `spec-level`.
 - Local review findings taking ownership of external PR feedback away from `Finisher`.
 - `Finisher` resolving prior-state comments without checking current branch state first.
-- Shutting down with unresolved review threads or bot findings still open.
+- Shutting down with unresolved review threads or other blocking external PR feedback still open.
 
 ## Shutdown
 
+Shutdown is a success-only action. Do not shut down or present the run as complete unless every required shutdown check passes on the latest pushed PR state.
+
 Before shutdown:
 
-1. Check unresolved inline review threads for the active PR after the latest push.
-2. Check recent PR-level bot findings after the latest push.
-3. If either remains, dispatch `Finisher`-owned feedback handling and re-check.
-4. Only request shutdown when unresolved external feedback is cleared or a blocker is reported explicitly.
+1. Verify the active PR and the current branch state after the latest push.
+2. Check unresolved inline review threads on the latest PR head.
+3. Check recent blocking external PR feedback on the latest pushed state.
+4. Treat the following as blocking:
+   - unresolved inline review threads on the latest PR head
+   - unresolved reviewer or bot feedback posted after the latest push that requests a code change, verification rerun, follow-up response, or other concrete corrective action before the PR is ready
+5. If blocking feedback exists, dispatch `Finisher`-owned feedback handling and re-check.
+6. If the state cannot be determined safely, prompt the operator instead of guessing.
+7. Only request shutdown when every required shutdown check passes. Otherwise halt with an explicit blocker.
 
 Use repository placeholders such as `<owner>`, `<repo>`, `<pr>`, and `<branch>` in commands so the workflow stays portable across repositories.
 

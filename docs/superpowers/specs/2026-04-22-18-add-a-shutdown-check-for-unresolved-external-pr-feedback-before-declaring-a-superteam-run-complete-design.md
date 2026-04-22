@@ -2,9 +2,9 @@
 
 ## Summary
 
-Harden the `superteam` shutdown contract so a run can only complete successfully after `Finisher` verifies that external PR feedback has been checked on the latest pushed state and no unresolved actionable feedback remains. The design focuses on the exact failure mode from April 22, 2026: a run published a PR, got CI green, and still ended as if complete even though unresolved inline review threads were open.
+Harden the `superteam` shutdown contract so a run can only complete successfully after `Finisher` verifies that external PR feedback has been checked on the latest pushed state and no unresolved blocking feedback remains. The design focuses on the exact failure mode from April 22, 2026: a run published a PR, got CI green, and still ended as if complete even though unresolved inline review threads were open.
 
-The fix stays narrow. It does not redesign the teammate roster or the overall `superteam` flow. Instead, it strengthens the existing `Finisher` shutdown path so unresolved inline review threads and recent actionable PR feedback become explicit pre-shutdown checks with clear failure behavior.
+The fix stays narrow. It does not redesign the teammate roster or the overall `superteam` flow. Instead, it strengthens the existing `Finisher` shutdown path so unresolved inline review threads and recent blocking PR feedback become explicit pre-shutdown checks with clear failure behavior.
 
 ## Goals
 
@@ -41,11 +41,18 @@ Before successful shutdown, `Finisher` must perform an explicit post-latest-push
 
 1. verify the active PR and current branch state being evaluated
 2. check unresolved inline review threads on the latest PR head
-3. check recent actionable external PR feedback on the latest pushed state
-4. if actionable feedback exists, dispatch `Finisher`-owned handling and re-check
+3. check recent blocking external PR feedback on the latest pushed state
+4. if blocking feedback exists, dispatch `Finisher`-owned handling and re-check
 5. only declare successful shutdown when the re-check confirms that no blocking unresolved external feedback remains
 
-For this issue, "recent actionable external PR feedback" should be interpreted narrowly and operationally. It includes reviewer or bot feedback on the PR after the latest push that calls for code, workflow, or follow-through action. It does not require broad interpretation of informational chatter that does not request a change and does not block readiness.
+For this issue, "blocking external PR feedback" should be interpreted narrowly and concretely. It includes only:
+
+- unresolved inline review threads on the latest PR head
+- unresolved review comments or bot findings posted after the latest push that request a code change, verification rerun, follow-up response, or other concrete corrective action before the PR is ready
+
+It does not include general discussion, acknowledgements, or informational comments that do not ask for a change and do not affect PR readiness.
+
+If `Finisher` cannot tell from the available PR state whether a bot or reviewer comment is blocking, the run must treat that uncertainty as a failed shutdown check and prompt the operator instead of guessing.
 
 This definition keeps the shutdown rule enforceable without turning `Finisher` into a speculative classifier for every possible PR comment.
 
@@ -57,7 +64,7 @@ The required behaviors are:
 
 - implementation-level external feedback routes through the expected loopback handling path before shutdown
 - requirement-bearing feedback continues to route through the existing spec-first path
-- unresolved feedback that cannot be safely classified or handled must block shutdown and be surfaced to the operator explicitly
+- unresolved feedback that cannot be safely classified, matched to current branch state, or handled must block shutdown and be surfaced to the operator explicitly
 
 If the run cannot determine whether feedback still applies to the latest state, cannot determine whether a thread is resolved on the current head, or otherwise cannot safely evaluate shutdown readiness, it must stop and prompt the operator instead of claiming completion.
 
@@ -81,7 +88,7 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 
 - inspect the updated `superteam` skill contract for success-only shutdown wording
 - verify `Finisher` shutdown instructions require checking unresolved inline review threads after the latest push
-- verify `Finisher` shutdown instructions require checking recent actionable external PR feedback after the latest push
+- verify `Finisher` shutdown instructions require checking recent blocking external PR feedback after the latest push
 - verify runs with unresolved external feedback cannot present a successful completion state
 - verify unresolved implementation-level feedback routes back through the expected loopback handling path before shutdown
 - verify indeterminate shutdown state causes an explicit operator prompt instead of silent success
@@ -91,7 +98,7 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 
 - AC-18-1: Given a `superteam` run that has published a PR, when unresolved inline review threads still exist on the latest PR head, then the run does not present itself as complete
 - AC-18-2: Given external PR feedback that is implementation-level, when `Finisher` reaches shutdown, then that feedback is explicitly routed back through the expected loopback path before completion
-- AC-18-3: Given a PR with no unresolved inline review threads or recent actionable bot findings, when `Finisher` performs shutdown checks, then the run may complete normally
+- AC-18-3: Given a PR with no unresolved inline review threads and no recent blocking bot or reviewer findings on the latest pushed state, when `Finisher` performs shutdown checks, then the run may complete normally
 - AC-18-4: Given unresolved external feedback remains or the shutdown state cannot be determined safely, when the run stops, then it reports the blocker explicitly and prompts the operator instead of silently ending in a success state
 
 ## Implementation Notes

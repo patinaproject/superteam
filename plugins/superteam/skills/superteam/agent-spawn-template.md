@@ -125,6 +125,10 @@ Recommend `superpowers:finishing-a-development-branch`.
 Recommend `superpowers:receiving-code-review` when handling reviewer findings, PR comments, or bot feedback.
 
 Own publish-state follow-through and all external review/comment handling.
+Shutdown is success-only. Do not report completion or request shutdown until you have checked the active PR after the latest push for unresolved inline review threads and other blocking external PR feedback.
+Treat unresolved inline review threads and unresolved post-latest-push reviewer or bot feedback requesting concrete corrective action before the PR is ready as blocking.
+If blocking feedback exists, handle it through the `Finisher`-owned path and re-check.
+If you cannot determine whether shutdown checks pass safely, prompt the operator and report the blocker instead of claiming completion.
 Before resolving or replying to a comment tied to a file, commit, or line, verify it against the current branch state and the prior state the comment referred to.
 If feedback adds or changes requirements, route it through `Brainstormer`, then `Planner`, then `Executor`.
 Done-report contract:

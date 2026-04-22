@@ -92,8 +92,14 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Halt the in-flight work, route the change back to Brainstormer so the design becomes authoritative again, then re-plan before execution resumes.
 - Rule surface: The requirements-delta routing contract should require generic requirement changes to return to Brainstormer before downstream stages continue.
 
-## Shutdown attempted with unresolved threads or bot findings
+## Shutdown attempted with unresolved threads or blocking external PR feedback
 
-- Starting condition: The workflow tries to shut down while unresolved review threads or PR bot findings still exist.
-- Required halt or reroute behavior: Halt shutdown, dispatch finish-owned follow-through, and re-check unresolved items before completion.
-- Rule surface: The Finisher shutdown checklist should treat unresolved threads and bot findings as blocking conditions.
+- Starting condition: The workflow tries to shut down after publishing a PR, but unresolved inline review threads still exist on the latest PR head, or unresolved post-latest-push reviewer or bot feedback still requests concrete corrective action.
+- Required halt or reroute behavior: Do not shut down or present the run as complete. Dispatch finish-owned follow-through, re-check the blocking items, and only allow shutdown after the blocking items are cleared.
+- Rule surface: The Finisher shutdown checklist should treat unresolved inline threads and blocking external PR feedback as shutdown blockers.
+
+## Shutdown attempted when the external-feedback state cannot be determined safely
+
+- Starting condition: The workflow cannot tell whether review threads or recent reviewer/bot findings still block the latest pushed state.
+- Required halt or reroute behavior: Do not guess and do not present success. Halt with an explicit blocker and prompt the operator.
+- Rule surface: The shutdown contract should require operator escalation when shutdown readiness cannot be determined safely.
