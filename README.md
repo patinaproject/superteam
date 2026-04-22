@@ -39,9 +39,16 @@ Each stage owns specific artifacts and verification gates, so work stays underst
 | Review | Reviewer | `superpowers:requesting-code-review` |
 | Finish | Finisher | `superpowers:finishing-a-development-branch` |
 
-## Why teams can pick up where they left off
+## Run superteam anytime
 
-Superteam is built around explicit stage ownership, written design and plan artifacts, verification before completion, and finish-stage review follow-through. That structure gives the next agent enough context to continue intelligently instead of starting over.
+Superteam keeps the workflow grounded in explicit stage ownership, written design and plan artifacts, verification before completion, and finish-stage review follow-through. That means you can invoke Superteam at any point in the lifecycle and have it resume from the right stage instead of starting the whole process over.
+
+For example:
+
+```text
+$superteam resume this issue
+$superteam new requirement: ...
+```
 
 ## Install surfaces
 
