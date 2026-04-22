@@ -44,17 +44,19 @@ Superteam is built around explicit stage ownership, written design and plan arti
 
 ### Claude Code
 
-1. Add the `patinaproject/skills` marketplace source in Claude Code before you try to install Superteam.
-2. Install or enable Superteam from that marketplace listing.
-3. Start from a GitHub issue and run Superteam in Claude Code.
-
-Use the repository root as the Claude plugin directory during local testing:
+1. Register the Patina Project marketplace in Claude Code:
 
 ```bash
-claude --plugin-dir .
+/plugin marketplace add patinaproject/skills
 ```
 
-Once loaded, start from a GitHub issue and invoke:
+2. Install Superteam from that marketplace:
+
+```bash
+/plugin install superteam@patinaproject-skills
+```
+
+3. Start from a GitHub issue and invoke:
 
 ```text
 /superteam:superteam
@@ -68,15 +70,35 @@ Agent Teams lets multiple agents coordinate through the staged workflow. The reg
 
 ### OpenAI Codex CLI
 
-1. Add the `patinaproject/skills` marketplace source in OpenAI Codex CLI before first use.
-2. Install or enable Superteam from that marketplace listing.
-3. Open the relevant GitHub issue in your working context, then invoke the `superteam` skill in OpenAI Codex CLI.
+1. Add the Patina Project marketplace from GitHub:
+
+```bash
+codex plugin marketplace add patinaproject/skills --ref main
+codex plugin marketplace upgrade
+```
+
+2. Open the Codex Plugin Directory, open the `Patina Project` marketplace, and install `Superteam`.
+3. Open the relevant GitHub issue in your working context, then invoke:
+
+```text
+Use $superteam to take this issue from design through review-ready execution.
+```
 
 ### OpenAI Codex App
 
-1. Add the `patinaproject/skills` marketplace source in the OpenAI Codex app before first use.
-2. Add or enable Superteam from that marketplace listing.
-3. Open the relevant GitHub issue in the app context, then invoke the `superteam` skill in OpenAI Codex App.
+1. In a terminal or Codex CLI session, add the Patina Project marketplace from GitHub:
+
+```bash
+codex plugin marketplace add patinaproject/skills --ref main
+codex plugin marketplace upgrade
+```
+
+2. In the Codex app, open the Plugin Directory, open the `Patina Project` marketplace, and install `Superteam`.
+3. Open the relevant GitHub issue in the app context, then invoke:
+
+```text
+Use $superteam to take this issue from design through review-ready execution.
+```
 
 ## First use
 
