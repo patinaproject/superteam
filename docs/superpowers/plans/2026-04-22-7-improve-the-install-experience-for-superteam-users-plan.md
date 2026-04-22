@@ -40,7 +40,7 @@ Orchestrate teams of agents with Superpowers.
 
 Superteam turns a GitHub issue into a structured workflow that teams of agents can pick up, hand off, and continue without losing context.
 
-It is designed to work best with Claude Code Agent Teams, and it also works with subagents when team features are unavailable.
+It works with agent teams or subagents.
 ```
 
 Immediately after that opening, add a short section that explains the problem in plain language:
@@ -58,14 +58,13 @@ Superteam adds a disciplined workflow on top of Superpowers so agent work stays 
 Run:
 
 ```bash
-rg -n "Orchestrate teams of agents with Superpowers|The problem|Claude Code Agent Teams|subagents" README.md
+rg -n "Orchestrate teams of agents with Superpowers|The problem|agent teams or subagents" README.md
 ```
 
 Expected:
 - one match for the headline
 - one match for `## The problem`
-- one match that states Claude Code Agent Teams are the preferred runtime
-- one match that states subagent compatibility
+- one match that states runtime compatibility in neutral terms
 
 - [ ] **Step 4: Commit the README opening rewrite**
 
@@ -169,7 +168,7 @@ Update the lower half of `README.md` so the installation details appear after th
 - `plugins/superteam/` is the packaged Codex install surface.
 - Author the skill in `skills/superteam/`, then refresh the packaged plugin with `pnpm sync:plugin` before publishing Codex-facing changes.
 
-## First use
+## Claude Code setup
 
 Use the repository root as the Claude plugin directory during local testing:
 
@@ -182,6 +181,16 @@ Once loaded, start from a GitHub issue and invoke:
 ```text
 /superteam:superteam
 ```
+
+### Optional: Enable Agent Teams
+
+If you want a team-oriented runtime, enable Agent Teams in your Claude Code setup and then run the same workflow through Superteam.
+
+Agent Teams lets multiple agents coordinate through the staged workflow. The regular setup runs the same workflow with a single agent or subagents.
+
+## First use
+
+Start from a GitHub issue and invoke the skill. Superteam will drive the issue through design, planning, execution, review, and handoff artifacts.
 ````
 
 Keep the install facts accurate, but ensure they no longer appear before the product explanation.
@@ -197,7 +206,8 @@ rg -n "^## " README.md
 Expected:
 - `## The problem` appears before any install section
 - `## How Superteam works` appears before `## Install surfaces`
-- `## First use` exists after installation guidance
+- `## Claude Code setup` exists after installation guidance
+- `## First use` exists after the setup sections
 
 - [ ] **Step 3: Sanity-check the landing-page scan as a first-time user**
 
@@ -209,8 +219,8 @@ sed -n '1,220p' README.md
 
 Expected:
 - a short scan explains what Superteam is
-- the preferred Agent Teams runtime is visible
-- subagent compatibility is visible but secondary
+- runtime compatibility is visible without implying a preference
+- the optional Agent Teams subsection is present with a brief difference explanation
 - install guidance leads into a concrete first-use action
 
 - [ ] **Step 4: Commit the install-flow restructuring**
@@ -285,9 +295,10 @@ Check the design doc and map it to implementation tasks:
 AC-7-1 -> Tasks 1 and 3
 AC-7-2 -> Task 2
 AC-7-3 -> Task 1
-AC-7-4 -> Task 1
+AC-7-4 -> Tasks 1 and 3
 AC-7-5 -> Task 2
 AC-7-6 -> Task 3
+AC-7-7 -> Task 3
 ```
 
 - [ ] **Step 2: Verify the plan file follows the branch-based naming rule**
