@@ -151,13 +151,13 @@ git add README.md
 git commit -m "docs: #7 add workflow and continuity overview"
 ```
 
-### Task 3: Move install guidance below understanding and connect it to first use
+### Task 3: Split install guidance into tool-specific setup paths and connect each to first use
 
 **Files:**
 - Modify: `README.md`
 - Test: `README.md`
 
-- [ ] **Step 1: Replace the current install-surface block with an install section that follows the workflow narrative**
+- [ ] **Step 1: Replace the current install-surface block with a brief install overview and runtime-specific setup sections**
 
 Update the lower half of `README.md` so the installation details appear after the product and workflow sections, using this structure:
 
@@ -166,9 +166,14 @@ Update the lower half of `README.md` so the installation details appear after th
 
 - The repository root is the Claude Code plugin surface discovered via `.claude-plugin/plugin.json`.
 - `plugins/superteam/` is the packaged Codex install surface.
-- Author the skill in `skills/superteam/`, then refresh the packaged plugin with `pnpm sync:plugin` before publishing Codex-facing changes.
 
-## Claude Code setup
+## Installation
+
+### Claude Code
+
+1. Set up access to the `patinaproject/skills` marketplace in Claude Code.
+2. Install or enable Superteam from that marketplace source.
+3. Load Superteam in Claude Code and start from a GitHub issue.
 
 Use the repository root as the Claude plugin directory during local testing:
 
@@ -188,12 +193,24 @@ If you want a team-oriented runtime, enable Agent Teams in your Claude Code setu
 
 Agent Teams lets multiple agents coordinate through the staged workflow. The regular setup runs the same workflow with a single agent or subagents.
 
+### OpenAI Codex CLI
+
+1. Set up access to the `patinaproject/skills` marketplace in Codex CLI.
+2. Install or enable Superteam from that marketplace source.
+3. Start from a GitHub issue and invoke Superteam in Codex CLI.
+
+### OpenAI Codex App
+
+1. Set up access to the `patinaproject/skills` marketplace in the Codex app.
+2. Add Superteam from that marketplace source.
+3. Start from a GitHub issue and invoke Superteam in the app.
+
 ## First use
 
-Start from a GitHub issue and invoke the skill. Superteam will drive the issue through design, planning, execution, review, and handoff artifacts.
+After setup in any supported tool, start from a GitHub issue and invoke Superteam. The workflow then drives the issue through design, planning, execution, review, and handoff artifacts.
 ````
 
-Keep the install facts accurate, but ensure they no longer appear before the product explanation.
+Keep the install facts accurate, ensure they no longer appear before the product explanation, and remove maintainer-oriented packaging guidance from this user-facing flow.
 
 - [ ] **Step 2: Verify the README section order is onboarding-first**
 
@@ -206,8 +223,8 @@ rg -n "^## " README.md
 Expected:
 - `## The problem` appears before any install section
 - `## How Superteam works` appears before `## Install surfaces`
-- `## Claude Code setup` exists after installation guidance
-- `## First use` exists after the setup sections
+- `## Installation` exists after `## Install surfaces`
+- `## First use` exists after the runtime-specific setup sections
 
 - [ ] **Step 3: Sanity-check the landing-page scan as a first-time user**
 
@@ -220,7 +237,10 @@ sed -n '1,220p' README.md
 Expected:
 - a short scan explains what Superteam is
 - runtime compatibility is visible without implying a preference
-- the optional Agent Teams subsection is present with a brief difference explanation
+- the README includes separate sections for Claude Code, OpenAI Codex CLI, and OpenAI Codex App
+- each runtime path explains the `patinaproject/skills` marketplace setup path
+- the optional Agent Teams subsection is present under the Claude Code section with a brief difference explanation
+- maintainer packaging guidance is no longer mixed into the user-facing setup flow
 - install guidance leads into a concrete first-use action
 
 - [ ] **Step 4: Commit the install-flow restructuring**
@@ -299,6 +319,9 @@ AC-7-4 -> Tasks 1 and 3
 AC-7-5 -> Task 2
 AC-7-6 -> Task 3
 AC-7-7 -> Task 3
+AC-7-8 -> Task 3
+AC-7-9 -> Task 3
+AC-7-10 -> Task 3
 ```
 
 - [ ] **Step 2: Verify the plan file follows the branch-based naming rule**

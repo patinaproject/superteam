@@ -141,6 +141,30 @@ Installation guidance should follow understanding rather than lead it. The broad
 
 If installation instructions exist without that narrative, the user experience remains incomplete even if the commands themselves are correct.
 
+### Runtime-Specific Setup Guidance
+
+The user-facing install guidance should follow a structure similar to `obra/superpowers`: keep the install section brief, then provide separate setup subsections for each supported tool.
+
+For this repository, the README should include:
+
+- `### Claude Code`
+- `### OpenAI Codex CLI`
+- `### OpenAI Codex App`
+
+Each runtime section should include a concrete install-to-first-use path rather than relying on a shared generic setup block.
+
+### Marketplace Setup Guidance
+
+Each runtime section should instruct users how to set up access to the `patinaproject/skills` marketplace before they try to use Superteam.
+
+The runtime-specific setup path should therefore explain:
+
+- how that tool connects to or installs from the `patinaproject/skills` marketplace
+- how the user accesses Superteam once the marketplace is available
+- what the first-use action looks like in that runtime
+
+This matters because the marketplace setup is part of the real install experience. Without it, the runtime sections are incomplete even if the rest of the README is clear.
+
 ### Claude Code Setup Guidance
 
 Within the user-facing install guidance, the Claude Code path should remain complete and usable on its own. It should not require Agent Teams to make sense.
@@ -154,6 +178,21 @@ The optional subsection should:
 - include one short factual explanation of the difference
 
 The difference should be explained briefly: Agent Teams provides a team-oriented runtime where multiple agents can coordinate through the staged workflow, while the regular setup runs the same workflow with a single agent or subagents.
+
+### Codex Setup Guidance
+
+The README should give OpenAI Codex users their own concrete runtime paths rather than treating Codex as a secondary mention under install surfaces.
+
+That means:
+
+- one subsection for `### OpenAI Codex CLI`
+- one subsection for `### OpenAI Codex App`
+
+Both subsections should explain how the `patinaproject/skills` marketplace fits into setup, and both should end with a clear first-use action for Superteam in that runtime.
+
+### Contributor Boundary
+
+Maintainer-oriented packaging guidance should not sit inside the user-facing runtime setup flow. Instructions such as authoring in `skills/superteam/` or running `pnpm sync:plugin` belong in contributor docs rather than the main install walkthrough.
 
 ## Inspiration And Constraints
 
@@ -175,6 +214,8 @@ Validation for this work should focus on clarity and narrative flow rather than 
 - verify that the landing page does not imply an unvalidated runtime preference
 - verify that the flagship workflow and continuity story are understandable before installation details
 - verify that install guidance leads into an explicit first-use next step
+- verify that the README includes separate setup sections for Claude Code, OpenAI Codex CLI, and OpenAI Codex App
+- verify that each runtime section explains the `patinaproject/skills` marketplace setup path
 - verify that the Claude Code install path includes an optional Agent Teams subsection with a brief explanation of how it differs from regular setup
 
 ## Acceptance Criteria
@@ -186,6 +227,9 @@ Validation for this work should focus on clarity and narrative flow rather than 
 - AC-7-5: The continuity and handoff model is understandable from the initial docs experience
 - AC-7-6: Installation guidance connects to a clear first-use next step instead of ending at setup
 - AC-7-7: The Claude Code install guidance includes an optional Agent Teams subsection with a brief explanation of how Agent Teams differs from regular setup
+- AC-7-8: The README includes separate setup sections for Claude Code, OpenAI Codex CLI, and OpenAI Codex App
+- AC-7-9: Each runtime section explains how to set up access to the `patinaproject/skills` marketplace before first use
+- AC-7-10: Maintainer-oriented packaging guidance is not mixed into the user-facing runtime setup flow
 
 ## Implementation Notes
 
