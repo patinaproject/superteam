@@ -35,13 +35,13 @@ Each stage owns specific artifacts and verification gates, so work stays underst
 
 Superteam is built around explicit stage ownership, written design and plan artifacts, verification before completion, and finish-stage review follow-through. That structure gives the next agent enough context to continue intelligently instead of starting over.
 
-## Install Surfaces
+## Install surfaces
 
 - The repository root is the Claude Code plugin surface discovered via `.claude-plugin/plugin.json`.
 - `plugins/superteam/` is the packaged Codex install surface.
 - Author the skill in `skills/superteam/`, then refresh the packaged plugin with `pnpm sync:plugin` before publishing Codex-facing changes.
 
-## Local Development
+## Claude Code setup
 
 Use the repository root as the Claude plugin directory during local testing:
 
@@ -49,4 +49,18 @@ Use the repository root as the Claude plugin directory during local testing:
 claude --plugin-dir .
 ```
 
-The skill is exposed as `/superteam:superteam` once the plugin is loaded.
+Once loaded, start from a GitHub issue and invoke:
+
+```text
+/superteam:superteam
+```
+
+### Optional: Enable Agent Teams
+
+If you want a team-oriented runtime, enable Agent Teams in your Claude Code setup and then run the same workflow through Superteam.
+
+Agent Teams lets multiple agents coordinate through the staged workflow. The regular setup runs the same workflow with a single agent or subagents.
+
+## First use
+
+Start from a GitHub issue and invoke the skill. Superteam will drive the issue through design, planning, execution, review, and handoff artifacts.
