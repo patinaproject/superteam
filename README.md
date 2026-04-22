@@ -39,9 +39,14 @@ Superteam is built around explicit stage ownership, written design and plan arti
 
 - The repository root is the Claude Code plugin surface discovered via `.claude-plugin/plugin.json`.
 - `plugins/superteam/` is the packaged Codex install surface.
-- Author the skill in `skills/superteam/`, then refresh the packaged plugin with `pnpm sync:plugin` before publishing Codex-facing changes.
 
-## Claude Code setup
+## Installation
+
+### Claude Code
+
+1. Add the `patinaproject/skills` marketplace source in Claude Code before you try to install Superteam.
+2. Install or enable Superteam from that marketplace listing.
+3. Start from a GitHub issue and run Superteam in Claude Code.
 
 Use the repository root as the Claude plugin directory during local testing:
 
@@ -61,6 +66,18 @@ If you want a team-oriented runtime, enable Agent Teams in your Claude Code setu
 
 Agent Teams lets multiple agents coordinate through the staged workflow. The regular setup runs the same workflow with a single agent or subagents.
 
+### OpenAI Codex CLI
+
+1. Add the `patinaproject/skills` marketplace source in OpenAI Codex CLI before first use.
+2. Install or enable Superteam from that marketplace listing.
+3. Open the relevant GitHub issue in your working context, then invoke the `superteam` skill in OpenAI Codex CLI.
+
+### OpenAI Codex App
+
+1. Add the `patinaproject/skills` marketplace source in the OpenAI Codex app before first use.
+2. Add or enable Superteam from that marketplace listing.
+3. Open the relevant GitHub issue in the app context, then invoke the `superteam` skill in OpenAI Codex App.
+
 ## First use
 
-Start from a GitHub issue and invoke the skill. Superteam will drive the issue through design, planning, execution, review, and handoff artifacts.
+After setup in any supported tool, start from a GitHub issue and invoke Superteam. The workflow then drives the issue through design, planning, execution, review, and handoff artifacts.
