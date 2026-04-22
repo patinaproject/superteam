@@ -75,7 +75,7 @@ git add README.md
 git commit -m "docs: #7 rewrite superteam landing page opening"
 ```
 
-### Task 2: Add a flagship workflow section and continuity-first diagram
+### Task 2: Add a flagship workflow section, compact agent roster, and continuity-first diagram
 
 **Files:**
 - Modify: `README.md`
@@ -120,7 +120,25 @@ Each stage owns specific artifacts and verification gates, so work stays underst
 
 Keep the stage names consistent with `skills/superteam/SKILL.md`.
 
-- [ ] **Step 3: Add one short continuity section below the workflow**
+- [ ] **Step 3: Add a compact agent roster table below the workflow**
+
+Append a small table directly after `## How Superteam works`:
+
+```md
+## Agent roster
+
+| Stage | Agent | Superpowers skill |
+| --- | --- | --- |
+| Brainstorm | Brainstormer | `superpowers:brainstorming` |
+| Plan | Planner | `superpowers:writing-plans` |
+| Execute | Implementer | `superpowers:subagent-driven-development` |
+| Review | Reviewer | `superpowers:requesting-code-review` |
+| Finish | Finisher | `superpowers:finishing-a-development-branch` |
+```
+
+Keep it compact. Do not turn this into a long reference section.
+
+- [ ] **Step 4: Add one short continuity section below the roster**
 
 Append this section directly after `## How Superteam works`:
 
@@ -130,19 +148,21 @@ Append this section directly after `## How Superteam works`:
 Superteam is built around explicit stage ownership, written design and plan artifacts, verification before completion, and finish-stage review follow-through. That structure gives the next agent enough context to continue intelligently instead of starting over.
 ```
 
-- [ ] **Step 4: Verify the README matches the skill's workflow vocabulary**
+- [ ] **Step 5: Verify the README matches the skill's workflow vocabulary and includes the roster**
 
 Run:
 
 ```bash
-rg -n "Brainstorm|Plan|Execute|Pre-push review|Finish|Comment handling|Why teams can pick up where they left off" README.md
+rg -n "Brainstorm|Plan|Execute|Pre-push review|Finish|Comment handling|## Agent roster|superpowers:brainstorming|superpowers:writing-plans|superpowers:subagent-driven-development|superpowers:requesting-code-review|superpowers:finishing-a-development-branch|Why teams can pick up where they left off" README.md
 ```
 
 Expected:
 - matches for all six stage names in `README.md`
+- one match for `## Agent roster`
+- one match for each listed Superpowers skill in the roster
 - one match for the continuity section heading
 
-- [ ] **Step 5: Commit the workflow and continuity additions**
+- [ ] **Step 6: Commit the workflow, roster, and continuity additions**
 
 Run:
 
@@ -327,6 +347,7 @@ AC-7-2 -> Task 2
 AC-7-3 -> Task 1
 AC-7-4 -> Tasks 1 and 3
 AC-7-5 -> Task 2
+AC-7-5a -> Task 2
 AC-7-6 -> Task 3
 AC-7-7 -> Task 3
 AC-7-8 -> Task 3

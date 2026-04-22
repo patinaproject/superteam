@@ -109,6 +109,20 @@ The docs should center on one flagship workflow rather than several entry points
 
 This matters because the skill itself is explicitly stage-based. The workflow is not just conceptual marketing. It is the actual operating model enforced by the skill.
 
+### Agent Roster
+
+The README should also include a compact roster for users who already know Superpowers and want to understand how Superteam composes those skills into one workflow.
+
+This should be a small table near the workflow section, not a long reference section.
+
+The table should map:
+
+- stage
+- agent role
+- Superpowers skill
+
+It should stay intentionally compact and cover only the core flow, so the README remains scannable.
+
 ### Runtime Positioning
 
 The landing page should state clearly that Superteam works with agent teams or subagents. It should avoid saying one runtime works better than the other unless that claim has been validated.
@@ -230,6 +244,7 @@ Validation for this work should focus on clarity and narrative flow rather than 
 - verify that compatibility with agent teams or subagents is stated clearly
 - verify that the landing page does not imply an unvalidated runtime preference
 - verify that the flagship workflow and continuity story are understandable before installation details
+- verify that the README includes a compact roster table mapping Superteam stages to agent roles and Superpowers skills
 - verify that install guidance leads into an explicit first-use next step
 - verify that the README makes Superpowers an explicit prerequisite and links to the Superpowers repository for installation
 - verify that the README includes separate setup sections for Claude Code, OpenAI Codex CLI, and OpenAI Codex App
@@ -243,6 +258,7 @@ Validation for this work should focus on clarity and narrative flow rather than 
 - AC-7-3: The landing experience explains that Superteam works with agent teams or subagents
 - AC-7-4: The landing experience avoids implying an unvalidated runtime preference
 - AC-7-5: The continuity and handoff model is understandable from the initial docs experience
+- AC-7-5a: The README includes a compact roster table that maps the core Superteam stages to agent roles and Superpowers skills
 - AC-7-6: Installation guidance connects to a clear first-use next step instead of ending at setup
 - AC-7-7: The Claude Code install guidance includes an optional Agent Teams subsection with a brief explanation of how Agent Teams differs from regular setup
 - AC-7-8: The README includes separate setup sections for Claude Code, OpenAI Codex CLI, and OpenAI Codex App
