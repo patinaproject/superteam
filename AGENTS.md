@@ -1,0 +1,53 @@
+# Repository Guidelines
+
+## Project Structure & Module Organization
+
+This repository is organized around reusable skill packages and supporting documentation.
+
+- `skills/`: installable skill directories. Each skill should live in its own folder, for example `skills/superteam/`.
+- `docs/`: contributor-facing docs plus planning artifacts such as `docs/file-structure.md` and `docs/superpowers/plans/`.
+- root config: `package.json`, `commitlint.config.js`, and `.husky/` define local tooling and commit enforcement.
+
+Keep each skill self-contained. Prefer adjacent support files like `agent-spawn-template.md` or `pr-body-template.md` over hidden tool-specific wrappers unless a runtime requires them.
+
+## Build, Test, and Development Commands
+
+- `pnpm install`: install local tooling and initialize Husky hooks.
+- `pnpm exec commitlint --edit <path>`: validate a commit message file against repo rules.
+- `.husky/commit-msg <path>`: run the same commit-message validation through the active Git hook.
+- `find skills -maxdepth 2 -type f | sort`: quick structure check for imported skills.
+
+There is no application build pipeline yet; changes are currently Markdown and repo-tooling focused.
+
+## Coding Style & Naming Conventions
+
+Use Markdown for skill and docs content. Keep sections short, imperative, and repository-specific.
+
+- Skill directories: lowercase, concise names such as `skills/superteam/`
+- Main skill file: `SKILL.md`
+- Support files: descriptive kebab-case or clear template names
+- Prefer ASCII unless an existing file already relies on Unicode
+
+## Testing Guidelines
+
+No formal test suite exists yet. Validate changes with targeted file checks and command output.
+
+- Confirm paths with `find` or `rg`
+- Check rewritten references with `rg '<pattern>'`
+- Review rendered content with `sed -n '1,200p' <file>`
+
+If you add executable tooling later, document the exact verification command in `docs/`.
+
+## Commit & Pull Request Guidelines
+
+Commits are enforced with Husky + commitlint. Use conventional commits with no scope and a required GitHub issue tag:
+
+`type: #123 short description`
+
+Examples:
+- `docs: #12 add superteam skill guide`
+- `chore: #34 bootstrap commit hooks`
+
+Scopes like `feat(repo): ...` are rejected. Keep the subject within 72 characters.
+
+Pull requests should include a short summary, linked issue, validation notes, and any updated docs when structure or workflow changes.
