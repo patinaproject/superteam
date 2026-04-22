@@ -6,11 +6,24 @@ This repository is organized around reusable skill packages and supporting docum
 
 - `skills/`: installable skill directories. Each skill should live in its own folder, for example `skills/superteam/`.
 - `plugins/`: Codex plugin packages, for example `plugins/superteam/.codex-plugin/plugin.json`.
+- If `.claude-plugin/plugin.json` exists, the repository root is the Claude plugin install surface.
 - `docs/`: contributor-facing docs plus planning artifacts such as `docs/file-structure.md` and `docs/superpowers/plans/`.
 - `.agents/plugins/marketplace.json`: repo-local plugin catalog for Codex discovery.
 - root config: `package.json`, `commitlint.config.js`, and `.husky/` define local tooling and commit enforcement.
 
 Keep each skill self-contained. Prefer adjacent support files like `agent-spawn-template.md` or `pr-body-template.md` over hidden tool-specific wrappers unless a runtime requires them.
+
+For Superpowers-generated design and planning artifacts, use the current git branch name as the topic slug. Name files as:
+
+- `docs/superpowers/specs/YYYY-MM-DD-<branch-name>-design.md`
+- `docs/superpowers/plans/YYYY-MM-DD-<branch-name>-plan.md`
+
+Use human-readable H1 titles inside those files:
+
+- Design docs: `# Design: <exact issue title> [#<issue>](<issue-url>)`
+- Plan docs: `# Plan: <exact issue title> [#<issue>](<issue-url>)`
+
+Format acceptance criteria IDs as `AC-<issue-number>-<integer>`, for example `AC-5-1`.
 
 ## Build, Test, and Development Commands
 
@@ -57,3 +70,19 @@ Examples:
 Scopes like `feat(repo): ...` are rejected. Keep the subject within 72 characters.
 
 Pull requests should include a short summary, linked issue, validation notes, and any updated docs when structure or workflow changes.
+
+For squash-and-merge workflows, PR titles must exactly match the commitlint and commitizen commit format:
+
+`type: #123 short description`
+
+Use the final intended squash commit title as the PR title. Examples:
+- `docs: #12 add superteam skill guide`
+- `chore: #34 bootstrap commit hooks`
+
+When an issue defines acceptance criteria, include an `Acceptance Criteria` section in the PR description.
+
+- Use one `### AC-<issue>-<n>` heading per relevant AC, with the heading containing only the AC ID.
+- Put a short outcome summary on the line below the heading.
+- Put verification steps directly under the AC they validate.
+- Use checkboxes only for testing or verification steps.
+- If an AC is deferred or out of scope for the repo, say so in the summary text and do not add fake verification checkboxes.
