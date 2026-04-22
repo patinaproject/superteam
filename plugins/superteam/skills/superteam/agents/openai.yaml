@@ -1,6 +1,6 @@
 interface:
   display_name: "Superteam"
-  short_description: "Run issue-driven multi-agent delivery workflows"
+  short_description: "Build with a team of agents using Superpowers"
   default_prompt: "Use $superteam to take this issue from design through review-ready execution."
 
 policy:
