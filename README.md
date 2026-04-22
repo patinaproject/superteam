@@ -42,9 +42,15 @@ Superteam is built around explicit stage ownership, written design and plan arti
 
 ## Installation
 
+Install Superpowers first by following the setup instructions in:
+
+```text
+https://github.com/obra/superpowers
+```
+
 ### Claude Code
 
-1. Register the Patina Project marketplace in Claude Code:
+1. After Superpowers is installed, register the Patina Project marketplace in Claude Code:
 
 ```bash
 /plugin marketplace add patinaproject/skills
@@ -70,7 +76,7 @@ Agent Teams lets multiple agents coordinate through the staged workflow. The reg
 
 ### OpenAI Codex CLI
 
-1. Add the Patina Project marketplace from GitHub:
+1. After Superpowers is installed, add the Patina Project marketplace from GitHub:
 
 ```bash
 codex plugin marketplace add patinaproject/skills --ref main
@@ -86,7 +92,7 @@ Use $superteam to take this issue from design through review-ready execution.
 
 ### OpenAI Codex App
 
-1. In a terminal or Codex CLI session, add the Patina Project marketplace from GitHub:
+1. After Superpowers is installed, in a terminal or Codex CLI session add the Patina Project marketplace from GitHub:
 
 ```bash
 codex plugin marketplace add patinaproject/skills --ref main
