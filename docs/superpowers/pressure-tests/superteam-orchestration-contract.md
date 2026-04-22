@@ -86,6 +86,12 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Reroute through spec-level review with Brainstormer ownership, then plan-level planning, and only then execution.
 - Rule surface: The review-feedback routing contract should direct requirement-bearing changes to spec-level, then plan-level, before Executor work resumes.
 
+## Generic requirement delta routed past Brainstormer
+
+- Starting condition: A requirement changes outside the review-comment path and the workflow tries to continue with planning or execution without refreshing spec authority first.
+- Required halt or reroute behavior: Halt the in-flight work, route the change back to Brainstormer so the design becomes authoritative again, then re-plan before execution resumes.
+- Rule surface: The requirements-delta routing contract should require generic requirement changes to return to Brainstormer before downstream stages continue.
+
 ## Shutdown attempted with unresolved threads or bot findings
 
 - Starting condition: The workflow tries to shut down while unresolved review threads or PR bot findings still exist.

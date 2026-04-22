@@ -12,11 +12,13 @@
 - CI state: <passing | failing | pending>
 
 ## Acceptance Criteria
+### AC-<issue-number>-1
+Short outcome summary for this acceptance criterion.
+- [ ] Verification: `path/to/test.spec.ts > should ...` — ✅ verified
 
-- [ ] AC-<issue-number>-1: Given <precondition>, when <action>, then <observable result>. [E2E verified]
-  - Evidence: `path/to/test.spec.ts > should ...` — ✅ verified
-- [ ] AC-<issue-number>-2: Given <precondition>, when <action>, then <observable result>. [manual]
-  - Evidence: manual verification — <reason>
+### AC-<issue-number>-2
+Short outcome summary for this acceptance criterion.
+- [ ] Verification: manual verification — <reason>
 
 ## Test plan
 - [ ] All required ACs above verified on the latest pushed branch state
@@ -34,7 +36,7 @@ Only include this section when CI is still red and the operator has explicitly c
 
 ## Status rules
 
-- Use `[E2E verified]` when the corresponding tagged test passed on the latest CI run.
-- Use `[manual]` only when the design or plan explicitly marks that AC as manual verification.
+- Use the summary line under each `### AC-<issue-number>-<n>` heading for the outcome.
+- Use checkboxes only for verification steps beneath the AC heading.
 - Keep the acceptance criteria and verification synchronized with the latest pushed branch state.
 - Make review-state notes easy for `Finisher` to update after new pushes, reviewer findings, or CI changes.

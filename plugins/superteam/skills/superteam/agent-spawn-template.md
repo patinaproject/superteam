@@ -76,6 +76,10 @@ Use that canonical rule to determine the exact implementation plan path for this
 
 Do not write AC-to-file:line mapping tables in the plan.
 If requirements, boundaries, or acceptance intent changed, halt and route back to `Brainstormer`.
+Done-report contract:
+- `plan_path`: exact path to the written implementation plan
+- `workstreams[]`: short summary of planned batches or workstreams
+- `blockers[]`: any blockers preventing execution, or an explicit empty result when none exist
 ```
 
 ### Executor
