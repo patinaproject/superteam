@@ -8,8 +8,6 @@ Superteam builds on Superpowers to get you to a real, demoable, testable artifac
 
 It works with agent teams or subagents.
 
-Without that structure, work gets split across chats, decisions get lost, and the next agent often has to rediscover what already happened.
-
 ## How Superteam works
 
 Superteam runs one issue through a structured teammate workflow so the next agent, subagent, or human can continue from durable artifacts instead of chat history alone.
@@ -58,7 +56,7 @@ For a new requirement, invoke Superteam with the documented runtime-specific for
 ## Install surfaces
 
 - The repository root is the Claude Code plugin surface discovered via `.claude-plugin/plugin.json`.
-- `plugins/superteam/` is the packaged Codex install surface.
+- `plugins/superteam/` is the packaged Codex plugin surface for this repository.
 
 ## Installation
 
@@ -96,14 +94,8 @@ Agent Teams lets multiple agents coordinate through the staged workflow. The reg
 
 ### OpenAI Codex CLI
 
-1. After Superpowers is installed, add the Patina Project marketplace from GitHub:
-
-```bash
-codex plugin marketplace add patinaproject/skills --ref main
-codex plugin marketplace upgrade
-```
-
-2. Open the Codex Plugin Directory, open the `Patina Project` marketplace, and install `Superteam`.
+1. After Superpowers is installed, install or enable the packaged `Superteam` Codex plugin from the plugin source you use for Codex.
+2. When working from this repository directly, treat `plugins/superteam/` as the packaged Codex plugin surface.
 3. Open the relevant GitHub issue in your working context, then invoke:
 
 ```text
@@ -112,14 +104,8 @@ Use $superteam to route this issue through teammate-owned design, planning, exec
 
 ### OpenAI Codex App
 
-1. After Superpowers is installed, in a terminal or Codex CLI session add the Patina Project marketplace from GitHub:
-
-```bash
-codex plugin marketplace add patinaproject/skills --ref main
-codex plugin marketplace upgrade
-```
-
-2. In the Codex app, open the Plugin Directory, open the `Patina Project` marketplace, and install `Superteam`.
+1. After Superpowers is installed, install or enable the packaged `Superteam` Codex plugin from the plugin source you use for Codex.
+2. When working from this repository directly, treat `plugins/superteam/` as the packaged Codex plugin surface.
 3. Open the relevant GitHub issue in the app context, then invoke:
 
 ```text
