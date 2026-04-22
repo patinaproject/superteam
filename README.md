@@ -1,8 +1,16 @@
 # Superteam
 
-Agentic engineering skills from the Patina Project team.
+Orchestrate teams of agents with Superpowers.
 
-This repo exposes two install surfaces for the same `superteam` skill.
+Superteam turns a GitHub issue into a structured workflow that teams of agents can pick up, hand off, and continue without losing context.
+
+It works with agent teams or subagents.
+
+## The problem
+
+Running multiple agents on one issue is easy to start and hard to sustain. Work gets split across chats, design decisions get lost, and the next agent often has to rediscover what already happened.
+
+Superteam adds a disciplined workflow on top of Superpowers so agent work stays structured, reviewable, and resumable from design through finish.
 
 ## Install Surfaces
 
