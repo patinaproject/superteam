@@ -258,7 +258,7 @@ Validation for this work should focus on clarity and narrative flow rather than 
 - AC-7-3: The landing experience explains that Superteam works with agent teams or subagents
 - AC-7-4: The landing experience avoids implying an unvalidated runtime preference
 - AC-7-5: The continuity and handoff model is understandable from the initial docs experience
-- AC-7-5a: The README includes a compact roster table that maps the core Superteam stages to agent roles and Superpowers skills
+- AC-7-12: The README includes a compact roster table that maps the core Superteam stages to agent roles and Superpowers skills
 - AC-7-6: Installation guidance connects to a clear first-use next step instead of ending at setup
 - AC-7-7: The Claude Code install guidance includes an optional Agent Teams subsection with a brief explanation of how Agent Teams differs from regular setup
 - AC-7-8: The README includes separate setup sections for Claude Code, OpenAI Codex CLI, and OpenAI Codex App
