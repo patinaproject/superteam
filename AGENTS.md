@@ -70,3 +70,11 @@ Examples:
 Scopes like `feat(repo): ...` are rejected. Keep the subject within 72 characters.
 
 Pull requests should include a short summary, linked issue, validation notes, and any updated docs when structure or workflow changes.
+
+For squash-and-merge workflows, PR titles must exactly match the commitlint and commitizen commit format:
+
+`type: #123 short description`
+
+Use the final intended squash commit title as the PR title. Examples:
+- `docs: #12 add superteam skill guide`
+- `chore: #34 bootstrap commit hooks`
