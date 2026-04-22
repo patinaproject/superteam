@@ -8,9 +8,9 @@ It works with agent teams or subagents.
 
 ## The problem
 
-Running multiple agents on one issue is easy to start and hard to sustain. Work gets split across chats, design decisions get lost, and the next agent often has to rediscover what already happened.
+Superteam builds on Superpowers to get you to a real, demoable, testable artifact as quickly as possible, with enough structure to review it, iterate on it, and keep moving.
 
-Superteam adds a disciplined workflow on top of Superpowers so agent work stays structured, reviewable, and resumable from design through finish.
+Without that structure, work gets split across chats, decisions get lost, and the next agent often has to rediscover what already happened.
 
 ## How Superteam works
 
@@ -119,3 +119,9 @@ Use $superteam to take this issue from design through review-ready execution.
 ## First use
 
 After setup in any supported tool, start from a GitHub issue and invoke Superteam. The workflow then drives the issue through design, planning, execution, review, and handoff artifacts.
+
+## Inspiration
+
+- BMAD-Method: Grateful to BMAD for introducing us to agentic frameworks; our earlier quick-dev and TEA experiments helped shape this workflow.
+- Superpowers: Foundational skills framework that brought this to life.
+- Ken Kocienda's *Creative Selection*: Importance of demo culture.
