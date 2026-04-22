@@ -15,16 +15,16 @@ Without that structure, work gets split across chats, decisions get lost, and th
 Superteam runs one issue through a structured sequence so the next agent, or the next human, can continue from durable artifacts instead of chat history alone.
 
 ```mermaid
-flowchart LR
-    A[GitHub issue] --> B[Brainstorm]
-    B --> C[Design doc]
+flowchart TD
+    A[/GitHub issue/] --> B[Brainstorm]
+    B --> C[/Design doc/]
     C --> D[Plan]
-    D --> E[Implementation plan]
+    D --> E[/Implementation plan/]
     E --> F[Execute]
     F --> G[Pre-push review]
-    G --> H[Finish]
-    H --> I[PR and CI follow-through]
-    I --> J[Comment handling]
+    G --> H[/PR and CI follow-through/]
+    H --> I[PR review follow-up]
+    I --> J[Finished, ready for feedback]
 ```
 
 Each stage owns specific artifacts and verification gates, so work stays understandable across handoffs instead of becoming ad hoc subagent output.
@@ -46,8 +46,8 @@ Superteam keeps the workflow grounded in explicit stage ownership, written desig
 For example:
 
 ```text
-$superteam resume this issue
-$superteam new requirement: ...
+/superteam resume this issue
+/superteam new requirement: ...
 ```
 
 ## Install surfaces
