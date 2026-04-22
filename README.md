@@ -8,6 +8,8 @@ It works with agent teams or subagents.
 
 ## The problem
 
+Spend less time managing implementation loops and babysitting CI.
+
 Superteam builds on Superpowers to get you to a real, demoable, testable artifact as quickly as possible, with enough structure to review it, iterate on it, and keep moving.
 
 Without that structure, work gets split across chats, decisions get lost, and the next agent often has to rediscover what already happened.
