@@ -12,6 +12,29 @@ Running multiple agents on one issue is easy to start and hard to sustain. Work 
 
 Superteam adds a disciplined workflow on top of Superpowers so agent work stays structured, reviewable, and resumable from design through finish.
 
+## How Superteam works
+
+Superteam runs one issue through a structured sequence so the next agent, or the next human, can continue from durable artifacts instead of chat history alone.
+
+```mermaid
+flowchart LR
+    A[GitHub issue] --> B[Brainstorm]
+    B --> C[Design doc]
+    C --> D[Plan]
+    D --> E[Implementation plan]
+    E --> F[Execute]
+    F --> G[Pre-push review]
+    G --> H[Finish]
+    H --> I[PR and CI follow-through]
+    I --> J[Comment handling]
+```
+
+Each stage owns specific artifacts and verification gates, so work stays understandable across handoffs instead of becoming ad hoc subagent output.
+
+## Why teams can pick up where they left off
+
+Superteam is built around explicit stage ownership, written design and plan artifacts, verification before completion, and finish-stage review follow-through. That structure gives the next agent enough context to continue intelligently instead of starting over.
+
 ## Install Surfaces
 
 - The repository root is the Claude Code plugin surface discovered via `.claude-plugin/plugin.json`.
