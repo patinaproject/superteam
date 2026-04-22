@@ -38,7 +38,7 @@ Each teammate owns specific artifacts and verification gates, so work stays unde
 | Team Lead | Orchestration, delegation, gates, and loopbacks | `superpowers:using-superpowers`; `superpowers:dispatching-parallel-agents` when splitting independent work |
 | Brainstormer | Design doc creation and approval handoff | `superpowers:brainstorming` |
 | Planner | Approved implementation plan creation | `superpowers:writing-plans` |
-| Executor | Code and tests for the approved plan | `superpowers:test-driven-development`; `superpowers:systematic-debugging` when debugging; `superpowers:verification-before-completion`; `superpowers:writing-skills` when editing `skills/**/*.md` |
+| Executor | ATDD-driven implementation, code, and tests for the approved plan | `superpowers:test-driven-development`; `superpowers:systematic-debugging` when debugging; `superpowers:verification-before-completion`; `superpowers:writing-skills` when editing `skills/**/*.md` |
 | Reviewer | Local pre-publish review findings and loopback classification | `superpowers:requesting-code-review` |
 | Finisher | Publish-state follow-through, branch/PR/CI reporting, and external review feedback handling | `superpowers:finishing-a-development-branch`; `superpowers:receiving-code-review` when handling reviewer findings, PR comments, or bot feedback |
 
@@ -49,8 +49,8 @@ Superteam keeps the workflow grounded in explicit teammate ownership, written de
 For example:
 
 ```text
-Continue issue #16 with Superteam from the current Planner artifact state and pick up from the next required teammate.
-Add this new requirement to issue #16: make issue titles plain-language summaries, then route the workflow back through the right design and planning gates.
+/superteam work on issue 16
+/superteam new requirement: make it more super
 ```
 
 ## Install surfaces
