@@ -2,15 +2,13 @@
 
 Orchestrate teams of agents with Superpowers.
 
-Superteam turns a GitHub issue into a structured workflow that teams of agents can pick up, hand off, and continue without losing context.
-
-It works with agent teams or subagents.
-
-## The problem
-
 Spend less time managing implementation loops and babysitting CI.
 
 Superteam builds on Superpowers to get you to a real, demoable, testable artifact as quickly as possible, with enough structure to review it, iterate on it, and keep moving.
+
+Superteam turns a GitHub issue into a structured workflow that teams of agents can pick up, hand off, and continue without losing context.
+
+It works with agent teams or subagents.
 
 Without that structure, work gets split across chats, decisions get lost, and the next agent often has to rediscover what already happened.
 
