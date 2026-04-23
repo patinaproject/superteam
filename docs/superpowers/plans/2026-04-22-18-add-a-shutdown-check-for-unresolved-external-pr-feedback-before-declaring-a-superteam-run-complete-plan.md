@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make `superteam` shutdown success-only by blocking completion until `Finisher` verifies that unresolved inline review threads and other blocking external PR feedback are cleared on the latest pushed state, or explicitly prompts the operator when the state cannot be determined safely.
+**Goal:** Make `superteam` keep `Finisher` alive through post-publish follow-through and block completion until mergeability, required checks, PR metadata requirements, unresolved inline review threads, and other blocking external PR feedback are handled on the latest pushed state, or the operator is prompted explicitly when the state cannot be determined safely.
 
-**Architecture:** Tighten the contract at the source of truth in `skills/superteam/SKILL.md`, mirror any shutdown-specific wording in the directly relevant `Finisher` support text, then add pressure-test coverage for the exact failure mode and operator-prompt fallback. Keep the change documentation-focused and avoid broad workflow rewrites.
+**Architecture:** Tighten the contract at the source of truth in `skills/superteam/SKILL.md`, mirror the broader post-publish `Finisher` loop in the directly relevant `Finisher` support text, then add pressure-test coverage for early-stop, status-snapshot, and operator-prompt failure modes. Keep the change documentation-focused and avoid broad workflow rewrites.
 
 **Tech Stack:** Markdown docs, repository-local workflow assets, `pnpm sync:plugin`, `rg`, `sed`, `find`
 

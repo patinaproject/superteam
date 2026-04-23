@@ -2,13 +2,14 @@
 
 ## Summary
 
-Harden the `superteam` shutdown contract so a run can only complete successfully after `Finisher` verifies that external PR feedback has been checked on the latest pushed state and no unresolved blocking feedback remains. The design focuses on the exact failure mode from April 22, 2026: a run published a PR, got CI green, and still ended as if complete even though unresolved inline review threads were open.
+Harden the `superteam` finish and shutdown contract so a run cannot present itself as complete merely because a PR exists or because one snapshot of publish-state looks healthy. `Finisher` must stay active after PR publication until the post-publish workflow is actually stable on the latest pushed state or until an explicit blocker is reported. That includes mergeability, required checks, PR metadata requirements, and final external-feedback handling, not just unresolved inline review threads.
 
-The fix stays narrow. It does not redesign the teammate roster or the overall `superteam` flow. Instead, it strengthens the existing `Finisher` shutdown path so unresolved inline review threads and recent blocking PR feedback become explicit pre-shutdown checks with clear failure behavior.
+The design focuses on the failure mode surfaced on April 23, 2026: `superteam` could create or update a PR, report a status snapshot, and then stop too early even though `Finisher`-owned work was still active. The fix stays narrow. It does not redesign the teammate roster or the overall `superteam` flow. Instead, it strengthens the existing `Finisher` loop and shutdown path so PR publication is treated as a milestone rather than workflow completion.
 
 ## Goals
 
-- Prevent `superteam` from presenting a run as complete while unresolved external PR feedback still exists on the latest PR head
+- Prevent `superteam` from presenting a run as complete while `Finisher`-owned publish-state follow-through is still active on the latest PR state
+- Prevent `superteam` from stopping at PR publication plus one status snapshot when mergeability, CI, PR metadata correction, or external feedback handling still requires follow-through
 - Make shutdown a success-only action that occurs only after required external-feedback checks pass
 - Keep ownership of external PR feedback with `Finisher`
 - Require explicit loopback or explicit operator escalation when shutdown checks fail
@@ -28,6 +29,8 @@ The fix stays narrow. It does not redesign the teammate roster or the overall `s
 
 The orchestration contract should treat shutdown as a success state, not as a generic end-of-run state. A `superteam` run may only shut down successfully after all required publish-state checks pass on the current PR state after the latest push.
 
+PR publication is a milestone, not the end of the workflow. `Finisher` remains active after the PR exists and after any individual status snapshot until the publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.
+
 If required shutdown checks are not clear, the run must not present itself as complete. Instead, it either:
 
 - routes the feedback back through the expected `Finisher`-owned handling path and re-checks, or
@@ -40,10 +43,11 @@ This makes the contract match the intended operator trust model: "complete" mean
 Before successful shutdown, `Finisher` must perform an explicit post-latest-push verification sequence for the active PR:
 
 1. verify the active PR and current branch state being evaluated
-2. check unresolved inline review threads on the latest PR head
-3. check recent blocking external PR feedback on the latest pushed state
-4. if blocking feedback exists, dispatch `Finisher`-owned handling and re-check
-5. only declare successful shutdown when the re-check confirms that no blocking unresolved external feedback remains
+2. verify current publish-state blockers for the latest pushed state, including mergeability, required checks, and PR metadata requirements discovered from repository rules
+3. check unresolved inline review threads on the latest PR head
+4. check recent blocking external PR feedback on the latest pushed state
+5. if blocking work remains, continue the `Finisher`-owned handling loop and re-check rather than stopping at a status snapshot
+6. only declare successful shutdown when the re-check confirms that no blocking unresolved external feedback or other `Finisher`-owned publish-state blockers remain
 
 For this issue, "blocking external PR feedback" should be interpreted narrowly and concretely. It includes only:
 
@@ -56,6 +60,8 @@ If `Finisher` cannot tell from the available PR state whether a bot or reviewer 
 
 This definition keeps the shutdown rule enforceable without turning `Finisher` into a speculative classifier for every possible PR comment.
 
+Partial success signals are insufficient on their own. PR creation, resolved merge conflicts, green CI, or restored mergeability may all be real milestones, but none of them alone means the workflow is complete until the final publish-state sweep is clear.
+
 ### Loopback And Escalation Behavior
 
 When shutdown checks find unresolved feedback, `Finisher` remains the owner of the next step. The workflow should not silently end and should not push ownership back onto `Reviewer`.
@@ -65,8 +71,11 @@ The required behaviors are:
 - implementation-level external feedback routes through the expected loopback handling path before shutdown
 - requirement-bearing feedback continues to route through the existing spec-first path
 - unresolved feedback that cannot be safely classified, matched to current branch state, or handled must block shutdown and be surfaced to the operator explicitly
+- unresolved publish-state blockers such as metadata violations, pending or failing required checks, or ambiguous branch-caused vs baseline CI failures must remain inside `Finisher` until they are resolved or reported explicitly
 
 If the run cannot determine whether feedback still applies to the latest state, cannot determine whether a thread is resolved on the current head, or otherwise cannot safely evaluate shutdown readiness, it must stop and prompt the operator instead of claiming completion.
+
+When CI is failing or unstable after the latest push, `Finisher` should inspect enough evidence to distinguish branch-caused failures from likely baseline or unrelated failures when possible. If that distinction still cannot be made safely, the run must halt with an explicit blocker and prompt the operator instead of silently treating the workflow as done.
 
 ### Explicit Blocker Reporting
 
@@ -78,7 +87,7 @@ This is a narrow strengthening of the existing failure handling contract. The im
 
 The repository changes should stay tightly coupled to the shutdown problem:
 
-- update `skills/superteam/SKILL.md` so shutdown is clearly success-only and operator escalation is required when checks cannot be completed
+- update `skills/superteam/SKILL.md` so `Finisher` remains active after PR publication, shutdown is clearly success-only, and operator escalation is required when checks cannot be completed
 - update only directly relevant `Finisher`-owned prompt or template language if it currently allows completion to be reported before shutdown checks truly pass
 - update repository-local pressure tests to cover the exact failure mode and the new halt behavior
 
@@ -87,10 +96,14 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 ## Testing And Verification
 
 - inspect the updated `superteam` skill contract for success-only shutdown wording
+- verify the `Finisher` contract makes PR publication a milestone rather than completion
+- verify the `Finisher` contract requires continued follow-through for mergeability, required checks, PR metadata, and external feedback handling
 - verify `Finisher` shutdown instructions require checking unresolved inline review threads after the latest push
 - verify `Finisher` shutdown instructions require checking recent blocking external PR feedback after the latest push
 - verify runs with unresolved external feedback cannot present a successful completion state
+- verify runs with active publish-state blockers cannot stop at a status snapshot
 - verify unresolved implementation-level feedback routes back through the expected loopback handling path before shutdown
+- verify failing checks are reported with branch-caused vs likely baseline distinction when known
 - verify indeterminate shutdown state causes an explicit operator prompt instead of silent success
 - review pressure-test coverage for the April 22, 2026 failure mode: CI green, PR published, unresolved review threads still open
 
@@ -100,10 +113,12 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 - AC-18-2: Given external PR feedback that is implementation-level, when `Finisher` reaches shutdown, then that feedback is explicitly routed back through the expected loopback path before completion
 - AC-18-3: Given a PR with no unresolved inline review threads and no recent blocking bot or reviewer findings on the latest pushed state, when `Finisher` performs shutdown checks, then the run may complete normally
 - AC-18-4: Given unresolved external feedback remains or the shutdown state cannot be determined safely, when the run stops, then it reports the blocker explicitly and prompts the operator instead of silently ending in a success state
+- AC-18-5: Given a PR has been created or updated, when mergeability, required checks, PR metadata requirements, or final publish-state follow-through still require `Finisher` action, then the run stays in the `Finisher` loop instead of treating publication plus a status snapshot as completion
+- AC-18-6: Given CI or publish-state blockers remain after the latest push, when `Finisher` reports status, then it distinguishes branch-caused blockers from likely baseline or unrelated failures when possible and otherwise reports an explicit blocker for operator review
 
 ## Implementation Notes
 
 - Preserve the existing teammate roster and overall `superteam` flow
-- Keep the behavioral change centered on `Finisher` shutdown and external-feedback follow-through
+- Keep the behavioral change centered on `Finisher` post-publish follow-through and shutdown
 - Prefer precise contract language over adding broad new workflow machinery
-- Treat shutdown as the final success signal, not merely the end of activity
+- Treat PR publication as a milestone and shutdown as the final success signal, not merely the end of activity

@@ -80,6 +80,12 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Halt comment handling until current branch state verification is recorded for the comment context.
 - Rule surface: The Finisher comment-handling prompt should require current branch state verification before action.
 
+## Finisher stops at PR publication plus one status snapshot
+
+- Starting condition: The workflow creates or updates the PR, reports a single status snapshot, and then stops even though mergeability, CI, PR metadata correction, or external feedback handling still requires Finisher-owned follow-through.
+- Required halt or reroute behavior: Do not present the run as complete. Continue the Finisher loop until publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.
+- Rule surface: The Finisher contract should state that PR publication is a milestone rather than the end of the workflow.
+
 ## Requirement-bearing review feedback routed straight to execution
 
 - Starting condition: Review feedback adds or changes requirements and is sent directly to execution.
@@ -98,8 +104,20 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Do not shut down or present the run as complete. Dispatch finish-owned follow-through, re-check the blocking items, and only allow shutdown after the blocking items are cleared.
 - Rule surface: The Finisher shutdown checklist should treat unresolved inline threads and blocking external PR feedback as shutdown blockers.
 
+## Shutdown attempted while publish-state blockers are still active
+
+- Starting condition: The workflow reaches a state that looks healthy from partial signals such as PR published, merge conflict resolved, or CI green, but mergeability, required checks, PR metadata requirements, or final external-feedback handling still needs Finisher-owned follow-through.
+- Required halt or reroute behavior: Do not shut down based on partial success signals. Continue the Finisher loop, report the remaining blockers explicitly, and only allow shutdown after the full publish-state follow-through is stable.
+- Rule surface: The shutdown contract should make clear that PR creation, mergeability restoration, or green CI alone are insufficient completion signals.
+
 ## Shutdown attempted when the external-feedback state cannot be determined safely
 
 - Starting condition: The workflow cannot tell whether review threads or recent reviewer/bot findings still block the latest pushed state.
 - Required halt or reroute behavior: Do not guess and do not present success. Halt with an explicit blocker and prompt the operator.
 - Rule surface: The shutdown contract should require operator escalation when shutdown readiness cannot be determined safely.
+
+## Finisher fails to distinguish branch-caused CI failures from likely baseline failures
+
+- Starting condition: A required check is failing after the latest push, but the workflow reports the failure without attempting to distinguish whether it was introduced by the branch or appears unrelated baseline noise.
+- Required halt or reroute behavior: Keep the issue in the Finisher loop, inspect enough evidence to make the best branch-caused vs baseline distinction available, and report the result explicitly. If the distinction still cannot be made safely, prompt the operator instead of guessing.
+- Rule surface: The Finisher contract should require explicit blocker reporting and branch-aware CI triage before handoff or halt.

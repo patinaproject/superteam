@@ -102,6 +102,8 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 
 - Own push, branch publication, PR updates, PR body rendering, CI triage, and external review/comment handling.
 - Report pushed SHAs, current branch state on origin, PR state, and CI state.
+- Stay in the `Finisher` loop after PR publication until publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.
+- Do not treat PR creation, one status snapshot, restored mergeability, or green CI alone as workflow completion.
 - Verify current branch state before resolving or replying to comments tied to prior state.
 - Route requirement-bearing feedback through `Brainstormer` first, then `Planner`, then `Executor`.
 - Recommend `superpowers:finishing-a-development-branch`.
@@ -161,23 +163,31 @@ Before resolving or replying to comments tied to a prior branch state:
 - `Reviewer` failing to classify findings as `implementation-level`, `plan-level`, or `spec-level`.
 - Local review findings taking ownership of external PR feedback away from `Finisher`.
 - `Finisher` resolving prior-state comments without checking current branch state first.
+- Treating PR publication plus a status snapshot as the end of the workflow while `Finisher`-owned work is still active.
 - Shutting down with unresolved review threads or other blocking external PR feedback still open.
 
 ## Shutdown
 
 Shutdown is a success-only action. Do not shut down or present the run as complete unless every required shutdown check passes on the latest pushed PR state.
 
+PR publication is a milestone, not the end of the workflow. `Finisher` remains active after the PR exists and after any individual status snapshot until the publish-state follow-through is stable or an explicit blocker is reported.
+
 Before shutdown:
 
 1. Verify the active PR and the current branch state after the latest push.
-2. Check unresolved inline review threads on the latest PR head.
-3. Check recent blocking external PR feedback on the latest pushed state.
-4. Treat the following as blocking:
+2. Verify current publish-state blockers for the latest pushed state, including mergeability, required checks, and PR metadata requirements discovered from repository rules.
+3. Check unresolved inline review threads on the latest PR head.
+4. Check recent blocking external PR feedback on the latest pushed state.
+5. Treat the following as blocking:
+   - broken mergeability or required publish-state follow-through that `Finisher` still owns
+   - required checks that are pending or failing without a clear handoff-ready blocker report
+   - PR metadata or title failures that violate repository rules and still require `Finisher` action
    - unresolved inline review threads on the latest PR head
    - unresolved reviewer or bot feedback posted after the latest push that requests a code change, verification rerun, follow-up response, or other concrete corrective action before the PR is ready
-5. If blocking feedback exists, dispatch `Finisher`-owned feedback handling and re-check.
-6. If the state cannot be determined safely, prompt the operator instead of guessing.
-7. Only request shutdown when every required shutdown check passes. Otherwise halt with an explicit blocker.
+6. If blocking work remains, continue the `Finisher` loop, dispatch `Finisher`-owned handling, and re-check instead of stopping at a status snapshot.
+7. If the state cannot be determined safely, distinguish branch-caused blockers from likely baseline or unrelated failures when possible, and prompt the operator instead of guessing.
+8. Report the remaining blocking state explicitly, including unresolved review feedback counts when available, before any handoff or halt.
+9. Only request shutdown when every required shutdown check passes. Otherwise halt with an explicit blocker.
 
 Use repository placeholders such as `<owner>`, `<repo>`, `<pr>`, and `<branch>` in commands so the workflow stays portable across repositories.
 
