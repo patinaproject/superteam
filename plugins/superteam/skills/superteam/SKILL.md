@@ -184,10 +184,15 @@ Before shutdown:
    - PR metadata or title failures that violate repository rules and still require `Finisher` action
    - unresolved inline review threads on the latest PR head
    - unresolved reviewer or bot feedback posted after the latest push that requests a code change, verification rerun, follow-up response, or other concrete corrective action before the PR is ready
-6. If blocking work remains, continue the `Finisher` loop, dispatch `Finisher`-owned handling, and re-check instead of stopping at a status snapshot.
-7. If the state cannot be determined safely, distinguish branch-caused blockers from likely baseline or unrelated failures when possible, and prompt the operator instead of guessing.
-8. Report the remaining blocking state explicitly, including unresolved review feedback counts when available, before any handoff or halt.
-9. Only request shutdown when every required shutdown check passes. Otherwise halt with an explicit blocker.
+6. Record the final unresolved blocking-feedback counts for the latest pushed state, including:
+   - unresolved inline review threads
+   - unresolved top-level reviewer or bot comments with still-applicable findings or requested corrective action
+7. Treat any nonzero unresolved blocking-feedback count as a blocker.
+8. Only dedupe a top-level comment from the final unresolved count when it is explicitly a summary of specific inline findings already audited on the latest pushed state.
+9. If blocking work remains, continue the `Finisher` loop, dispatch `Finisher`-owned handling, and re-check instead of stopping at a status snapshot.
+10. If the state cannot be determined safely, distinguish branch-caused blockers from likely baseline or unrelated failures when possible, and prompt the operator instead of guessing.
+11. Report the remaining blocking state explicitly, including the final unresolved blocking-feedback counts, before any handoff or halt.
+12. Only request shutdown when every required shutdown check passes. Otherwise halt with an explicit blocker.
 
 Use repository placeholders such as `<owner>`, `<repo>`, `<pr>`, and `<branch>` in commands so the workflow stays portable across repositories.
 

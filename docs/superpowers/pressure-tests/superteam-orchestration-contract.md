@@ -86,6 +86,18 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Do not present the run as complete. Continue the Finisher loop until publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.
 - Rule surface: The Finisher contract should state that PR publication is a milestone rather than the end of the workflow.
 
+## Top-level finding comment has no inline companion
+
+- Starting condition: A top-level reviewer or bot comment contains still-applicable findings on the latest pushed state, but there are no inline threads for those findings.
+- Required halt or reroute behavior: Count the top-level finding comment as its own blocking finding source and do not allow shutdown while it remains unresolved.
+- Rule surface: The Finisher shutdown contract should account for blocking top-level finding comments, not just inline threads.
+
+## Top-level summary comment is deduped incorrectly
+
+- Starting condition: The workflow drops a top-level comment from the final unresolved count without verifying that it is explicitly a summary of already-audited inline findings on the latest pushed state.
+- Required halt or reroute behavior: Halt the shutdown report and require explicit audit evidence for the dedupe decision. If the comment includes standalone or mixed findings, count it separately.
+- Rule surface: The Finisher shutdown contract should allow dedupe only for explicit summary comments of already-audited inline findings.
+
 ## Requirement-bearing review feedback routed straight to execution
 
 - Starting condition: Review feedback adds or changes requirements and is sent directly to execution.
@@ -103,6 +115,12 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Starting condition: The workflow tries to shut down after publishing a PR, but unresolved inline review threads still exist on the latest PR head, or unresolved post-latest-push reviewer or bot feedback still requests concrete corrective action.
 - Required halt or reroute behavior: Do not shut down or present the run as complete. Dispatch finish-owned follow-through, re-check the blocking items, and only allow shutdown after the blocking items are cleared.
 - Rule surface: The Finisher shutdown checklist should treat unresolved inline threads and blocking external PR feedback as shutdown blockers.
+
+## Shutdown report omits final unresolved blocking-feedback counts
+
+- Starting condition: The workflow reaches shutdown readiness evaluation but does not report the final unresolved counts for inline threads and top-level blocking finding comments on the latest pushed state.
+- Required halt or reroute behavior: Halt the shutdown report and require explicit final unresolved counts before completion or blocker handoff.
+- Rule surface: The Finisher shutdown contract should make final unresolved blocking-feedback counts mandatory and auditable.
 
 ## Shutdown attempted while publish-state blockers are still active
 

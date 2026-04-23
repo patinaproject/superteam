@@ -47,18 +47,23 @@ Before successful shutdown, `Finisher` must perform an explicit post-latest-push
 3. check unresolved inline review threads on the latest PR head
 4. check recent blocking external PR feedback on the latest pushed state
 5. if blocking work remains, continue the `Finisher`-owned handling loop and re-check rather than stopping at a status snapshot
-6. only declare successful shutdown when the re-check confirms that no blocking unresolved external feedback or other `Finisher`-owned publish-state blockers remain
+6. record the final unresolved external-feedback counts for the latest pushed state, including unresolved inline review threads and unresolved top-level blocking reviewer or bot comments
+7. treat any nonzero unresolved blocking-feedback count as a blocker
+8. only declare successful shutdown when the re-check confirms that no blocking unresolved external feedback or other `Finisher`-owned publish-state blockers remain
 
 For this issue, "blocking external PR feedback" should be interpreted narrowly and concretely. It includes only:
 
 - unresolved inline review threads on the latest PR head
 - unresolved review comments or bot findings posted after the latest push that request a code change, verification rerun, follow-up response, or other concrete corrective action before the PR is ready
+- unresolved top-level reviewer or bot comments on the latest pushed state when they contain still-applicable findings or requested corrective action, even if there are no inline comments for those findings
 
 It does not include general discussion, acknowledgements, or informational comments that do not ask for a change and do not affect PR readiness.
 
+`Finisher` may dedupe a top-level comment from the final unresolved count only when it is explicitly functioning as a summary of specific inline findings that were already audited on the latest pushed state. If a top-level comment contains standalone findings, mixed findings, or findings with no matching inline thread, `Finisher` must count it as its own blocking finding source and account for it explicitly.
+
 If `Finisher` cannot tell from the available PR state whether a bot or reviewer comment is blocking, the run must treat that uncertainty as a failed shutdown check and prompt the operator instead of guessing.
 
-This definition keeps the shutdown rule enforceable without turning `Finisher` into a speculative classifier for every possible PR comment.
+This definition keeps the shutdown rule enforceable without turning `Finisher` into a speculative classifier for every possible PR comment. It also makes the final shutdown report auditable: `Finisher` should report the unresolved blocking-feedback counts it observed on the latest pushed state rather than implying that the count was probably zero.
 
 Partial success signals are insufficient on their own. PR creation, resolved merge conflicts, green CI, or restored mergeability may all be real milestones, but none of them alone means the workflow is complete until the final publish-state sweep is clear.
 
@@ -72,6 +77,8 @@ The required behaviors are:
 - requirement-bearing feedback continues to route through the existing spec-first path
 - unresolved feedback that cannot be safely classified, matched to current branch state, or handled must block shutdown and be surfaced to the operator explicitly
 - unresolved publish-state blockers such as metadata violations, pending or failing required checks, or ambiguous branch-caused vs baseline CI failures must remain inside `Finisher` until they are resolved or reported explicitly
+- nonzero unresolved blocking-feedback counts must be reported explicitly and treated as blockers rather than as advisory context
+- top-level finding comments may only be excluded from the final unresolved count when `Finisher` has explicitly verified that they are summaries of already-audited inline findings on the current head
 
 If the run cannot determine whether feedback still applies to the latest state, cannot determine whether a thread is resolved on the current head, or otherwise cannot safely evaluate shutdown readiness, it must stop and prompt the operator instead of claiming completion.
 
@@ -104,6 +111,9 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 - verify runs with active publish-state blockers cannot stop at a status snapshot
 - verify unresolved implementation-level feedback routes back through the expected loopback handling path before shutdown
 - verify failing checks are reported with branch-caused vs likely baseline distinction when known
+- verify `Finisher` reports final unresolved blocking-feedback counts for the latest pushed state and treats nonzero counts as blockers
+- verify top-level finding comments without inline companions still count as blocking findings
+- verify top-level summary comments are only deduped when they explicitly summarize already-audited inline findings on the latest pushed state
 - verify indeterminate shutdown state causes an explicit operator prompt instead of silent success
 - review pressure-test coverage for the April 22, 2026 failure mode: CI green, PR published, unresolved review threads still open
 
@@ -115,6 +125,8 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 - AC-18-4: Given unresolved external feedback remains or the shutdown state cannot be determined safely, when the run stops, then it reports the blocker explicitly and prompts the operator instead of silently ending in a success state
 - AC-18-5: Given a PR has been created or updated, when mergeability, required checks, PR metadata requirements, or final publish-state follow-through still require `Finisher` action, then the run stays in the `Finisher` loop instead of treating publication plus a status snapshot as completion
 - AC-18-6: Given CI or publish-state blockers remain after the latest push, when `Finisher` reports status, then it distinguishes branch-caused blockers from likely baseline or unrelated failures when possible and otherwise reports an explicit blocker for operator review
+- AC-18-7: Given `Finisher` performs the final publish-state sweep on the latest pushed PR state, when unresolved inline threads or unresolved top-level blocking reviewer or bot comments remain, then it reports the final unresolved counts explicitly and treats any nonzero count as a blocker
+- AC-18-8: Given a top-level reviewer or bot comment contains still-applicable findings on the latest pushed state, when those findings are not fully represented by already-audited inline threads, then `Finisher` counts that top-level comment as a separate blocking finding source rather than deduping it away
 
 ## Implementation Notes
 

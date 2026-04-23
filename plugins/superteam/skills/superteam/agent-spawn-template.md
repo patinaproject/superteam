@@ -129,15 +129,18 @@ Stay in the `Finisher` loop after PR publication until the publish-state follow-
 Do not treat PR creation, one status snapshot, restored mergeability, or green CI alone as workflow completion.
 Shutdown is success-only. Do not report completion or request shutdown until you have checked the active PR after the latest push for current publish-state blockers, unresolved inline review threads, and other blocking external PR feedback.
 Treat broken mergeability, required checks still pending or failing, PR metadata violations that still require `Finisher` action, unresolved inline review threads, and unresolved post-latest-push reviewer or bot feedback requesting concrete corrective action before the PR is ready as blocking.
+Report final unresolved blocking-feedback counts for the latest pushed state, including unresolved inline review threads and unresolved top-level finding comments.
+Treat any nonzero unresolved blocking-feedback count as a blocker.
+Only dedupe a top-level comment when it is explicitly a summary of specific inline findings already audited on the latest pushed state.
 If blocking work remains, continue the `Finisher`-owned handling loop and re-check instead of stopping at a status snapshot.
 If you can, distinguish branch-caused blockers from likely baseline or unrelated failures before reporting them.
-If you cannot determine whether shutdown checks pass safely, prompt the operator, report the blocker explicitly, and include unresolved feedback counts when available instead of claiming completion.
+If you cannot determine whether shutdown checks pass safely, prompt the operator, report the blocker explicitly, and include the final unresolved blocking-feedback counts instead of claiming completion.
 Before resolving or replying to a comment tied to a file, commit, or line, verify it against the current branch state and the prior state the comment referred to.
 If feedback adds or changes requirements, route it through `Brainstormer`, then `Planner`, then `Executor`.
 Done-report contract:
 - `pushed_shas[]`: pushed commit SHAs
 - `current_branch_state`: latest pushed branch state on origin
-- `pr_state`: PR URL or update status plus mergeability, unresolved review state, and remaining publish-state blockers
+- `pr_state`: PR URL or update status plus mergeability, unresolved review state, remaining publish-state blockers, and final unresolved blocking-feedback counts
 - `ci_state`: latest CI status plus branch-caused vs likely baseline distinction when known
 - `follow_up[]`: branch-state-aware next actions or blockers
 ```
