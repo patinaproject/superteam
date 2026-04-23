@@ -106,8 +106,10 @@ flowchart TD
 ## Pre-flight
 
 - Prefer the host runtime's normal multi-agent capabilities when available.
-- When the host runtime supports background-agent execution for delegated teammate work, prefer using that capability as an execution aid rather than a correctness dependency.
+- When the host runtime supports background-agent execution for delegated teammate work, prefer using that capability for bounded, independent work that is unlikely to need live clarification, as an execution aid rather than a correctness dependency.
+- Keep tightly coupled, ambiguity-heavy, or clarification-driven teammate work in the foreground even when background agents are available.
 - When the runtime offers durable follow-up features such as thread heartbeats, monitors, or equivalent wakeups, prefer using them for `Finisher` publish-state follow-through while required checks or external review state remain pending.
+- In Codex app environments, same-thread automations are the native fit when `Finisher` follow-through should stay attached to the current conversation.
 - Treat these runtime capabilities as aids for the existing teammate and `Finisher` loops, not as separate workflows or replacement contracts.
 - Do not block solely because a preferred team feature is unavailable; fall back to direct subagent dispatch.
 - If the host lacks those capabilities, do not stop early; continue using the portable teammate and `Finisher` contracts or report an explicit blocker when follow-through cannot safely continue.
@@ -153,7 +155,7 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 - Enforce gates and halt on unsatisfied contracts.
 - Route requirement-changing deltas back through `Brainstormer`.
 - Recommend `superpowers:using-superpowers`.
-- Also recommend `superpowers:dispatching-parallel-agents` when splitting independent work.
+- Also recommend `superpowers:dispatching-parallel-agents` when splitting bounded, independent work, and keep tightly coupled or interactive steps in the foreground.
 
 ### Brainstormer
 
@@ -223,6 +225,7 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 - Stay in the `Finisher` loop after PR publication until publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.
 - Do not treat PR creation, one status snapshot, restored mergeability, or green CI alone as workflow completion.
 - When the runtime offers durable follow-up features such as thread heartbeats, monitors, or equivalent wakeups, prefer using them while required checks or external review state remain pending.
+- In Codex app environments, prefer a thread automation attached to the current thread when the goal is to preserve the same `Finisher` context while waiting on external publish-state.
 - Treat those runtime features as aids for the same latest-head `Finisher` loop rather than as a separate workflow or replacement contract.
 - If the runtime lacks those features, continue the portable `Finisher` ownership model or report an explicit blocker instead of stopping early.
 - Verify current branch state before resolving or replying to comments tied to prior state.
@@ -272,6 +275,7 @@ Before resolving or replying to comments tied to a prior branch state:
 | "I can summarize the approval request in one short fallback blurb." | Approval packets must include artifact path, concise intent summary, and full requirement set; split oversized packets instead of collapsing them. |
 | "I can replay the whole approval request after a small revision." | Re-fired approval after revisions must be delta-only. |
 | "If the runtime has background agents or wakeups, the contract must require them." | Runtime capabilities are execution aids for the portable workflow, not correctness dependencies. |
+| "If background agents are available, every teammate step should use them." | Use background agents for bounded, independent work; keep tightly coupled or clarification-heavy steps in the foreground. |
 | "I remember the repo rules already." | Discover canonical repository guidance before touching governed files. |
 | "Executor finished the spirit of the task." | `Executor` must report completion against explicit task IDs with evidence. |
 | "Reviewer can just send everything back to execution." | `Reviewer` must classify implementation-level, plan-level, and spec-level loopbacks. |
@@ -288,7 +292,7 @@ Before resolving or replying to comments tied to a prior branch state:
 - Approval requests that hide real approval-relevant concerns.
 - Replaying already-approved content instead of sending delta-only approval after revisions.
 - Touching governed files without canonical-rule discovery from repository guidance.
-- Delegated teammate work in a runtime-capable host that ignores available background-agent execution without justification.
+- Delegated teammate work that either ignores available background-agent execution for clearly bounded, independent work or forces background execution on tightly coupled, clarification-heavy work.
 - Delegated teammate prompts that omit expected `superpowers` recommendations or fail to warn when an expected skill is unavailable.
 - `Executor` claiming completion without explicit task IDs, SHAs, or verification evidence.
 - `Reviewer` failing to classify findings as `implementation-level`, `plan-level`, or `spec-level`.

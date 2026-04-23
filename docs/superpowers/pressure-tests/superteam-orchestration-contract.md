@@ -56,11 +56,17 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Halt silent delegation and reissue the prompt with an explicit unavailable-skill warning to the operator and teammate.
 - Rule surface: The delegation prompt should include a visible unavailable skill warning path.
 
-## Delegated teammate work ignores available background-agent execution
+## Delegated bounded teammate work ignores available background-agent execution
 
-- Starting condition: The host runtime supports background-agent execution for delegated teammate work, but the workflow never recommends or prefers that capability when dispatching teammates.
+- Starting condition: The host runtime supports background-agent execution for delegated teammate work, the delegated task is bounded and independent enough not to need live clarification, but the workflow never recommends or prefers that capability when dispatching the teammate.
 - Required halt or reroute behavior: Reissue the delegated guidance so runtime-capable hosts are explicitly nudged toward background-agent execution while keeping it optional rather than mandatory.
-- Rule surface: The runtime-aware delegation guidance should prefer background-agent execution when available without turning it into a correctness dependency.
+- Rule surface: The runtime-aware delegation guidance should prefer background-agent execution for bounded, independent work when available without turning it into a correctness dependency.
+
+## Delegated teammate work forces background-agent execution on clarification-heavy work
+
+- Starting condition: The host runtime supports background-agent execution, but the workflow treats it as a blanket default and pushes tightly coupled, ambiguity-heavy, or clarification-driven teammate work into the background anyway.
+- Required halt or reroute behavior: Keep that work in the foreground and reserve background-agent execution for bounded, independent work that is unlikely to need live clarification.
+- Rule surface: The runtime-aware delegation guidance should distinguish between independent work that benefits from background execution and interactive work that should stay in the foreground.
 
 ## Hard-coded repo rules drifting from canonical docs
 
@@ -166,6 +172,12 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Reroute to guidance that prefers those durable runtime aids for the same latest-head `Finisher` loop while the external publish-state remains pending.
 - Rule surface: The canonical skill and delegated Finisher prompt should explicitly recommend durable runtime follow-up features when available and relevant.
 
+## Codex follow-through uses a fresh run when same-thread automation is the better fit
+
+- Starting condition: The workflow is running in the Codex app, `Finisher` is waiting on external publish-state, preserving the current thread context matters, and the guidance never recommends a thread automation attached to the current thread.
+- Required halt or reroute behavior: Reissue the Codex-specific guidance so same-thread automation is recommended as the native follow-through aid in that situation, while keeping the underlying `Finisher` contract portable.
+- Rule surface: The runtime-aware `Finisher` guidance should mention Codex thread automations as a same-thread aid without making them a correctness dependency.
+
 ## Runtime follow-up resumes the existing Finisher loop instead of creating a new workflow
 
 - Starting condition: The workflow recommends runtime wakeups for `Finisher`, but the documented behavior treats the wakeup as a separate workflow with different routing, shutdown rules, or ownership.
@@ -254,7 +266,7 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 
 - Starting condition: The host runtime does not support background-agent execution for delegated teammate work, and the workflow treats that missing capability as sufficient reason to stop or soften the teammate handoff rules.
 - Required halt or reroute behavior: Continue with the normal portable teammate workflow and do not allow the missing runtime capability to become an early-stop excuse.
-- Rule surface: The runtime-aware delegation guidance should make background-agent execution a preference when available and preserve the portable teammate workflow when it is not.
+- Rule surface: The runtime-aware delegation guidance should make background-agent execution a preference for bounded, independent work when available and preserve the portable teammate workflow when it is not.
 
 ## Missing runtime follow-up support does not permit Finisher to stop early
 
