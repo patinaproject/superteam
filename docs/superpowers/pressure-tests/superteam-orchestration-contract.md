@@ -80,6 +80,24 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Halt the ownership drift and return external comment handling to the Finisher, with Reviewer findings remaining local pre-publish input only.
 - Rule surface: The review and finish contracts should keep local findings with the Reviewer and PR comment follow-through with the Finisher.
 
+## Skill change reviewed without `writing-skills`
+
+- Starting condition: The run changes `skills/**/*.md` or workflow-contract docs, but Reviewer performs only a normal prose review and never invokes `superpowers:writing-skills`.
+- Required halt or reroute behavior: Halt merged-ready review and reroute to a skill-specific review pass that uses `superpowers:writing-skills`.
+- Rule surface: The Reviewer contract and Reviewer prompt should require `superpowers:writing-skills` for skill and workflow-contract review.
+
+## Skill change reviewed without a pressure-test walkthrough
+
+- Starting condition: Reviewer invokes skill-review guidance in name only, but does not run the relevant pressure-test walkthrough for the changed skill or workflow contract.
+- Required halt or reroute behavior: Halt review completion and require the pressure-test walkthrough results before publish.
+- Rule surface: The Reviewer contract should require pressure-test pass/fail reporting for skill and workflow-contract changes.
+
+## Loophole found during skill review but ignored before publish
+
+- Starting condition: A pressure-test walkthrough on a skill or workflow-contract change finds a loophole, but the run still treats review as complete and moves toward publish.
+- Required halt or reroute behavior: Loop back before publish and do not allow merged-ready review until the loophole is addressed or reported as an explicit blocker.
+- Rule surface: The Reviewer prompt should require loopback when the pressure-test walkthrough exposes a loophole.
+
 ## Finisher handling comments without current-branch verification
 
 - Starting condition: The Finisher resolves or replies to comments tied to earlier state without checking the current branch state first.

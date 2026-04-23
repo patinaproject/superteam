@@ -180,6 +180,8 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 - Review locally before publish.
 - Validate artifact ownership, required verification, and role-rule compliance.
 - Classify loopbacks explicitly as `implementation-level`, `plan-level`, or `spec-level`.
+- When reviewing changes to `skills/**/*.md` or workflow-contract docs, invoke `superpowers:writing-skills` and run the relevant pressure-test walkthrough before publish.
+- Report pressure-test pass/fail results and any loopholes found for skill or workflow-contract changes.
 - Keep findings local; do not take ownership of external review feedback.
 - Recommend `superpowers:requesting-code-review`.
 
@@ -249,6 +251,7 @@ Before resolving or replying to comments tied to a prior branch state:
 - Delegated teammate prompts that omit expected `superpowers` recommendations or fail to warn when an expected skill is unavailable.
 - `Executor` claiming completion without explicit task IDs, SHAs, or verification evidence.
 - `Reviewer` failing to classify findings as `implementation-level`, `plan-level`, or `spec-level`.
+- Skill or workflow-contract changes reviewed without `superpowers:writing-skills` or a pressure-test walkthrough.
 - Local review findings taking ownership of external PR feedback away from `Finisher`.
 - `Finisher` resolving prior-state comments without checking current branch state first.
 - Treating local-only state as a valid end state for a `superteam` run.

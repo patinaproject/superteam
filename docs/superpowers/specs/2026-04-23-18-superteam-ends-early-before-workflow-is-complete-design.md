@@ -143,6 +143,17 @@ If the run cannot determine whether feedback still applies to the latest state, 
 
 When CI is failing or unstable after the latest push, `Finisher` should inspect enough evidence to distinguish branch-caused failures from likely baseline or unrelated failures when possible. If that distinction still cannot be made safely, the run must halt with an explicit blocker and prompt the operator instead of silently treating the workflow as done.
 
+### Skill-Change Review Behavior
+
+When a `superteam` run changes `skills/**/*.md` or workflow-contract documentation intended to steer agent behavior, `Reviewer` should perform a skill-specific review pass instead of only a normal prose review. That review should invoke `superpowers:writing-skills` and run the relevant pressure-test walkthrough before publish.
+
+The review pass should:
+
+- report which pressure-test scenarios were checked
+- report pass/fail outcomes for those scenarios
+- surface any loopholes found during the walkthrough
+- loop back before publish if a loophole is found instead of treating review as complete
+
 ### Explicit Blocker Reporting
 
 When shutdown cannot proceed, the run should report the blocker explicitly rather than ending in an implicit or misleading success state. The blocker report should clearly indicate that shutdown did not occur because required external-feedback checks failed or could not be completed.
@@ -157,6 +168,7 @@ The repository changes should stay tightly coupled to the shutdown problem:
 - update first-stage guidance so `Brainstormer` approval requests surface remaining approval-relevant concerns when present
 - update the Mermaid workflow diagram so it reflects the real forward path, backward loopbacks, and artifact treatment accurately
 - update `README.md` so the public workflow diagrams match the approved two-chart model and the README explains what each stage is supposed to do in enough detail for developers to follow the workflow
+- update `Reviewer` guidance so skill and workflow-contract changes require `superpowers:writing-skills` and a pressure-test walkthrough before publish
 - update only directly relevant `Finisher`-owned prompt or template language if it currently allows completion to be reported before shutdown checks truly pass
 - update repository-local pressure tests to cover the exact failure mode and the new halt behavior
 
@@ -174,6 +186,7 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 - verify `Finisher` shutdown instructions require checking unresolved inline review threads after the latest push
 - verify `Finisher` shutdown instructions require checking recent blocking external PR feedback after the latest push
 - verify `README.md` mirrors the approved workflow diagrams and includes a concise developer-facing explanation of what happens at each stage
+- verify `Reviewer` guidance requires `superpowers:writing-skills` and a pressure-test walkthrough for skill or workflow-contract changes
 - verify runs with unresolved external feedback cannot present a successful completion state
 - verify runs with active publish-state blockers cannot stop at a status snapshot
 - verify unresolved implementation-level feedback routes back through the expected loopback handling path before shutdown
@@ -199,6 +212,7 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 - AC-18-11: Given the Mermaid workflow diagrams are updated for this issue, when they represent the `superteam` flow, then they show a clear vertical chronological path, a separate orchestration view with `Team Lead` as the routing hub, and a distinct lighter artifact treatment including `Pull Request`
 - AC-18-12: Given `Finisher` clears feedback or checks on one PR head and then a newer head is pushed, when shutdown is evaluated, then completion is judged against the latest pushed head rather than any earlier green or previously-cleared state
 - AC-18-13: Given a developer reads the public README workflow docs, when they need to understand how `superteam` is supposed to behave, then the README mirrors the approved two-chart flow and explains the expected responsibilities of each stage succinctly
+- AC-18-14: Given a `superteam` run changes a skill or workflow-contract doc, when `Reviewer` performs local review, then it invokes `superpowers:writing-skills`, runs the relevant pressure-test walkthrough, and reports pass/fail results before the run is treated as merged-ready
 
 ## Implementation Notes
 

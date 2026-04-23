@@ -98,7 +98,7 @@ This is the short version of what developers should expect during a normal run:
 - `Planner`: converts the approved design into an implementation plan with concrete tasks. `Planner` is supposed to consume the approved design doc, not improvise from chat summaries.
 - `Executor`: implements only the approved plan, including the required tests and verification evidence. `Executor` does not push branches or open PRs.
 - `Implementation & Tests`: this is the durable output of execution. By the time work reaches review, the branch should already contain the code, tests, and local verification needed to judge the implementation.
-- `Reviewer`: performs local pre-publish review, checks that the right artifacts exist, verifies the reported evidence, and classifies any findings as implementation-level, plan-level, or spec-level so loopbacks are routed correctly.
+- `Reviewer`: performs local pre-publish review, checks that the right artifacts exist, verifies the reported evidence, classifies any findings as implementation-level, plan-level, or spec-level so loopbacks are routed correctly, and pressure-tests skill/workflow changes before publish.
 - `Finisher`: owns everything needed to publish and stabilize the branch on GitHub. That includes pushing, opening or updating the PR, checking CI and mergeability, handling external feedback, and making sure the run does not end early.
 - `Pull Request`: this is the published artifact for the current branch state. It is a milestone, not the end of the workflow.
 - `Human Test & Review`: this is where a person can demo, test, and review the published branch. Human feedback loops back through `Team Lead`, while PR-surface status and findings loop back through `Finisher`.
@@ -113,7 +113,7 @@ In practice, this means `superteam` should not report success just because code 
 | Brainstormer | Design doc creation and approval handoff | `superpowers:brainstorming` |
 | Planner | Approved implementation plan creation | `superpowers:writing-plans` |
 | Executor | Code and tests for the approved plan | `superpowers:test-driven-development`; `superpowers:systematic-debugging` when debugging; `superpowers:verification-before-completion`; `superpowers:writing-skills` when editing `skills/**/*.md` |
-| Reviewer | Local pre-publish review findings and loopback classification | `superpowers:requesting-code-review` |
+| Reviewer | Local pre-publish review findings and loopback classification | `superpowers:requesting-code-review`; `superpowers:writing-skills` when reviewing `skills/**/*.md` or workflow-contract docs |
 | Finisher | Publish-state follow-through, branch/PR/CI reporting, and external review feedback handling | `superpowers:finishing-a-development-branch`; `superpowers:receiving-code-review` when handling reviewer findings, PR comments, or bot feedback |
 
 ## Run superteam anytime

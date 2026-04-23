@@ -239,6 +239,31 @@ Keep the existing done-report contract intact while making the shutdown guard ha
 Run: `sed -n '1,240p' skills/superteam/agent-spawn-template.md`
 Expected: `Finisher` guidance matches the canonical skill contract and still preserves branch-state-aware comment handling.
 
+### Task 3.5: Require pressure-test review when the run changes skills or workflow-contract docs
+
+**Files:**
+- Modify: `skills/superteam/SKILL.md`
+- Modify: `skills/superteam/agent-spawn-template.md`
+
+- [ ] **Step 1: Tighten the Reviewer contract in the source skill**
+
+Update the `Reviewer` contract so it states that when the run changes `skills/**/*.md` or workflow-contract docs, `Reviewer` should invoke `superpowers:writing-skills` and run the relevant pressure-test walkthrough before publish.
+
+- [ ] **Step 2: Mirror the same rule in the Reviewer spawn block**
+
+Update the `Reviewer` block so it:
+
+```text
+Recommend `superpowers:writing-skills` when reviewing changes to `skills/**/*.md` or workflow-contract docs.
+When reviewing those files, run the relevant pressure-test walkthrough and report pass/fail results plus any loopholes found.
+If a loophole is found, loop back before publish instead of treating the review as complete.
+```
+
+- [ ] **Step 3: Re-read the Reviewer surfaces for consistency**
+
+Run: `rg -n "writing-skills|pressure-test|loophole|workflow-contract" skills/superteam/SKILL.md skills/superteam/agent-spawn-template.md`
+Expected: both reviewer-facing surfaces clearly require pressure-test review for skill and workflow-contract changes.
+
 ### Task 4: Add pressure-test coverage for approval concerns, mandatory publication, top-level findings, dedupe, and fallback behavior
 
 **Files:**
@@ -295,6 +320,14 @@ Update the shutdown-related pressure tests so they explicitly cover:
 
 Run: `sed -n '1,260p' docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
 Expected: the repo-local pressure tests now exercise both the original miss and the indeterminate-state fallback.
+
+- [ ] **Step 4: Add reviewer-specific pressure-test coverage for skill changes**
+
+Add pressure-test scenarios covering:
+
+- a skill or workflow-contract change reviewed without invoking `superpowers:writing-skills`
+- a skill change reviewed with only text-diff review and no pressure-test walkthrough
+- a loophole found during the pressure-test walkthrough but ignored before publish
 
 ### Task 5: Refresh the packaged plugin copy and verify the repository state
 
@@ -357,6 +390,6 @@ Expected: one clean commit captures the approved spec tightening, implementation
 
 ## Self-Review
 
-- Spec coverage: Task 1 covers approval concerns, mandatory publication, invalid local-only completion, success-only shutdown, counting rules, top-level finding handling, and head-relative completeness. Task 2 covers the Mermaid workflow diagram requirements, Task 2.5 covers the public README workflow docs, Task 3 mirrors the rule in the directly relevant `Finisher` prompt surface, Task 4 covers the documented failure modes, and Task 5 verifies the packaged plugin copy. AC-18-1 through AC-18-13 each map to at least one explicit task.
+- Spec coverage: Task 1 covers approval concerns, mandatory publication, invalid local-only completion, success-only shutdown, counting rules, top-level finding handling, and head-relative completeness. Task 2 covers the Mermaid workflow diagram requirements, Task 2.5 covers the public README workflow docs, Task 3 mirrors the rule in the directly relevant `Finisher` prompt surface, Task 3.5 adds reviewer pressure-test requirements for skill changes, Task 4 covers the documented failure modes, and Task 5 verifies the packaged plugin copy. AC-18-1 through AC-18-14 each map to at least one explicit task.
 - Placeholder scan: No `TODO`, `TBD`, or vague “handle later” instructions remain; every task lists exact files and concrete commands.
 - Type consistency: The plan consistently uses `blocking external PR feedback`, `latest pushed state`, `prompt the operator`, and `success-only shutdown` across tasks.
