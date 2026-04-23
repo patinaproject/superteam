@@ -106,7 +106,11 @@ flowchart TD
 ## Pre-flight
 
 - Prefer the host runtime's normal multi-agent capabilities when available.
+- When the host runtime supports background-agent execution for delegated teammate work, prefer using that capability as an execution aid rather than a correctness dependency.
+- When the runtime offers durable follow-up features such as thread heartbeats, monitors, or equivalent wakeups, prefer using them for `Finisher` publish-state follow-through while required checks or external review state remain pending.
+- Treat these runtime capabilities as aids for the existing teammate and `Finisher` loops, not as separate workflows or replacement contracts.
 - Do not block solely because a preferred team feature is unavailable; fall back to direct subagent dispatch.
+- If the host lacks those capabilities, do not stop early; continue using the portable teammate and `Finisher` contracts or report an explicit blocker when follow-through cannot safely continue.
 - Keep runtime-specific checks lightweight. Teammate ownership, gate discipline, and artifact authority are the important parts.
 
 ## Canonical rule discovery
@@ -129,7 +133,9 @@ Before asking for approval:
 2. Return the exact artifact path under review.
 3. Include a concise intent summary of what the artifact changes or decides.
 4. Include the full requirement set currently under review.
-5. Surface any remaining approval-relevant concerns that could materially affect the decision to approve, revise, or narrow the design.
+5. Always report `concerns[]` in the approval packet, including an explicit empty result when no approval-relevant concerns remain.
+6. Render the operator-facing no-concerns line exactly as `Remaining concerns: None`.
+7. Surface any remaining approval-relevant concerns that could materially affect the decision to approve, revise, or narrow the design.
 
 If the approval packet is too large to present cleanly, split it into multiple approval requests or sections. Do not collapse it into a vague fallback summary.
 
@@ -155,6 +161,8 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 - Return the exact design doc path.
 - Return the ordered active AC list.
 - Report the concise intent summary and the full requirement set used for approval.
+- Always report `concerns[]` when requesting approval, including an explicit empty result when no approval-relevant concerns remain under the contract.
+- Render the operator-facing no-concerns line exactly as `Remaining concerns: None`.
 - Surface any remaining approval-relevant concerns when requesting approval.
 - Recommend `superpowers:brainstorming`.
 
@@ -214,6 +222,9 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 - Any new push invalidates earlier assumptions and restarts evaluation on the new latest head.
 - Stay in the `Finisher` loop after PR publication until publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.
 - Do not treat PR creation, one status snapshot, restored mergeability, or green CI alone as workflow completion.
+- When the runtime offers durable follow-up features such as thread heartbeats, monitors, or equivalent wakeups, prefer using them while required checks or external review state remain pending.
+- Treat those runtime features as aids for the same latest-head `Finisher` loop rather than as a separate workflow or replacement contract.
+- If the runtime lacks those features, continue the portable `Finisher` ownership model or report an explicit blocker instead of stopping early.
 - Verify current branch state before resolving or replying to comments tied to prior state.
 - Route requirement-bearing feedback through `Brainstormer` first, then `Planner`, then `Executor`.
 - Recommend `superpowers:finishing-a-development-branch`.
@@ -260,6 +271,7 @@ Before resolving or replying to comments tied to a prior branch state:
 | "The design file probably exists if Brainstormer says it does." | Gate 1 requires verifying the artifact exists at the reported path before approval. |
 | "I can summarize the approval request in one short fallback blurb." | Approval packets must include artifact path, concise intent summary, and full requirement set; split oversized packets instead of collapsing them. |
 | "I can replay the whole approval request after a small revision." | Re-fired approval after revisions must be delta-only. |
+| "If the runtime has background agents or wakeups, the contract must require them." | Runtime capabilities are execution aids for the portable workflow, not correctness dependencies. |
 | "I remember the repo rules already." | Discover canonical repository guidance before touching governed files. |
 | "Executor finished the spirit of the task." | `Executor` must report completion against explicit task IDs with evidence. |
 | "Reviewer can just send everything back to execution." | `Reviewer` must classify implementation-level, plan-level, and spec-level loopbacks. |
@@ -271,10 +283,12 @@ Before resolving or replying to comments tied to a prior branch state:
 - Using older stage-only language where the canonical teammate roster should be used.
 - Asking for design approval before verifying the cited artifact exists.
 - Approval requests that omit the artifact path, concise intent summary, or full requirement set.
+- Approval requests that omit `concerns[]` or render the no-concerns case as anything other than `Remaining concerns: None`.
 - Oversized approval requests collapsed into a vague summary instead of split into clean sections.
 - Approval requests that hide real approval-relevant concerns.
 - Replaying already-approved content instead of sending delta-only approval after revisions.
 - Touching governed files without canonical-rule discovery from repository guidance.
+- Delegated teammate work in a runtime-capable host that ignores available background-agent execution without justification.
 - Delegated teammate prompts that omit expected `superpowers` recommendations or fail to warn when an expected skill is unavailable.
 - `Executor` claiming completion without explicit task IDs, SHAs, or verification evidence.
 - `Reviewer` failing to classify findings as `implementation-level`, `plan-level`, or `spec-level`.
@@ -282,6 +296,7 @@ Before resolving or replying to comments tied to a prior branch state:
 - Skill or workflow-contract changes reviewed without `superpowers:writing-skills` or a pressure-test walkthrough.
 - Local review findings taking ownership of external PR feedback away from `Finisher`.
 - `Finisher` resolving prior-state comments without checking current branch state first.
+- `Finisher` treating missing runtime wakeups as permission to stop early or present a completion-style handoff.
 - Treating local-only state as a valid end state for a `superteam` run.
 - Letting a run stop with a completion-style closeout after `Executor` finishes local work without reaching `Reviewer` and `Finisher`, unless the run halts explicitly with a blocker.
 - Treating PR publication plus a status snapshot as the end of the workflow while `Finisher`-owned work is still active.
