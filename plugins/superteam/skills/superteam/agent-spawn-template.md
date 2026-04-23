@@ -43,6 +43,7 @@ Each approval packet must include:
 - exact artifact path
 - concise intent summary
 - full requirement set under review
+- remaining approval-relevant concerns when they exist
 If the approval packet is too large, split it instead of collapsing it.
 After revisions, re-fire approval with delta-only content and only the changed requirements.
 ```
@@ -62,6 +63,7 @@ Done-report contract:
 - `ac_ids[]`: ordered list of active AC IDs
 - `intent_summary`: concise summary of what the artifact changes or decides
 - `requirements[]`: full requirement set currently under review
+- `concerns[]`: remaining approval-relevant concerns that could materially affect approval, or an explicit empty result when none exist
 ```
 
 ### Planner
