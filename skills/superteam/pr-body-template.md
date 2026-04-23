@@ -6,6 +6,11 @@
 ## Summary
 - <1-3 bullets>
 
+## Linked Issue
+- `Closes #<issue-number>` when this PR is intended to complete the issue
+- Otherwise: `Related to #<issue-number>` plus one short explanation of why this PR does not close it yet
+- Omit this section entirely when no issue number is present
+
 ## Branch state
 - Latest pushed branch state: `<branch>@<sha>`
 - Review state: <no open findings | open findings summarized below>
@@ -36,6 +41,9 @@ Only include this section when CI is still red and the operator has explicitly c
 
 ## Status rules
 
+- Use `Closes #<issue-number>` as the canonical closing-keyword line for issue-completing runs.
+- If the issue is related but not complete, keep a non-closing issue reference and explain the omission briefly.
+- If no issue number is present, omit the linked-issue section instead of inventing a placeholder.
 - Use the summary line under each `### AC-<issue-number>-<n>` heading for the outcome.
 - Use checkboxes only for verification steps beneath the AC heading.
 - Keep the acceptance criteria and verification synchronized with the latest pushed branch state.

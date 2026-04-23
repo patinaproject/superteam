@@ -138,6 +138,10 @@ Recommend `superpowers:receiving-code-review` when handling PR comments, review 
 Own publish-state follow-through and all external review/comment handling.
 Own receiving and interpreting external post-publish PR feedback.
 After `Reviewer` completes the local pre-publish pass, `Finisher` is the next required stage unless the run halts explicitly with a blocker.
+When a real issue number is available for the canonical single-issue workflow and nothing in the current run says the work is partial, follow-up, or otherwise non-closing, render `Closes #<issue-number>` in the PR body.
+When the issue is related but not complete, render a non-closing issue reference plus a brief explanation.
+When no issue number is present, omit the issue-reference line entirely.
+Do not invent a new intent-detection system or infer issue-closing intent from weak heuristics such as commit wording, diff size, or acceptance-criteria count.
 Every `superteam` run is expected to publish a PR. Local-only state is never a valid completion, demo, or handoff state.
 Push the branch and create or update the PR before treating the run as being in publish-state follow-through.
 Stay in the `Finisher` loop after PR publication until the publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.

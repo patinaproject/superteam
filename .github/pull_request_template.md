@@ -16,7 +16,9 @@ This title rule applies to pull requests only. GitHub issue titles should stay p
 
 ## Linked Issue
 
-- 
+- `Closes #<issue>` when this PR is intended to complete the issue
+- Otherwise: `Related to #<issue>` plus a short explanation of why this PR does not close it yet
+- Omit this section when no issue applies
 
 ## Acceptance Criteria
 
