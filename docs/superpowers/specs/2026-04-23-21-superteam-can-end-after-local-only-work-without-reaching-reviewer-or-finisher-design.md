@@ -53,6 +53,8 @@ The canonical contract alone is not enough if delegated teammate prompts remain 
 
 This keeps Codex-facing teammate prompts aligned with the source contract and closes the gap where the top-level skill is correct but delegated prompts still permit an early stop.
 
+For this issue, that alignment should be treated as a direct requirement rather than a nice-to-have follow-up. If one surface says the post-implementation transition is mandatory and the other still allows a success-style closeout after local work, the issue is not fixed.
+
 ### Pressure-Test The Exact Failure Mode
 
 The repo-local pressure tests should include the exact scenario from `#21`:
@@ -90,6 +92,7 @@ Update other files only if they directly undermine this fix.
 - verify the canonical skill makes the transition from `Reviewer` to `Finisher` mandatory unless the run halts explicitly
 - verify the canonical skill forbids completion-style closeout after local-only work
 - verify the agent spawn template mirrors the same post-implementation routing rule in Codex-facing prompts
+- verify the canonical skill and the agent spawn template agree on the same two allowed post-implementation outcomes: continue into `Reviewer` and `Finisher`, or halt explicitly
 - verify both files use the contract-style halt message when the workflow cannot continue safely
 - verify the pressure tests include the exact `#21` failure mode: local implementation complete, no reviewer pass, no PR publication, no finisher shutdown checks, attempted completion-style closeout
 - verify the pressure test treats that scenario as a failure unless the run continues correctly or halts explicitly
@@ -100,7 +103,8 @@ Update other files only if they directly undermine this fix.
 - AC-21-2: Given `Executor` has completed local implementation work, when the workflow advances normally, then it routes into `Reviewer` and then `Finisher` rather than stopping after local-only work
 - AC-21-3: Given the workflow cannot continue safely into `Reviewer` or `Finisher`, when the run stops, then it reports `superteam halted at <teammate or gate>: <reason>` instead of implying success
 - AC-21-4: Given delegated Codex-facing teammate prompts are used, when they describe post-implementation behavior, then they match the canonical rule that local implementation completion is not workflow completion
-- AC-21-5: Given the repo-local pressure tests are run, when the `#21` failure mode is exercised, then the tests fail any run that ends after local-only work without reviewer, PR publication, and finisher follow-through
+- AC-21-5: Given both the canonical skill and the delegated spawn template govern post-implementation behavior, when either surface is updated for this fix, then both surfaces preserve the same two allowed outcomes: continue into `Reviewer` and `Finisher`, or halt explicitly with the contract-style blocker message
+- AC-21-6: Given the repo-local pressure tests are run, when the `#21` failure mode is exercised, then the tests fail any run that ends after local-only work without reviewer, PR publication, and finisher follow-through
 
 ## Implementation Notes
 
