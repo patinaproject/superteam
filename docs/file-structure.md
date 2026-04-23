@@ -8,7 +8,6 @@ This document is a contributor reference for the repository layout. For user-fac
 - `skills/`: installable or shareable skill packages
 - `plugins/`: plugin packages for external install surfaces
 - `docs/`: repository docs, design docs, planning artifacts, and repo-local pressure tests
-- `.agents/plugins/marketplace.json`: local plugin catalog for Codex discovery
 - `package.json`: minimal repo tooling managed with `pnpm`
 - `commitlint.config.js`: commit message rules
 - `.husky/`: git hooks, including `commit-msg`
@@ -67,8 +66,7 @@ plugins/
 - `plugins/superteam/skills/`: packaged skills exposed by the Codex plugin
 - `agents/openai.yaml`: optional skill UI metadata for Codex lists and chips
 
-Use `.agents/plugins/marketplace.json` to register repo-local plugins for Codex discovery.
-When publishing `superteam` to an external marketplace, treat `plugins/superteam/` as the packaged Codex install surface and `skills/superteam/` as the authoring source. Refresh the packaged copy with `pnpm sync:plugin`.
+Treat `plugins/superteam/` as the packaged Codex plugin surface in this repository, and `skills/superteam/` as the authoring source. Refresh the packaged copy with `pnpm sync:plugin`.
 
 ## Docs
 
@@ -96,4 +94,4 @@ docs/
 
 ## Contributor expectation
 
-When adding a new skill, mirror the `skills/superteam/` pattern. When making that skill importable as a Codex plugin, package it under `plugins/<name>/` with a plugin manifest and marketplace entry, and keep the packaged skill self-contained.
+When adding a new skill, mirror the `skills/superteam/` pattern. When making that skill importable as a Codex plugin, package it under `plugins/<name>/` with a plugin manifest and keep the packaged skill self-contained.

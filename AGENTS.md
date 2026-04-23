@@ -8,7 +8,6 @@ This repository is organized around reusable skill packages and supporting docum
 - `plugins/`: Codex plugin packages, for example `plugins/superteam/.codex-plugin/plugin.json`.
 - If `.claude-plugin/plugin.json` exists, the repository root is the Claude plugin install surface.
 - `docs/`: contributor-facing docs plus planning artifacts such as `docs/file-structure.md` and `docs/superpowers/plans/`.
-- `.agents/plugins/marketplace.json`: repo-local plugin catalog for Codex discovery.
 - root config: `package.json`, `commitlint.config.js`, and `.husky/` define local tooling and commit enforcement.
 
 Keep each skill self-contained. Prefer adjacent support files like `agent-spawn-template.md` or `pr-body-template.md` over hidden tool-specific wrappers unless a runtime requires them.
@@ -78,6 +77,8 @@ For squash-and-merge workflows, PR titles must exactly match the commitlint and 
 Use the final intended squash commit title as the PR title. Examples:
 - `docs: #12 add superteam skill guide`
 - `chore: #34 bootstrap commit hooks`
+
+GitHub issue titles are different: write them as plain-language summaries of the problem or request. Do not use conventional-commit prefixes like `docs:` or `feat:` in issue titles.
 
 When an issue defines acceptance criteria, include an `Acceptance Criteria` section in the PR description.
 
