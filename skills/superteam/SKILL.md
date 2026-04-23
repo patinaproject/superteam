@@ -46,6 +46,7 @@ Before asking for approval:
 2. Return the exact artifact path under review.
 3. Include a concise intent summary of what the artifact changes or decides.
 4. Include the full requirement set currently under review.
+5. Surface any remaining approval-relevant concerns that could materially affect the decision to approve, revise, or narrow the design.
 
 If the approval packet is too large to present cleanly, split it into multiple approval requests or sections. Do not collapse it into a vague fallback summary.
 
@@ -71,6 +72,7 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 - Return the exact design doc path.
 - Return the ordered active AC list.
 - Report the concise intent summary and the full requirement set used for approval.
+- Surface any remaining approval-relevant concerns when requesting approval.
 - Recommend `superpowers:brainstorming`.
 
 ### Planner
@@ -102,6 +104,8 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 
 - Own push, branch publication, PR updates, PR body rendering, CI triage, and external review/comment handling.
 - Report pushed SHAs, current branch state on origin, PR state, and CI state.
+- Every `superteam` run is expected to publish a PR; local-only state is never a valid completion, demo, or handoff state.
+- Push the branch and create or update the PR before treating the run as being in publish-state follow-through.
 - Stay in the `Finisher` loop after PR publication until publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.
 - Do not treat PR creation, one status snapshot, restored mergeability, or green CI alone as workflow completion.
 - Verify current branch state before resolving or replying to comments tied to prior state.
@@ -156,6 +160,7 @@ Before resolving or replying to comments tied to a prior branch state:
 - Asking for design approval before verifying the cited artifact exists.
 - Approval requests that omit the artifact path, concise intent summary, or full requirement set.
 - Oversized approval requests collapsed into a vague summary instead of split into clean sections.
+- Approval requests that hide real approval-relevant concerns.
 - Replaying already-approved content instead of sending delta-only approval after revisions.
 - Touching governed files without canonical-rule discovery from repository guidance.
 - Delegated teammate prompts that omit expected `superpowers` recommendations or fail to warn when an expected skill is unavailable.
@@ -163,6 +168,7 @@ Before resolving or replying to comments tied to a prior branch state:
 - `Reviewer` failing to classify findings as `implementation-level`, `plan-level`, or `spec-level`.
 - Local review findings taking ownership of external PR feedback away from `Finisher`.
 - `Finisher` resolving prior-state comments without checking current branch state first.
+- Treating local-only state as a valid end state for a `superteam` run.
 - Treating PR publication plus a status snapshot as the end of the workflow while `Finisher`-owned work is still active.
 - Shutting down with unresolved review threads or other blocking external PR feedback still open.
 
@@ -170,29 +176,33 @@ Before resolving or replying to comments tied to a prior branch state:
 
 Shutdown is a success-only action. Do not shut down or present the run as complete unless every required shutdown check passes on the latest pushed PR state.
 
+Every `superteam` run is expected to publish a PR. Local-only state is never a valid complete, demoable, or handoffable result.
+
 PR publication is a milestone, not the end of the workflow. `Finisher` remains active after the PR exists and after any individual status snapshot until the publish-state follow-through is stable or an explicit blocker is reported.
 
 Before shutdown:
 
-1. Verify the active PR and the current branch state after the latest push.
-2. Verify current publish-state blockers for the latest pushed state, including mergeability, required checks, and PR metadata requirements discovered from repository rules.
-3. Check unresolved inline review threads on the latest PR head.
-4. Check recent blocking external PR feedback on the latest pushed state.
-5. Treat the following as blocking:
+1. Verify the current branch has been pushed and the active PR exists.
+2. Verify the active PR and the current branch state after the latest push.
+3. Verify current publish-state blockers for the latest pushed state, including mergeability, required checks, and PR metadata requirements discovered from repository rules.
+4. Check unresolved inline review threads on the latest PR head.
+5. Check recent blocking external PR feedback on the latest pushed state.
+6. Treat the following as blocking:
+   - an unpushed branch or missing PR
    - broken mergeability or required publish-state follow-through that `Finisher` still owns
    - required checks that are pending or failing without a clear handoff-ready blocker report
    - PR metadata or title failures that violate repository rules and still require `Finisher` action
    - unresolved inline review threads on the latest PR head
    - unresolved reviewer or bot feedback posted after the latest push that requests a code change, verification rerun, follow-up response, or other concrete corrective action before the PR is ready
-6. Record the final unresolved blocking-feedback counts for the latest pushed state, including:
+7. Record the final unresolved blocking-feedback counts for the latest pushed state, including:
    - unresolved inline review threads
    - unresolved top-level reviewer or bot comments with still-applicable findings or requested corrective action
-7. Treat any nonzero unresolved blocking-feedback count as a blocker.
-8. Only dedupe a top-level comment from the final unresolved count when it is explicitly a summary of specific inline findings already audited on the latest pushed state.
-9. If blocking work remains, continue the `Finisher` loop, dispatch `Finisher`-owned handling, and re-check instead of stopping at a status snapshot.
-10. If the state cannot be determined safely, distinguish branch-caused blockers from likely baseline or unrelated failures when possible, and prompt the operator instead of guessing.
-11. Report the remaining blocking state explicitly, including the final unresolved blocking-feedback counts, before any handoff or halt.
-12. Only request shutdown when every required shutdown check passes. Otherwise halt with an explicit blocker.
+8. Treat any nonzero unresolved blocking-feedback count as a blocker.
+9. Only dedupe a top-level comment from the final unresolved count when it is explicitly a summary of specific inline findings already audited on the latest pushed state.
+10. If blocking work remains, continue the `Finisher` loop, dispatch `Finisher`-owned handling, and re-check instead of stopping at a status snapshot.
+11. If the state cannot be determined safely, distinguish branch-caused blockers from likely baseline or unrelated failures when possible, and prompt the operator instead of guessing.
+12. Report the remaining blocking state explicitly, including the final unresolved blocking-feedback counts, before any handoff or halt.
+13. Only request shutdown when every required shutdown check passes. Otherwise halt with an explicit blocker.
 
 Use repository placeholders such as `<owner>`, `<repo>`, `<pr>`, and `<branch>` in commands so the workflow stays portable across repositories.
 

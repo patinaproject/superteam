@@ -26,6 +26,12 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Halt the revised approval request and resend it with only the changed content and changed requirements.
 - Rule surface: The revision approval prompt should require delta-only resubmission after revisions.
 
+## Approval request omits remaining approval-relevant concerns
+
+- Starting condition: Brainstormer requests approval while real approval-relevant concerns still exist, but the approval packet does not surface them.
+- Required halt or reroute behavior: Halt approval and reissue the packet with the remaining approval-relevant concerns included, unless the concern is severe enough to block approval entirely.
+- Rule surface: The first-stage approval contract should require Brainstormer to surface real approval-relevant concerns when present.
+
 ## Delegated prompts missing expected `superpowers` recommendations
 
 - Starting condition: A delegated teammate prompt omits the expected `superpowers` skill recommendations for that role.
@@ -85,6 +91,12 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Starting condition: The workflow creates or updates the PR, reports a single status snapshot, and then stops even though mergeability, CI, PR metadata correction, or external feedback handling still requires Finisher-owned follow-through.
 - Required halt or reroute behavior: Do not present the run as complete. Continue the Finisher loop until publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.
 - Rule surface: The Finisher contract should state that PR publication is a milestone rather than the end of the workflow.
+
+## Finisher stops with only local commits and no PR
+
+- Starting condition: The run reaches Finisher-owned work with local commits present, but the branch is not pushed and the PR does not exist.
+- Required halt or reroute behavior: Do not present the run as complete, demoable, or handoffable. Keep publication work with Finisher until the branch is pushed and the PR exists, or report an explicit blocker.
+- Rule surface: The Finisher contract should make PR publication mandatory for every superteam run and eliminate local-only completion as a valid end state.
 
 ## Top-level finding comment has no inline companion
 

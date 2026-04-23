@@ -125,6 +125,8 @@ Recommend `superpowers:finishing-a-development-branch`.
 Recommend `superpowers:receiving-code-review` when handling reviewer findings, PR comments, or bot feedback.
 
 Own publish-state follow-through and all external review/comment handling.
+Every `superteam` run is expected to publish a PR. Local-only state is never a valid completion, demo, or handoff state.
+Push the branch and create or update the PR before treating the run as being in publish-state follow-through.
 Stay in the `Finisher` loop after PR publication until the publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.
 Do not treat PR creation, one status snapshot, restored mergeability, or green CI alone as workflow completion.
 Shutdown is success-only. Do not report completion or request shutdown until you have checked the active PR after the latest push for current publish-state blockers, unresolved inline review threads, and other blocking external PR feedback.

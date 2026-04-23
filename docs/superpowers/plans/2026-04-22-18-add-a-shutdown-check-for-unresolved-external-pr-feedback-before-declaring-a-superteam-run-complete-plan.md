@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make `superteam` keep `Finisher` alive through post-publish follow-through and block completion until mergeability, required checks, PR metadata requirements, unresolved inline review threads, unresolved top-level finding comments, and other blocking external PR feedback are handled on the latest pushed state, or the operator is prompted explicitly when the state cannot be determined safely.
+**Goal:** Remove any notion of valid local-only completion from `superteam`, require PR publication on every run, keep `Finisher` alive through publication and post-publish follow-through, and block completion until mergeability, required checks, PR metadata requirements, unresolved inline review threads, unresolved top-level finding comments, and other blocking external PR feedback are handled on the latest pushed state, or the operator is prompted explicitly when the state cannot be determined safely.
 
-**Architecture:** Tighten the contract at the source of truth in `skills/superteam/SKILL.md`, mirror the broader post-publish `Finisher` loop in the directly relevant `Finisher` support text, then add pressure-test coverage for early-stop, status-snapshot, top-level-finding accounting, summary-only dedupe, and operator-prompt failure modes. Keep the change documentation-focused and avoid broad workflow rewrites.
+**Architecture:** Tighten the contract at the source of truth in `skills/superteam/SKILL.md`, extend first-stage approval guidance to surface approval-relevant concerns, mirror the broader publication-plus-post-publish `Finisher` loop in the directly relevant `Finisher` support text, then add pressure-test coverage for invalid local-only completion, early-stop, status-snapshot, top-level-finding accounting, summary-only dedupe, and operator-prompt failure modes. Keep the change documentation-focused and avoid broad workflow rewrites.
 
 **Tech Stack:** Markdown docs, repository-local workflow assets, `pnpm sync:plugin`, `rg`, `sed`, `find`
 
@@ -25,7 +25,7 @@
 - `plugins/superteam/skills/superteam/`
   - Packaged copy refreshed via `pnpm sync:plugin` after source skill changes.
 
-### Task 1: Tighten the canonical shutdown contract and counting rules
+### Task 1: Tighten the canonical approval, publication, and shutdown contract
 
 **Files:**
 - Modify: `skills/superteam/SKILL.md`
@@ -40,34 +40,40 @@ Expected: locate the existing shutdown checklist and nearby `Finisher` language 
 Update `skills/superteam/SKILL.md` so it states all of the following in one consistent shutdown path:
 
 ```md
+When Brainstormer asks for approval, include any remaining approval-relevant concerns that could materially affect the decision to approve, revise, or narrow the design.
+
 ## Shutdown
 
 Shutdown is a success-only action. Do not shut down or present the run as complete unless every required shutdown check passes on the latest pushed PR state.
 
+Every superteam run is expected to publish a PR. Local-only state is never a valid complete, demoable, or handoffable result.
+
 Before shutdown:
 
-1. Verify the active PR and the current branch state after the latest push.
-2. Check unresolved inline review threads on the latest PR head.
-3. Check for recent blocking external PR feedback on the latest pushed state.
-4. Treat the following as blocking:
+1. Verify the current branch has been pushed and the active PR exists.
+2. Verify the active PR and the current branch state after the latest push.
+3. Check unresolved inline review threads on the latest PR head.
+4. Check for recent blocking external PR feedback on the latest pushed state.
+5. Treat the following as blocking:
+   - an unpushed branch or missing PR
    - unresolved inline review threads on the latest PR head
    - unresolved reviewer or bot feedback posted after the latest push that requests a code change, verification rerun, follow-up response, or other concrete corrective action before the PR is ready
-5. Record final unresolved blocking-feedback counts for the latest pushed state, including inline threads and top-level finding comments.
-6. Treat any nonzero unresolved blocking-feedback count as a blocker.
-7. Only dedupe a top-level comment when it is explicitly a summary of already-audited inline findings on the latest pushed state.
-8. If blocking feedback exists, dispatch `Finisher`-owned feedback handling and re-check.
-9. If the state cannot be determined safely, prompt the operator instead of guessing.
-10. Only request shutdown when all required shutdown checks pass. Otherwise halt with an explicit blocker.
+6. Record final unresolved blocking-feedback counts for the latest pushed state, including inline threads and top-level finding comments.
+7. Treat any nonzero unresolved blocking-feedback count as a blocker.
+8. Only dedupe a top-level comment when it is explicitly a summary of already-audited inline findings on the latest pushed state.
+9. If blocking feedback exists, dispatch `Finisher`-owned feedback handling and re-check.
+10. If the state cannot be determined safely, prompt the operator instead of guessing.
+11. Only request shutdown when all required shutdown checks pass. Otherwise halt with an explicit blocker.
 ```
 
-The edit should preserve the existing ownership model: `Finisher` owns external feedback, requirement-bearing feedback still routes through spec then plan then execution, ambiguous state blocks success, and top-level findings without inline companions still count.
+The edit should preserve the existing ownership model: `Finisher` owns publication and external feedback, requirement-bearing feedback still routes through spec then plan then execution, ambiguous state blocks success, top-level findings without inline companions still count, and local-only state is never a valid completion mode.
 
 - [ ] **Step 3: Review the updated skill text in context**
 
 Run: `sed -n '1,260p' skills/superteam/SKILL.md`
 Expected: the shutdown section reads cleanly, uses `blocking external PR feedback` consistently, and does not weaken existing routing rules.
 
-### Task 2: Mirror the shutdown and counting rules in the directly relevant Finisher prompt surface
+### Task 2: Mirror the publication, shutdown, and counting rules in the directly relevant Finisher prompt surface
 
 **Files:**
 - Modify: `skills/superteam/agent-spawn-template.md`
@@ -82,6 +88,8 @@ Expected: locate the `Finisher` block and confirm whether shutdown-specific bloc
 Update the `Finisher` block so it includes wording equivalent to:
 
 ```text
+Every superteam run is expected to publish a PR. Local-only state is never a valid completion, demo, or handoff state.
+Push the branch and create or update the PR before treating the run as being in publish-state follow-through.
 Shutdown is success-only. Do not report completion or request shutdown until you have checked the active PR after the latest push for unresolved inline review threads and other blocking external PR feedback.
 Treat unresolved inline review threads and unresolved post-latest-push reviewer or bot feedback requesting concrete corrective action as blocking.
 Report final unresolved blocking-feedback counts for inline threads and top-level finding comments on the latest pushed state.
@@ -98,7 +106,7 @@ Keep the existing done-report contract intact while making the shutdown guard ha
 Run: `sed -n '1,240p' skills/superteam/agent-spawn-template.md`
 Expected: `Finisher` guidance matches the canonical skill contract and still preserves branch-state-aware comment handling.
 
-### Task 3: Add pressure-test coverage for top-level findings, dedupe, and fallback behavior
+### Task 3: Add pressure-test coverage for approval concerns, mandatory publication, top-level findings, dedupe, and fallback behavior
 
 **Files:**
 - Modify: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
@@ -113,6 +121,18 @@ Expected: find the current shutdown test that covers unresolved threads or bot f
 Update the shutdown-related pressure tests so they explicitly cover:
 
 ```md
+## Approval request omits remaining approval-relevant concerns
+
+- Starting condition: Brainstormer requests approval while real approval-relevant concerns still exist, but the approval packet does not surface them.
+- Required halt or reroute behavior: Halt approval and reissue the packet with the remaining approval-relevant concerns included, unless the concern is severe enough to block approval entirely.
+- Rule surface: The first-stage approval contract should require Brainstormer to surface real approval-relevant concerns when present.
+
+## Finisher stops with only local commits and no PR
+
+- Starting condition: The run reaches Finisher-owned work with local commits present, but the branch is not pushed and the PR does not exist.
+- Required halt or reroute behavior: Do not present the run as complete, demoable, or handoffable. Keep publication work with Finisher until the branch is pushed and the PR exists, or report an explicit blocker.
+- Rule surface: The Finisher contract should make PR publication mandatory for every superteam run and eliminate local-only completion as a valid end state.
+
 ## Shutdown attempted with unresolved threads or blocking external PR feedback
 
 - Starting condition: The workflow tries to shut down after publishing a PR, but unresolved inline review threads still exist on the latest PR head, or unresolved post-latest-push reviewer or bot feedback still requests concrete corrective action.
@@ -161,7 +181,7 @@ Expected: matching shutdown language appears in both source and packaged copies.
 
 - [ ] **Step 3: Verify repo-local documentation coverage**
 
-Run: `rg -n "blocking external PR feedback|top-level|dedupe|prompt the operator|Do not shut down|Do not report completion" docs/superpowers/pressure-tests/superteam-orchestration-contract.md skills/superteam/SKILL.md skills/superteam/agent-spawn-template.md`
+Run: `rg -n "approval-relevant concerns|publish a PR|local-only|demoable|handoffable|top-level|dedupe|prompt the operator|Do not shut down|Do not report completion" docs/superpowers/pressure-tests/superteam-orchestration-contract.md skills/superteam/SKILL.md skills/superteam/agent-spawn-template.md`
 Expected: all core shutdown requirements are represented in the canonical skill, the Finisher prompt surface, and the pressure tests.
 
 ### Task 5: Final verification and commit
@@ -204,6 +224,6 @@ Expected: one clean commit captures the approved spec tightening, implementation
 
 ## Self-Review
 
-- Spec coverage: Task 1 covers success-only shutdown, counting rules, and top-level finding handling, Task 2 mirrors the rule in the directly relevant `Finisher` prompt surface, Task 3 covers the documented failure modes, and Task 4 verifies the packaged plugin copy. AC-18-1 through AC-18-8 each map to at least one explicit task.
+- Spec coverage: Task 1 covers approval concerns, mandatory publication, invalid local-only completion, success-only shutdown, counting rules, and top-level finding handling, Task 2 mirrors the rule in the directly relevant `Finisher` prompt surface, Task 3 covers the documented failure modes, and Task 4 verifies the packaged plugin copy. AC-18-1 through AC-18-10 each map to at least one explicit task.
 - Placeholder scan: No `TODO`, `TBD`, or vague “handle later” instructions remain; every task lists exact files and concrete commands.
 - Type consistency: The plan consistently uses `blocking external PR feedback`, `latest pushed state`, `prompt the operator`, and `success-only shutdown` across tasks.
