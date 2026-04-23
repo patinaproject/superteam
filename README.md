@@ -16,15 +16,71 @@ Superteam runs one issue through a structured teammate workflow so the next agen
 
 ```mermaid
 flowchart TD
-    A[/GitHub issue/] --> B[Team Lead]
-    B --> C[Brainstormer]
-    C --> D[/Design doc/]
-    D --> E[Planner]
-    E --> F[/Implementation plan/]
-    F --> G[Executor]
-    G --> H[Reviewer]
-    H --> I[Finisher]
-    I --> J[Finished, ready for feedback]
+    issue["Issue"]:::artifact
+    lead["Team Lead"]
+    brainstormer["Brainstormer"]
+    design["Design Doc"]:::artifact
+    planner["Planner"]
+    plan["Plan Doc"]:::artifact
+    executor["Executor"]
+    implementation["Implementation & Tests"]:::artifact
+    reviewer["Reviewer"]
+    finisher["Finisher"]
+    pr["Pull Request"]:::artifact
+    human["Human Test & Review"]
+
+    issue --> lead
+    lead --> brainstormer
+    brainstormer --> design
+    design --> planner
+    planner --> plan
+    plan --> executor
+    executor --> implementation
+    implementation --> reviewer
+    reviewer --> finisher
+    finisher --> pr
+    pr --> human
+
+    classDef artifact fill:#f7f7f7,stroke:#666,stroke-width:1px,color:#000;
+```
+
+```mermaid
+flowchart TD
+    issue["Issue"]:::artifact
+    lead["Team Lead"]
+    brainstormer["Brainstormer"]
+    design["Design Doc"]:::artifact
+    planner["Planner"]
+    plan["Plan Doc"]:::artifact
+    executor["Executor"]
+    implementation["Implementation & Tests"]:::artifact
+    reviewer["Reviewer"]
+    finisher["Finisher"]
+    pr["Pull Request"]:::artifact
+    human["Human Test & Review"]
+
+    issue --> lead
+    lead --> brainstormer
+    brainstormer --> design
+    design --> planner
+    planner --> plan
+    plan --> executor
+    executor --> implementation
+    implementation --> reviewer
+    reviewer --> finisher
+    finisher --> pr
+    pr --> human
+
+    pr -->|"PR feedback / status"| finisher
+    human -->|"human feedback"| lead
+    reviewer -->|"review findings"| lead
+    finisher -->|"needs reroute"| lead
+
+    lead -->|"route planning work"| planner
+    lead -->|"route implementation work"| executor
+    lead -->|"route publish follow-through"| finisher
+
+    classDef artifact fill:#f7f7f7,stroke:#666,stroke-width:1px,color:#000;
 ```
 
 The workflow stays portable across agent teams and direct subagent handoffs because it is organized around teammate ownership, repo-owned artifacts, and explicit gates rather than one host runtime's mechanics.
@@ -32,6 +88,22 @@ The workflow stays portable across agent teams and direct subagent handoffs beca
 Before any teammate edits governed files, the workflow discovers repository rules from the repo itself, starting with `AGENTS.md` and then any local docs that govern the files being touched.
 
 Each teammate owns specific artifacts and verification gates, so work stays understandable across handoffs instead of becoming ad hoc subagent output. `Reviewer` owns local pre-publish findings. `Finisher` owns publish-state follow-through, branch and PR handling, CI, and external review feedback.
+
+## What Happens At Each Stage
+
+This is the short version of what developers should expect during a normal run:
+
+- `Team Lead`: reads the issue, discovers repo rules, decides which teammate should act next, and halts the run when a gate is not satisfied instead of hand-waving it away.
+- `Brainstormer`: turns the issue into a design doc, captures the active acceptance criteria, and asks for explicit approval before planning starts. If there are real approval-relevant concerns, they should be surfaced here.
+- `Planner`: converts the approved design into an implementation plan with concrete tasks. `Planner` is supposed to consume the approved design doc, not improvise from chat summaries.
+- `Executor`: implements only the approved plan, including the required tests and verification evidence. `Executor` does not push branches or open PRs.
+- `Implementation & Tests`: this is the durable output of execution. By the time work reaches review, the branch should already contain the code, tests, and local verification needed to judge the implementation.
+- `Reviewer`: performs local pre-publish review, checks that the right artifacts exist, verifies the reported evidence, and classifies any findings as implementation-level, plan-level, or spec-level so loopbacks are routed correctly.
+- `Finisher`: owns everything needed to publish and stabilize the branch on GitHub. That includes pushing, opening or updating the PR, checking CI and mergeability, handling external feedback, and making sure the run does not end early.
+- `Pull Request`: this is the published artifact for the current branch state. It is a milestone, not the end of the workflow.
+- `Human Test & Review`: this is where a person can demo, test, and review the published branch. Human feedback loops back through `Team Lead`, while PR-surface status and findings loop back through `Finisher`.
+
+In practice, this means `superteam` should not report success just because code exists locally, a PR was opened once, or CI looked healthy in a single snapshot. A run is only actually complete when the published branch state is stable enough to hand off cleanly or an explicit blocker is reported.
 
 ## Agent roster
 

@@ -122,6 +122,8 @@ This definition keeps the shutdown rule enforceable without turning `Finisher` i
 
 Partial success signals are insufficient on their own. PR creation, resolved merge conflicts, green CI, or restored mergeability may all be real milestones, but none of them alone means the workflow is complete until the final publish-state sweep is clear.
 
+Shutdown readiness must also be head-relative. After every push, `Finisher` must re-evaluate publish-state completeness against the new PR head instead of relying on a prior green or previously-cleared state. Clearing review threads on one head is not enough if a newer head has re-entered pending or failing required checks. Completion is only valid for the current head being reported.
+
 ### Loopback And Escalation Behavior
 
 When shutdown checks find unresolved feedback, `Finisher` remains the owner of the next step. The workflow should not silently end and should not push ownership back onto `Reviewer`.
@@ -132,6 +134,7 @@ The required behaviors are:
 - requirement-bearing feedback continues to route through the existing spec-first path
 - unresolved feedback that cannot be safely classified, matched to current branch state, or handled must block shutdown and be surfaced to the operator explicitly
 - unresolved publish-state blockers such as metadata violations, pending or failing required checks, or ambiguous branch-caused vs baseline CI failures must remain inside `Finisher` until they are resolved or reported explicitly
+- every new push invalidates prior completeness assumptions and requires `Finisher` to re-check the latest PR head before reporting success
 - missing publication steps such as an unpushed branch or missing PR must remain inside `Finisher` until they are completed or reported explicitly; local-only state is never a valid completion mode
 - nonzero unresolved blocking-feedback counts must be reported explicitly and treated as blockers rather than as advisory context
 - top-level finding comments may only be excluded from the final unresolved count when `Finisher` has explicitly verified that they are summaries of already-audited inline findings on the current head
@@ -153,6 +156,7 @@ The repository changes should stay tightly coupled to the shutdown problem:
 - update `skills/superteam/SKILL.md` so `Finisher` owns required publication steps, remains active after PR publication, shutdown is clearly success-only, and operator escalation is required when checks cannot be completed
 - update first-stage guidance so `Brainstormer` approval requests surface remaining approval-relevant concerns when present
 - update the Mermaid workflow diagram so it reflects the real forward path, backward loopbacks, and artifact treatment accurately
+- update `README.md` so the public workflow diagrams match the approved two-chart model and the README explains what each stage is supposed to do in enough detail for developers to follow the workflow
 - update only directly relevant `Finisher`-owned prompt or template language if it currently allows completion to be reported before shutdown checks truly pass
 - update repository-local pressure tests to cover the exact failure mode and the new halt behavior
 
@@ -166,8 +170,10 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 - verify the `Finisher` contract makes required publication steps mandatory and removes any notion of valid local-only completion
 - verify the `Finisher` contract makes PR publication a milestone rather than completion
 - verify the `Finisher` contract requires continued follow-through for mergeability, required checks, PR metadata, and external feedback handling
+- verify `Finisher` re-evaluates completion against the latest pushed head after every push rather than relying on prior green or previously-cleared state
 - verify `Finisher` shutdown instructions require checking unresolved inline review threads after the latest push
 - verify `Finisher` shutdown instructions require checking recent blocking external PR feedback after the latest push
+- verify `README.md` mirrors the approved workflow diagrams and includes a concise developer-facing explanation of what happens at each stage
 - verify runs with unresolved external feedback cannot present a successful completion state
 - verify runs with active publish-state blockers cannot stop at a status snapshot
 - verify unresolved implementation-level feedback routes back through the expected loopback handling path before shutdown
@@ -191,6 +197,8 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 - AC-18-9: Given a `superteam` run, when the branch is still only local or the PR does not yet exist, then the run does not present itself as complete, no local-only end state is accepted, and `Finisher` remains responsible for push and PR creation before post-publish monitoring or shutdown can occur
 - AC-18-10: Given `Brainstormer` requests approval of the design artifact, when approval-relevant concerns remain, then those concerns are surfaced in the approval packet instead of being held back until after approval
 - AC-18-11: Given the Mermaid workflow diagrams are updated for this issue, when they represent the `superteam` flow, then they show a clear vertical chronological path, a separate orchestration view with `Team Lead` as the routing hub, and a distinct lighter artifact treatment including `Pull Request`
+- AC-18-12: Given `Finisher` clears feedback or checks on one PR head and then a newer head is pushed, when shutdown is evaluated, then completion is judged against the latest pushed head rather than any earlier green or previously-cleared state
+- AC-18-13: Given a developer reads the public README workflow docs, when they need to understand how `superteam` is supposed to behave, then the README mirrors the approved two-chart flow and explains the expected responsibilities of each stage succinctly
 
 ## Implementation Notes
 

@@ -263,6 +263,8 @@ Every `superteam` run is expected to publish a PR. Local-only state is never a v
 
 PR publication is a milestone, not the end of the workflow. `Finisher` remains active after the PR exists and after any individual status snapshot until the publish-state follow-through is stable or an explicit blocker is reported.
 
+Shutdown readiness is head-relative. After every push, `Finisher` must re-evaluate completion against the latest PR head instead of relying on a prior green or previously-cleared state.
+
 Before shutdown:
 
 1. Verify the current branch has been pushed and the active PR exists.
@@ -282,10 +284,11 @@ Before shutdown:
    - unresolved top-level reviewer or bot comments with still-applicable findings or requested corrective action
 8. Treat any nonzero unresolved blocking-feedback count as a blocker.
 9. Only dedupe a top-level comment from the final unresolved count when it is explicitly a summary of specific inline findings already audited on the latest pushed state.
-10. If blocking work remains, continue the `Finisher` loop, dispatch `Finisher`-owned handling, and re-check instead of stopping at a status snapshot.
-11. If the state cannot be determined safely, distinguish branch-caused blockers from likely baseline or unrelated failures when possible, and prompt the operator instead of guessing.
-12. Report the remaining blocking state explicitly, including the final unresolved blocking-feedback counts, before any handoff or halt.
-13. Only request shutdown when every required shutdown check passes. Otherwise halt with an explicit blocker.
+10. Treat every new push as invalidating prior completeness assumptions. Re-check review state, checks, mergeability, and PR metadata against the latest pushed head before reporting success.
+11. If blocking work remains, continue the `Finisher` loop, dispatch `Finisher`-owned handling, and re-check instead of stopping at a status snapshot.
+12. If the state cannot be determined safely, distinguish branch-caused blockers from likely baseline or unrelated failures when possible, and prompt the operator instead of guessing.
+13. Report the remaining blocking state explicitly, including the final unresolved blocking-feedback counts, before any handoff or halt.
+14. Only request shutdown when every required shutdown check passes on the latest pushed head. Otherwise halt with an explicit blocker.
 
 Use repository placeholders such as `<owner>`, `<repo>`, `<pr>`, and `<branch>` in commands so the workflow stays portable across repositories.
 

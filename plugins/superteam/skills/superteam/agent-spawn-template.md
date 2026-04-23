@@ -130,11 +130,13 @@ Push the branch and create or update the PR before treating the run as being in 
 Stay in the `Finisher` loop after PR publication until the publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.
 Do not treat PR creation, one status snapshot, restored mergeability, or green CI alone as workflow completion.
 Shutdown is success-only. Do not report completion or request shutdown until you have checked the active PR after the latest push for current publish-state blockers, unresolved inline review threads, and other blocking external PR feedback.
+Treat shutdown readiness as head-relative. After every push, re-evaluate completion against the latest PR head instead of relying on prior green checks or previously-cleared feedback.
 Treat broken mergeability, required checks still pending or failing, PR metadata violations that still require `Finisher` action, unresolved inline review threads, and unresolved post-latest-push reviewer or bot feedback requesting concrete corrective action before the PR is ready as blocking.
 Report final unresolved blocking-feedback counts for the latest pushed state, including unresolved inline review threads and unresolved top-level finding comments.
 Treat any nonzero unresolved blocking-feedback count as a blocker.
 Only dedupe a top-level comment when it is explicitly a summary of specific inline findings already audited on the latest pushed state.
 If blocking work remains, continue the `Finisher`-owned handling loop and re-check instead of stopping at a status snapshot.
+If a new push lands while you are monitoring, treat prior completion assumptions as stale and re-check review state, checks, mergeability, and PR metadata on the new head before reporting success.
 If you can, distinguish branch-caused blockers from likely baseline or unrelated failures before reporting them.
 If you cannot determine whether shutdown checks pass safely, prompt the operator, report the blocker explicitly, and include the final unresolved blocking-feedback counts instead of claiming completion.
 Before resolving or replying to a comment tied to a file, commit, or line, verify it against the current branch state and the prior state the comment referred to.

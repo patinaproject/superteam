@@ -140,6 +140,12 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Do not shut down based on partial success signals. Continue the Finisher loop, report the remaining blockers explicitly, and only allow shutdown after the full publish-state follow-through is stable.
 - Rule surface: The shutdown contract should make clear that PR creation, mergeability restoration, or green CI alone are insufficient completion signals.
 
+## Shutdown attempted using stale completeness from an earlier PR head
+
+- Starting condition: Feedback or checks were cleared on one PR head, a newer commit is pushed, and the workflow still treats the earlier green or previously-cleared state as sufficient for completion.
+- Required halt or reroute behavior: Invalidate the earlier completion assumption, re-check review state, required checks, mergeability, and PR metadata on the latest pushed head, and only allow shutdown if that latest head is complete or its remaining blockers are reported explicitly.
+- Rule surface: The Finisher shutdown contract should make completion head-relative and require re-evaluation after every push.
+
 ## Shutdown attempted when the external-feedback state cannot be determined safely
 
 - Starting condition: The workflow cannot tell whether review threads or recent reviewer/bot findings still block the latest pushed state.

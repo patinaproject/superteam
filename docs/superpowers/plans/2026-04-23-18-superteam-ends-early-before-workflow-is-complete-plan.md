@@ -22,6 +22,8 @@
   - Directly relevant `Finisher` teammate prompt surface that must mirror shutdown blocking and operator-escalation language if needed.
 - `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
   - Repo-local pressure tests that verify the workflow halts or reroutes for the shutdown failure mode.
+- `README.md`
+  - Public-facing workflow documentation that should mirror the approved diagrams and explain each stage clearly for developers.
 - `plugins/superteam/skills/superteam/`
   - Packaged copy refreshed via `pnpm sync:plugin` after source skill changes.
 
@@ -171,6 +173,38 @@ flowchart TD
 
 Run: `rg -n "Workflow Diagrams|Human Test & Review|PR feedback / status|review findings|needs reroute|classDef artifact" skills/superteam/SKILL.md docs/superpowers/specs/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-design.md`
 Expected: the approved two-chart structure and readability constraints are represented clearly.
+
+### Task 2.5: Mirror the workflow diagrams and stage explanations in the public README
+
+**Files:**
+- Modify: `README.md`
+
+- [ ] **Step 1: Replace the stale single-chart workflow summary**
+
+Update the README workflow section so it uses the approved two-chart model rather than the older single chart that ends at a generic finished state.
+
+- [ ] **Step 2: Add a concise developer-facing stage explanation section**
+
+Add a short section that explains what developers should expect at each stage:
+
+```md
+- `Team Lead`: routes work, enforces gates, and stops the run when a contract is not satisfied
+- `Brainstormer`: creates the design doc and approval packet
+- `Planner`: turns the approved design into executable tasks
+- `Executor`: implements the approved plan and local verification
+- `Implementation & Tests`: durable output of execution before review
+- `Reviewer`: local pre-publish review and loopback classification
+- `Finisher`: push, PR publication, CI, external feedback, and final completion checks
+- `Pull Request`: published branch artifact, treated as a milestone not the end
+- `Human Test & Review`: human feedback surface that routes back through `Team Lead`
+```
+
+Keep the wording short, practical, and developer-oriented rather than reprinting the full internal skill contract.
+
+- [ ] **Step 3: Re-read the README for parity with the approved workflow**
+
+Run: `rg -n "How Superteam works|What Happens At Each Stage|Human Test & Review|PR feedback / status|needs reroute" README.md`
+Expected: the README mirrors the approved workflow diagrams and includes a concise stage-by-stage explanation.
 
 ### Task 3: Mirror the publication, shutdown, and counting rules in the directly relevant Finisher prompt surface
 
@@ -323,6 +357,6 @@ Expected: one clean commit captures the approved spec tightening, implementation
 
 ## Self-Review
 
-- Spec coverage: Task 1 covers approval concerns, mandatory publication, invalid local-only completion, success-only shutdown, counting rules, and top-level finding handling, Task 2 covers the Mermaid workflow diagram requirements, Task 3 mirrors the rule in the directly relevant `Finisher` prompt surface, Task 4 covers the documented failure modes, and Task 5 verifies the packaged plugin copy. AC-18-1 through AC-18-11 each map to at least one explicit task.
+- Spec coverage: Task 1 covers approval concerns, mandatory publication, invalid local-only completion, success-only shutdown, counting rules, top-level finding handling, and head-relative completeness. Task 2 covers the Mermaid workflow diagram requirements, Task 2.5 covers the public README workflow docs, Task 3 mirrors the rule in the directly relevant `Finisher` prompt surface, Task 4 covers the documented failure modes, and Task 5 verifies the packaged plugin copy. AC-18-1 through AC-18-13 each map to at least one explicit task.
 - Placeholder scan: No `TODO`, `TBD`, or vague “handle later” instructions remain; every task lists exact files and concrete commands.
 - Type consistency: The plan consistently uses `blocking external PR feedback`, `latest pushed state`, `prompt the operator`, and `success-only shutdown` across tasks.
