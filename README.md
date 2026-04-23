@@ -87,6 +87,8 @@ Before any teammate edits governed files, the workflow discovers repository rule
 
 Each teammate owns specific artifacts and verification gates, so work stays understandable across handoffs instead of becoming ad hoc subagent output. `Reviewer` owns local pre-publish review intake and finding classification. `Finisher` owns publish-state follow-through, branch and PR handling, CI, and external post-publish review feedback.
 
+When a host runtime supports background agents or subagents, Superteam prefers using them for bounded, independent work that is unlikely to need live clarification. Tightly coupled or ambiguity-heavy steps should stay in the foreground. For publish-state follow-through, durable wakeups remain optional execution aids: in Codex, same-thread automations are a natural fit for `Finisher`, while Claude Code can pair project subagents with optional hooks without changing the shared contract.
+
 ## What Happens At Each Stage
 
 This is the short version of what developers should expect during a normal run:
@@ -170,7 +172,7 @@ For local setup, add `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` to the `env` block i
 
 Then run the same Superteam workflow as usual.
 
-Agent Teams is optional. If you do not enable it, Superteam still works with the regular single-agent or subagent flow described above.
+Agent Teams is optional. If you do not enable it, Superteam still works with the regular single-agent or subagent flow described above. When using Agent Teams, prefer them for bounded, independent teammate work; keep highly interactive or clarification-heavy steps in the foreground.
 
 ### OpenAI Codex CLI
 
@@ -191,6 +193,8 @@ Use $superteam to route this issue through teammate-owned design, planning, exec
 ```text
 Use $superteam to route this issue through teammate-owned design, planning, execution, review, and Finisher-owned publish follow-through.
 ```
+
+When `Finisher` is waiting on external publish-state in the Codex app, prefer a thread automation attached to the current thread so follow-through stays in the same conversation context.
 
 ## First use
 

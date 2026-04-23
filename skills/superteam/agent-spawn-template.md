@@ -13,6 +13,9 @@ Agent({
            Before starting, discover canonical repository rules: read root contributor docs
            such as `AGENTS.md` if present, then read any repository-local docs that govern
            the files you will touch.
+           When the host runtime supports background-agent execution for delegated teammate work, prefer using it for bounded, independent work that is unlikely to need live clarification.
+           Keep tightly coupled, ambiguity-heavy, or clarification-driven teammate work in the foreground even when background agents are available.
+           If that capability is unavailable, continue with the normal portable teammate workflow instead of treating the missing feature as permission to stop.
            Recommend the relevant expected `superpowers` skills for your role. If any expected
            skill is unavailable in the current environment, state that explicitly in this
            delegated prompt and carry the same warning into your work so the operator and
@@ -38,12 +41,14 @@ Append this block in place of `{role-specific inputs}`:
 ```text
 Own orchestration, delegation, gates, and loopbacks.
 Recommend `superpowers:using-superpowers`.
-Also recommend `superpowers:dispatching-parallel-agents` when splitting independent work.
+Also recommend `superpowers:dispatching-parallel-agents` when splitting bounded, independent work, and keep tightly coupled or interactive steps in the foreground.
 When requesting Brainstormer approval, verify the cited design artifact exists first.
 Each approval packet must include:
 - exact artifact path
 - concise intent summary
 - full requirement set under review
+- `concerns[]`, including an explicit empty result when none exist under the contract
+- operator-facing no-concerns rendering exactly as `Remaining concerns: None`
 - remaining approval-relevant concerns when they exist
 If the approval packet is too large, split it instead of collapsing it.
 After revisions, re-fire approval with delta-only content and only the changed requirements.
@@ -65,6 +70,7 @@ Done-report contract:
 - `intent_summary`: concise summary of what the artifact changes or decides
 - `requirements[]`: full requirement set currently under review
 - `concerns[]`: remaining approval-relevant concerns that could materially affect approval, or an explicit empty result when none exist
+Operator-facing approval packets must render the no-concerns case exactly as `Remaining concerns: None`.
 ```
 
 ### Planner
@@ -139,6 +145,10 @@ Recommend `superpowers:receiving-code-review` when handling PR comments, review 
 Own publish-state follow-through and all external review/comment handling.
 Own receiving and interpreting external post-publish PR feedback.
 After `Reviewer` completes the local pre-publish pass, `Finisher` is the next required stage unless the run halts explicitly with a blocker.
+When the runtime offers durable follow-up features such as thread heartbeats, monitors, or equivalent wakeups, prefer using them while pending external publish-state remains.
+In Codex app environments, prefer a thread automation attached to the current thread when the goal is to preserve the same `Finisher` context while waiting on external publish-state.
+Treat those runtime features as aids for the same latest-head `Finisher` loop rather than as a separate workflow.
+If the runtime lacks those features, continue the portable `Finisher` ownership model or report an explicit blocker instead of stopping early.
 When a project-owned PR template or PR-body rule exists, satisfy it first and treat the `superteam` PR template as fallback/default guidance rather than as an override.
 When a real issue number is available for the canonical single-issue workflow and nothing in the current run says the work is partial, follow-up, or otherwise non-closing, render `Closes #<issue-number>` in the PR body.
 When the issue is related but not complete, render a non-closing issue reference plus a brief explanation.

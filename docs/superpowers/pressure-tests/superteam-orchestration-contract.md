@@ -32,6 +32,18 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Halt approval and reissue the packet with the remaining approval-relevant concerns included, unless the concern is severe enough to block approval entirely.
 - Rule surface: The first-stage approval contract should require Brainstormer to surface real approval-relevant concerns when present.
 
+## Approval packet omits `concerns[]` entirely
+
+- Starting condition: Brainstormer requests approval, but the packet omits `concerns[]` instead of explicitly reporting concerns or an empty result.
+- Required halt or reroute behavior: Halt approval and reissue the packet with `concerns[]` present under the contract before planning can continue.
+- Rule surface: The approval-packet contract should require `concerns[]` on every Brainstormer approval request.
+
+## Approval packet with no concerns does not render `Remaining concerns: None`
+
+- Starting condition: The approval packet reaches the operator with no approval-relevant concerns remaining, but the no-concerns case is rendered as silence, an empty array, or some other wording.
+- Required halt or reroute behavior: Halt approval presentation and reissue the operator-facing packet with the no-concerns line rendered exactly as `Remaining concerns: None`.
+- Rule surface: The approval-packet rendering guidance should preserve the explicit empty `concerns[]` result under the contract while rendering the operator-facing no-concerns case exactly as `Remaining concerns: None`.
+
 ## Delegated prompts missing expected `superpowers` recommendations
 
 - Starting condition: A delegated teammate prompt omits the expected `superpowers` skill recommendations for that role.
@@ -43,6 +55,18 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Starting condition: A delegated prompt silently skips an expected skill because it is unavailable in the current environment.
 - Required halt or reroute behavior: Halt silent delegation and reissue the prompt with an explicit unavailable-skill warning to the operator and teammate.
 - Rule surface: The delegation prompt should include a visible unavailable skill warning path.
+
+## Delegated bounded teammate work ignores available background-agent execution
+
+- Starting condition: The host runtime supports background-agent execution for delegated teammate work, the delegated task is bounded and independent enough not to need live clarification, but the workflow never recommends or prefers that capability when dispatching the teammate.
+- Required halt or reroute behavior: Reissue the delegated guidance so runtime-capable hosts are explicitly nudged toward background-agent execution while keeping it optional rather than mandatory.
+- Rule surface: The runtime-aware delegation guidance should prefer background-agent execution for bounded, independent work when available without turning it into a correctness dependency.
+
+## Delegated teammate work forces background-agent execution on clarification-heavy work
+
+- Starting condition: The host runtime supports background-agent execution, but the workflow treats it as a blanket default and pushes tightly coupled, ambiguity-heavy, or clarification-driven teammate work into the background anyway.
+- Required halt or reroute behavior: Keep that work in the foreground and reserve background-agent execution for bounded, independent work that is unlikely to need live clarification.
+- Rule surface: The runtime-aware delegation guidance should distinguish between independent work that benefits from background execution and interactive work that should stay in the foreground.
 
 ## Hard-coded repo rules drifting from canonical docs
 
@@ -142,6 +166,24 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Behavioral check: Judge the workflow by what it would do next on the latest pushed head, not by whether it uses stern wording about follow-through.
 - Rule surface: The canonical skill and delegated prompt should both treat pending required checks as active publish-state follow-through.
 
+## Finisher ignores available durable runtime follow-up while external publish-state is pending
+
+- Starting condition: The runtime offers durable follow-up features such as thread heartbeats, monitors, or equivalent wakeups, required checks or external review state remain pending, and the workflow provides no recommendation to use those capabilities for `Finisher` follow-through.
+- Required halt or reroute behavior: Reroute to guidance that prefers those durable runtime aids for the same latest-head `Finisher` loop while the external publish-state remains pending.
+- Rule surface: The canonical skill and delegated Finisher prompt should explicitly recommend durable runtime follow-up features when available and relevant.
+
+## Codex follow-through uses a fresh run when same-thread automation is the better fit
+
+- Starting condition: The workflow is running in the Codex app, `Finisher` is waiting on external publish-state, preserving the current thread context matters, and the guidance never recommends a thread automation attached to the current thread.
+- Required halt or reroute behavior: Reissue the Codex-specific guidance so same-thread automation is recommended as the native follow-through aid in that situation, while keeping the underlying `Finisher` contract portable.
+- Rule surface: The runtime-aware `Finisher` guidance should mention Codex thread automations as a same-thread aid without making them a correctness dependency.
+
+## Runtime follow-up resumes the existing Finisher loop instead of creating a new workflow
+
+- Starting condition: The workflow recommends runtime wakeups for `Finisher`, but the documented behavior treats the wakeup as a separate workflow with different routing, shutdown rules, or ownership.
+- Required halt or reroute behavior: Halt the forked workflow and restore the wakeup path to the same latest-head `Finisher` loop, preserving the normal routing and shutdown rules.
+- Rule surface: Runtime monitors or heartbeats should be documented as execution aids for the portable `Finisher` contract rather than as a replacement workflow.
+
 ## Finisher stops with only local commits and no PR
 
 - Starting condition: The run reaches Finisher-owned work with local commits present, but the branch is not pushed and the PR does not exist.
@@ -219,6 +261,18 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Starting condition: Required checks, manual approvals, or other external publish-state signals remain pending on the latest pushed head, and the workflow cannot safely continue monitoring.
 - Required halt or reroute behavior: Report an explicit blocker tied to the latest pushed head and pending external dependency instead of using completion-style language.
 - Rule surface: The Finisher contract should turn unsafe-to-continue monitoring into a `blocked` state rather than a soft success summary.
+
+## Missing background-agent support does not permit early stop
+
+- Starting condition: The host runtime does not support background-agent execution for delegated teammate work, and the workflow treats that missing capability as sufficient reason to stop or soften the teammate handoff rules.
+- Required halt or reroute behavior: Continue with the normal portable teammate workflow and do not allow the missing runtime capability to become an early-stop excuse.
+- Rule surface: The runtime-aware delegation guidance should make background-agent execution a preference for bounded, independent work when available and preserve the portable teammate workflow when it is not.
+
+## Missing runtime follow-up support does not permit Finisher to stop early
+
+- Starting condition: The runtime does not support durable follow-up features such as thread heartbeats or monitors, pending external publish-state still exists, and the workflow tries to stop with a completion-style handoff anyway.
+- Required halt or reroute behavior: Keep the issue in the portable `Finisher` loop or report an explicit blocker when safe follow-through cannot continue, but do not treat missing runtime support as permission to stop early.
+- Rule surface: The `Finisher` contract should preserve the same ownership and shutdown rules even when runtime follow-up features are unavailable.
 
 ## Finisher fails to distinguish branch-caused CI failures from likely baseline failures
 
