@@ -80,6 +80,18 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Halt the ownership drift and return external comment handling to the Finisher, with Reviewer findings remaining local pre-publish input only.
 - Rule surface: The review and finish contracts should keep local findings with the Reviewer and PR comment follow-through with the Finisher.
 
+## Local review findings routed through Finisher instead of Team Lead
+
+- Starting condition: Reviewer finds a local pre-publish issue, but the workflow sends it to Finisher to interpret and route instead of classifying it locally and routing it through Team Lead.
+- Required halt or reroute behavior: Halt the ownership drift and return the finding to the normal local-review loop: Reviewer classifies it, Team Lead routes it, and downstream teammates remediate it.
+- Rule surface: The review-intake contract should keep local pre-publish finding interpretation with Reviewer and reserve Finisher for external post-publish review intake.
+
+## Reviewer lacks a path to analyze existing findings before publish
+
+- Starting condition: Reviewer is asked to assess existing or disputed pre-publish findings, but the workflow provides no review-reception discipline for that interpretation step.
+- Required halt or reroute behavior: Reroute to a Reviewer pass that uses the appropriate review-reception discipline before classification and loopback.
+- Rule surface: The Reviewer skill guidance should allow `superpowers:receiving-code-review` when analyzing existing or disputed findings before publish.
+
 ## Skill change reviewed without `writing-skills`
 
 - Starting condition: The run changes `skills/**/*.md` or workflow-contract docs, but Reviewer performs only a normal prose review and never invokes `superpowers:writing-skills`.

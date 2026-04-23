@@ -264,6 +264,33 @@ If a loophole is found, loop back before publish instead of treating the review 
 Run: `rg -n "writing-skills|pressure-test|loophole|workflow-contract" skills/superteam/SKILL.md skills/superteam/agent-spawn-template.md`
 Expected: both reviewer-facing surfaces clearly require pressure-test review for skill and workflow-contract changes.
 
+### Task 3.6: Clarify review-feedback intake ownership
+
+**Files:**
+- Modify: `skills/superteam/SKILL.md`
+- Modify: `skills/superteam/agent-spawn-template.md`
+- Modify: `README.md`
+
+- [ ] **Step 1: Clarify intake ownership in the source skill**
+
+Update the source contract so it states:
+
+```md
+- `Reviewer` owns receiving and interpreting local pre-publish review findings
+- `Finisher` owns receiving and interpreting external post-publish PR feedback
+- local pre-publish findings route through `Team Lead`, not through `Finisher`
+- `Reviewer` may recommend `superpowers:receiving-code-review` when analyzing existing or disputed findings before publish
+```
+
+- [ ] **Step 2: Mirror that split in the prompt and README surfaces**
+
+Update the reviewer and finisher prompt surfaces plus the README teammate descriptions so the same intake/remediation split is visible in operator-facing and teammate-facing docs.
+
+- [ ] **Step 3: Re-read for boundary consistency**
+
+Run: `rg -n "receiving-code-review|pre-publish|post-publish|Team Lead|Finisher" skills/superteam/SKILL.md skills/superteam/agent-spawn-template.md README.md`
+Expected: the intake-ownership split is explicit and does not collapse local review into Finisher ownership.
+
 ### Task 4: Add pressure-test coverage for approval concerns, mandatory publication, top-level findings, dedupe, and fallback behavior
 
 **Files:**
@@ -390,6 +417,6 @@ Expected: one clean commit captures the approved spec tightening, implementation
 
 ## Self-Review
 
-- Spec coverage: Task 1 covers approval concerns, mandatory publication, invalid local-only completion, success-only shutdown, counting rules, top-level finding handling, and head-relative completeness. Task 2 covers the Mermaid workflow diagram requirements, Task 2.5 covers the public README workflow docs, Task 3 mirrors the rule in the directly relevant `Finisher` prompt surface, Task 3.5 adds reviewer pressure-test requirements for skill changes, Task 4 covers the documented failure modes, and Task 5 verifies the packaged plugin copy. AC-18-1 through AC-18-14 each map to at least one explicit task.
+- Spec coverage: Task 1 covers approval concerns, mandatory publication, invalid local-only completion, success-only shutdown, counting rules, top-level finding handling, and head-relative completeness. Task 2 covers the Mermaid workflow diagram requirements, Task 2.5 covers the public README workflow docs, Task 3 mirrors the rule in the directly relevant `Finisher` prompt surface, Task 3.5 adds reviewer pressure-test requirements for skill changes, Task 3.6 clarifies review-feedback intake ownership, Task 4 covers the documented failure modes, and Task 5 verifies the packaged plugin copy. AC-18-1 through AC-18-15 each map to at least one explicit task.
 - Placeholder scan: No `TODO`, `TBD`, or vague “handle later” instructions remain; every task lists exact files and concrete commands.
 - Type consistency: The plan consistently uses `blocking external PR feedback`, `latest pushed state`, `prompt the operator`, and `success-only shutdown` across tasks.

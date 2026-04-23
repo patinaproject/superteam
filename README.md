@@ -87,7 +87,7 @@ The workflow stays portable across agent teams and direct subagent handoffs beca
 
 Before any teammate edits governed files, the workflow discovers repository rules from the repo itself, starting with `AGENTS.md` and then any local docs that govern the files being touched.
 
-Each teammate owns specific artifacts and verification gates, so work stays understandable across handoffs instead of becoming ad hoc subagent output. `Reviewer` owns local pre-publish findings. `Finisher` owns publish-state follow-through, branch and PR handling, CI, and external review feedback.
+Each teammate owns specific artifacts and verification gates, so work stays understandable across handoffs instead of becoming ad hoc subagent output. `Reviewer` owns local pre-publish review intake and finding classification. `Finisher` owns publish-state follow-through, branch and PR handling, CI, and external post-publish review feedback.
 
 ## What Happens At Each Stage
 
@@ -98,8 +98,8 @@ This is the short version of what developers should expect during a normal run:
 - `Planner`: converts the approved design into an implementation plan with concrete tasks. `Planner` is supposed to consume the approved design doc, not improvise from chat summaries.
 - `Executor`: implements only the approved plan, including the required tests and verification evidence. `Executor` does not push branches or open PRs.
 - `Implementation & Tests`: this is the durable output of execution. By the time work reaches review, the branch should already contain the code, tests, and local verification needed to judge the implementation.
-- `Reviewer`: performs local pre-publish review, checks that the right artifacts exist, verifies the reported evidence, classifies any findings as implementation-level, plan-level, or spec-level so loopbacks are routed correctly, and pressure-tests skill/workflow changes before publish.
-- `Finisher`: owns everything needed to publish and stabilize the branch on GitHub. That includes pushing, opening or updating the PR, checking CI and mergeability, handling external feedback, and making sure the run does not end early.
+- `Reviewer`: performs local pre-publish review, checks that the right artifacts exist, interprets local findings, classifies them as implementation-level, plan-level, or spec-level so loopbacks are routed correctly, and pressure-tests skill/workflow changes before publish.
+- `Finisher`: owns everything needed to publish and stabilize the branch on GitHub. That includes pushing, opening or updating the PR, checking CI and mergeability, interpreting external PR feedback, and making sure the run does not end early.
 - `Pull Request`: this is the published artifact for the current branch state. It is a milestone, not the end of the workflow.
 - `Human Test & Review`: this is where a person can demo, test, and review the published branch. Human feedback loops back through `Team Lead`, while PR-surface status and findings loop back through `Finisher`.
 
@@ -113,8 +113,8 @@ In practice, this means `superteam` should not report success just because code 
 | Brainstormer | Design doc creation and approval handoff | `superpowers:brainstorming` |
 | Planner | Approved implementation plan creation | `superpowers:writing-plans` |
 | Executor | Code and tests for the approved plan | `superpowers:test-driven-development`; `superpowers:systematic-debugging` when debugging; `superpowers:verification-before-completion`; `superpowers:writing-skills` when editing `skills/**/*.md` |
-| Reviewer | Local pre-publish review findings and loopback classification | `superpowers:requesting-code-review`; `superpowers:writing-skills` when reviewing `skills/**/*.md` or workflow-contract docs |
-| Finisher | Publish-state follow-through, branch/PR/CI reporting, and external review feedback handling | `superpowers:finishing-a-development-branch`; `superpowers:receiving-code-review` when handling reviewer findings, PR comments, or bot feedback |
+| Reviewer | Local pre-publish review intake, finding classification, and loopback routing | `superpowers:requesting-code-review`; `superpowers:receiving-code-review` when analyzing existing or disputed findings before publish; `superpowers:writing-skills` when reviewing `skills/**/*.md` or workflow-contract docs |
+| Finisher | Publish-state follow-through, branch/PR/CI reporting, and external post-publish review feedback handling | `superpowers:finishing-a-development-branch`; `superpowers:receiving-code-review` when handling PR comments, review threads, or bot feedback after publish |
 
 ## Run superteam anytime
 

@@ -109,9 +109,11 @@ Append this block in place of `{role-specific inputs}`:
 
 ```text
 Recommend `superpowers:requesting-code-review`.
+Also recommend `superpowers:receiving-code-review` when analyzing existing or disputed findings before publish.
 Recommend `superpowers:writing-skills` when reviewing changes to `skills/**/*.md` or workflow-contract docs.
 
 Review locally before publish.
+Own receiving and interpreting local pre-publish review findings.
 When the changed scope includes `skills/**/*.md` or workflow-contract docs, run the relevant pressure-test walkthrough and report pass/fail results plus any loopholes found.
 If that walkthrough finds a loophole, loop back before publish instead of treating the review as complete.
 Done-report contract:
@@ -128,9 +130,10 @@ Append this block in place of `{role-specific inputs}`:
 
 ```text
 Recommend `superpowers:finishing-a-development-branch`.
-Recommend `superpowers:receiving-code-review` when handling reviewer findings, PR comments, or bot feedback.
+Recommend `superpowers:receiving-code-review` when handling PR comments, review threads, or bot feedback after publish.
 
 Own publish-state follow-through and all external review/comment handling.
+Own receiving and interpreting external post-publish PR feedback.
 Every `superteam` run is expected to publish a PR. Local-only state is never a valid completion, demo, or handoff state.
 Push the branch and create or update the PR before treating the run as being in publish-state follow-through.
 Stay in the `Finisher` loop after PR publication until the publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.

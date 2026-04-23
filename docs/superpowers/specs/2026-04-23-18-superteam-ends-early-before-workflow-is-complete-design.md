@@ -154,6 +154,34 @@ The review pass should:
 - surface any loopholes found during the walkthrough
 - loop back before publish if a loophole is found instead of treating review as complete
 
+### Review-Feedback Intake Ownership
+
+Review-feedback interpretation should happen at the intake point for that feedback, not after the work has already been routed downstream.
+
+The intended ownership split is:
+
+- `Reviewer` owns receiving and interpreting local pre-publish review findings
+- `Finisher` owns receiving and interpreting external post-publish PR feedback
+- `Brainstormer`, `Planner`, and `Executor` own remediation after routing, not primary review intake
+
+This is an intake-ownership rule, not a transfer of phase ownership:
+
+- `Reviewer` does not take ownership of external PR comments, review threads, or bot feedback after publish
+- `Finisher` does not become the generic router for ordinary local pre-publish review findings
+- the split exists to keep review interpretation close to where the feedback first enters the workflow
+
+That means `Reviewer` should not send ordinary local findings to `Finisher` just so `Finisher` can re-interpret them. Instead:
+
+- `Reviewer` should analyze and classify local findings before publish
+- `Team Lead` should route those classified findings to `Brainstormer`, `Planner`, or `Executor`
+- `Finisher` should analyze external PR comments, threads, and bot findings after publish and then route them back through the same loopback model
+
+Because review interpretation happens at the intake point, the skill recommendations should follow that ownership:
+
+- `Reviewer` should recommend `superpowers:requesting-code-review` for first-pass local review
+- `Reviewer` should also recommend `superpowers:receiving-code-review` when analyzing existing or disputed findings before publish
+- `Finisher` should recommend `superpowers:receiving-code-review` for external post-publish feedback
+
 ### Explicit Blocker Reporting
 
 When shutdown cannot proceed, the run should report the blocker explicitly rather than ending in an implicit or misleading success state. The blocker report should clearly indicate that shutdown did not occur because required external-feedback checks failed or could not be completed.
@@ -169,6 +197,7 @@ The repository changes should stay tightly coupled to the shutdown problem:
 - update the Mermaid workflow diagram so it reflects the real forward path, backward loopbacks, and artifact treatment accurately
 - update `README.md` so the public workflow diagrams match the approved two-chart model and the README explains what each stage is supposed to do in enough detail for developers to follow the workflow
 - update `Reviewer` guidance so skill and workflow-contract changes require `superpowers:writing-skills` and a pressure-test walkthrough before publish
+- update review-intake guidance so `Reviewer` owns pre-publish review interpretation, `Finisher` owns post-publish external review interpretation, and `Reviewer` may recommend `superpowers:receiving-code-review` when analyzing existing findings before publish
 - update only directly relevant `Finisher`-owned prompt or template language if it currently allows completion to be reported before shutdown checks truly pass
 - update repository-local pressure tests to cover the exact failure mode and the new halt behavior
 
@@ -187,6 +216,7 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 - verify `Finisher` shutdown instructions require checking recent blocking external PR feedback after the latest push
 - verify `README.md` mirrors the approved workflow diagrams and includes a concise developer-facing explanation of what happens at each stage
 - verify `Reviewer` guidance requires `superpowers:writing-skills` and a pressure-test walkthrough for skill or workflow-contract changes
+- verify review-intake ownership is explicit: `Reviewer` for pre-publish findings, `Finisher` for post-publish external feedback, and routed teammates for remediation
 - verify runs with unresolved external feedback cannot present a successful completion state
 - verify runs with active publish-state blockers cannot stop at a status snapshot
 - verify unresolved implementation-level feedback routes back through the expected loopback handling path before shutdown
@@ -213,6 +243,7 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 - AC-18-12: Given `Finisher` clears feedback or checks on one PR head and then a newer head is pushed, when shutdown is evaluated, then completion is judged against the latest pushed head rather than any earlier green or previously-cleared state
 - AC-18-13: Given a developer reads the public README workflow docs, when they need to understand how `superteam` is supposed to behave, then the README mirrors the approved two-chart flow and explains the expected responsibilities of each stage succinctly
 - AC-18-14: Given a `superteam` run changes a skill or workflow-contract doc, when `Reviewer` performs local review, then it invokes `superpowers:writing-skills`, runs the relevant pressure-test walkthrough, and reports pass/fail results before the run is treated as merged-ready
+- AC-18-15: Given review feedback is being interpreted, when that feedback is local and pre-publish, then `Reviewer` is the intake owner; when that feedback is external and post-publish, then `Finisher` is the intake owner; and routed teammates own remediation rather than primary review interpretation
 
 ## Implementation Notes
 

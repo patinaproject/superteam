@@ -180,14 +180,17 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 - Review locally before publish.
 - Validate artifact ownership, required verification, and role-rule compliance.
 - Classify loopbacks explicitly as `implementation-level`, `plan-level`, or `spec-level`.
+- Own receiving and interpreting local pre-publish review findings.
+- Recommend `superpowers:requesting-code-review` for first-pass local review.
+- Also recommend `superpowers:receiving-code-review` when analyzing existing or disputed findings before publish.
 - When reviewing changes to `skills/**/*.md` or workflow-contract docs, invoke `superpowers:writing-skills` and run the relevant pressure-test walkthrough before publish.
 - Report pressure-test pass/fail results and any loopholes found for skill or workflow-contract changes.
 - Keep findings local; do not take ownership of external review feedback.
-- Recommend `superpowers:requesting-code-review`.
 
 ### Finisher
 
 - Own push, branch publication, PR updates, PR body rendering, CI triage, and external review/comment handling.
+- Own receiving and interpreting external post-publish PR feedback.
 - Report pushed SHAs, current branch state on origin, PR state, and CI state.
 - Every `superteam` run is expected to publish a PR; local-only state is never a valid completion, demo, or handoff state.
 - Push the branch and create or update the PR before treating the run as being in publish-state follow-through.
@@ -196,7 +199,7 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 - Verify current branch state before resolving or replying to comments tied to prior state.
 - Route requirement-bearing feedback through `Brainstormer` first, then `Planner`, then `Executor`.
 - Recommend `superpowers:finishing-a-development-branch`.
-- Also recommend `superpowers:receiving-code-review` when handling reviewer findings, PR comments, or bot feedback.
+- Also recommend `superpowers:receiving-code-review` when handling PR comments, review threads, or bot feedback after publish.
 
 ## Missing skill warnings
 
@@ -215,6 +218,12 @@ Loopbacks must be explicit:
 Requirement-bearing feedback does not route straight to implementation. It returns to `Brainstormer`, then to `Planner`, and only then back to `Executor`.
 
 Implementation-detail deltas that preserve requirements, ownership, and acceptance intent may route directly to `Planner`.
+
+Review interpretation happens at the intake point for that feedback:
+
+- `Reviewer` receives and classifies local pre-publish findings
+- `Finisher` receives and classifies external post-publish PR feedback
+- `Brainstormer`, `Planner`, and `Executor` own remediation after routing rather than primary review intake
 
 ## External feedback ownership
 
@@ -251,6 +260,7 @@ Before resolving or replying to comments tied to a prior branch state:
 - Delegated teammate prompts that omit expected `superpowers` recommendations or fail to warn when an expected skill is unavailable.
 - `Executor` claiming completion without explicit task IDs, SHAs, or verification evidence.
 - `Reviewer` failing to classify findings as `implementation-level`, `plan-level`, or `spec-level`.
+- Local pre-publish review findings routed through `Finisher` instead of `Team Lead`.
 - Skill or workflow-contract changes reviewed without `superpowers:writing-skills` or a pressure-test walkthrough.
 - Local review findings taking ownership of external PR feedback away from `Finisher`.
 - `Finisher` resolving prior-state comments without checking current branch state first.
