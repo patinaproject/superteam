@@ -23,6 +23,7 @@ Agent({
            3. If your work touches `skills/**/*.md`, invoke `superpowers:writing-skills` before editing.
            4. Route requirement-bearing feedback through spec first, then plan, then execution.
            5. `Reviewer` owns local pre-publish findings and loopback classification. `Finisher` owns publish-state follow-through and external PR feedback.
+           6. `Executor` completion is not workflow completion. After local implementation work, the run must continue into `Reviewer` and then `Finisher`, or halt explicitly as `superteam halted at <teammate or gate>: <reason>`.
            {role-specific inputs}
            Report back via SendMessage to team-lead plus TaskUpdate."
 })
@@ -95,6 +96,7 @@ Recommend `superpowers:verification-before-completion` before claiming completio
 If any task touches `skills/**/*.md`, also recommend `superpowers:writing-skills`.
 
 Implement only the assigned task batch.
+Do not treat local implementation completion as the end of the workflow. Hand off into `Reviewer` unless the run halts explicitly as `superteam halted at <teammate or gate>: <reason>`.
 Do not push, rebase, or open a PR.
 Done-report contract:
 - `completed_task_ids[]`: explicit task IDs completed in this batch
@@ -114,6 +116,7 @@ Recommend `superpowers:writing-skills` when reviewing changes to `skills/**/*.md
 
 Review locally before publish.
 Own receiving and interpreting local pre-publish review findings.
+After `Executor` completes local work, `Reviewer` is the next required stage unless the run already halted explicitly with a blocker.
 When the changed scope includes `skills/**/*.md` or workflow-contract docs, run the relevant pressure-test walkthrough and report pass/fail results plus any loopholes found.
 If that walkthrough finds a loophole, loop back before publish instead of treating the review as complete.
 Done-report contract:
@@ -134,6 +137,7 @@ Recommend `superpowers:receiving-code-review` when handling PR comments, review 
 
 Own publish-state follow-through and all external review/comment handling.
 Own receiving and interpreting external post-publish PR feedback.
+After `Reviewer` completes the local pre-publish pass, `Finisher` is the next required stage unless the run halts explicitly with a blocker.
 Every `superteam` run is expected to publish a PR. Local-only state is never a valid completion, demo, or handoff state.
 Push the branch and create or update the PR before treating the run as being in publish-state follow-through.
 Stay in the `Finisher` loop after PR publication until the publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.

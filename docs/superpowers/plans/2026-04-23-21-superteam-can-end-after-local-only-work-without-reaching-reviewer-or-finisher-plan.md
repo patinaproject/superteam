@@ -4,7 +4,7 @@
 
 **Goal:** Make `superteam` require the post-implementation transition into `Reviewer` and `Finisher`, or halt explicitly, so local-only work can never end in a completion-style closeout.
 
-**Architecture:** Tighten the canonical workflow contract in `skills/superteam/SKILL.md`, mirror the same post-implementation rule in the delegated prompt surface in `skills/superteam/agent-spawn-template.md`, then add a repo-local pressure-test scenario that exercises the exact Codex early-stop failure mode from issue `#21`. Keep the change scoped to the execution-to-review-to-finish handoff instead of reworking the broader shutdown model from `#18`.
+**Architecture:** Tighten the canonical workflow contract in `skills/superteam/SKILL.md`, mirror the same post-implementation rule in the delegated prompt surface in `skills/superteam/agent-spawn-template.md`, then add a repo-local behavioral pressure-test scenario that exercises the exact Codex early-stop failure mode from issue `#21`. Keep the change scoped to the execution-to-review-to-finish handoff instead of reworking or restating the broader shutdown model from `#18`.
 
 **Tech Stack:** Markdown workflow docs, repo-local pressure tests, `rg`, `sed`, `git`
 
@@ -49,6 +49,7 @@ Do not allow a normal completion-style closeout after local-only work when `Revi
 ```
 
 Keep the existing ownership model intact: `Reviewer` still owns local pre-publish review intake, `Finisher` still owns publish-state follow-through, and local-only completion remains invalid.
+Do not restate the full `#18` shutdown checklist here unless a short pointer is required for clarity.
 
 - [ ] **Step 3: Re-read the updated contract in context**
 
@@ -104,10 +105,12 @@ Add a scenario with this structure:
 - Rule surface: The canonical skill and delegated prompt surface should both require the post-implementation transition into `Reviewer` and `Finisher`, or an explicit halt, before any success-style closeout.
 ```
 
+Make this a behavioral scenario, not a wording-only check. The walkthrough should judge whether the documented workflow would reroute or halt the run in the described situation, even if the completion-style summary is polished or superficially convincing.
+
 - [ ] **Step 3: Re-read the pressure-test doc in context**
 
 Run: `sed -n '40,170p' docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
-Expected: the new scenario is specific to the Codex early-stop failure mode and does not duplicate the broader shutdown tests unnecessarily.
+Expected: the new scenario is specific to the Codex early-stop failure mode, reads as a behavioral workflow check, and does not duplicate the broader shutdown tests unnecessarily.
 
 ### Task 4: Verify the edited docs match the approved design
 
