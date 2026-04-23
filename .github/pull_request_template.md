@@ -14,13 +14,13 @@ This title rule applies to pull requests only. GitHub issue titles should stay p
 
 - 
 
-## Linked Issue
+## Linked issue
 
 - `Closes #<issue>` when this PR is intended to complete the issue
 - Otherwise: `Related to #<issue>` plus a short explanation of why this PR does not close it yet
 - Omit this section when no issue applies
 
-## Acceptance Criteria
+## Acceptance criteria
 
 ### AC-<issue>-<n>
 Short outcome summary.
@@ -34,7 +34,7 @@ Deferred to `<repo-or-follow-up>`.
 
 - Additional validation not tied to a single AC, if any
 
-## Docs Updated
+## Docs updated
 
 - [ ] Not needed
 - [ ] Updated in this PR

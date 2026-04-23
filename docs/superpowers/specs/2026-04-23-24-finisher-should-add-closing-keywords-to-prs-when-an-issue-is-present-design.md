@@ -10,6 +10,8 @@ Teach `Finisher` to include a GitHub-recognized closing-keyword line in the gene
 - Keep the line in a GitHub-recognized format for automatic issue closure on merge
 - Require a brief explanation when an issue is present but the PR intentionally does not close it
 - Preserve the current behavior when no issue number is present by omitting the issue-closing line entirely
+- Treat a project-owned PR template as the authority when one exists, with `superteam` providing fallback/default PR-body structure rather than overriding project-owned presentation
+- Use Sentence case headings in this repository's PR templates
 - Keep the change focused on `Finisher` PR-body generation guidance instead of redesigning the broader publish workflow
 
 ## Non-Goals
@@ -17,6 +19,7 @@ Teach `Finisher` to include a GitHub-recognized closing-keyword line in the gene
 - Introducing a new issue-detection mechanism beyond the issue context already available to the workflow
 - Changing PR title rules or acceptance-criteria formatting
 - Adding multiple closing lines or supporting arbitrary linked-work item formats outside standard GitHub issue references
+- Building a generalized template-merging engine beyond a simple precedence rule
 
 ## Approaches Considered
 
@@ -44,6 +47,23 @@ The generated PR body should include a dedicated linked-issue area near the top 
 
 The design assumes one issue number for the current workflow because that is the repository convention surfaced by the current branch and issue-driven docs. The template should use placeholders that make the issue number explicit while still allowing omission when the workflow has no issue.
 
+The linked issue should stay in its own `Linked issue` section rather than becoming the first `Summary` bullet. The issue reference is workflow-significant metadata rather than a prose summary item, so a dedicated section keeps the automation contract easier to scan and less likely to get rewritten as free-form text.
+
+PR headings in this repository's templates should use Sentence case, including `Linked issue`, `Branch state`, `Test plan`, `Review follow-up`, `Known CI state`, and other human-facing headings.
+
+### Project template precedence
+
+When a repository has its own PR template or explicit PR-body rules, that project-owned template is the outer authority. `superteam` should treat its own PR-body template as the fallback/default contract for teammate behavior, not as a replacement for project-owned presentation.
+
+The precedence rule should stay simple:
+
+- if the project has its own PR template, `Finisher` should satisfy that template first
+- if the project template and `superteam` template do not conflict, `Finisher` may merge `superteam`'s required issue-linking behavior into the project template
+- if there is a conflict, project-level PR-template requirements win over `superteam` presentation details
+- do not turn this rule into a generalized template-merging engine or speculative formatting system
+
+For this repository, that means the checked-in `.github` PR template should stay aligned with the `superteam` fallback template so the local project surface and the skill-owned default do not drift apart.
+
 ### Conditional rendering rule
 
 `Finisher` should render the closing-keyword line only when the workflow has a real issue number available and the PR is intended to complete that issue. If no issue number is present, `Finisher` must omit the line instead of inventing a placeholder, fake reference, or malformed keyword.
@@ -70,8 +90,10 @@ Do not add heuristics that infer intent from commit messages, diff size, accepta
 The repository changes should stay narrow:
 
 - update [`skills/superteam/pr-body-template.md`](/Users/tlmader/.codex/worktrees/d113/superteam/skills/superteam/pr-body-template.md) so the template shows where the closing keyword line goes and makes omission explicit when no issue is present
+- update the fallback template wording so it explicitly defers to project-owned PR templates when they exist
 - update the directly relevant `Finisher` guidance in [`skills/superteam/SKILL.md`](/Users/tlmader/.codex/worktrees/d113/superteam/skills/superteam/SKILL.md) and/or [`skills/superteam/agent-spawn-template.md`](/Users/tlmader/.codex/worktrees/d113/superteam/skills/superteam/agent-spawn-template.md) if needed so the teammate contract explicitly requires that behavior
-- inspect mirrored public-facing docs before editing them; only update a mirrored doc if it already describes PR body behavior closely enough that leaving it unchanged would create a contradiction
+- inspect mirrored public-facing docs before editing them; update the repository-owned PR template because it is the project-level surface for this repo and should stay aligned with the fallback template
+- convert the affected PR-template headings in this repo to Sentence case while keeping the existing structure otherwise intact
 
 At the time of implementation, this means checking the repository-owned PR templates and public workflow docs first, then editing only the files that would otherwise disagree with the new `Finisher` contract.
 
@@ -81,6 +103,8 @@ At the time of implementation, this means checking the repository-owned PR templ
 - `AC-24-2`: The closing-keyword line uses a GitHub-recognized automatic-closing format.
 - `AC-24-3`: When an issue number is present but the PR intentionally does not close it, `Finisher` includes a brief explanation instead of silently omitting the issue reference.
 - `AC-24-4`: When no issue number is present, `Finisher` omits the issue-reference line and does not invent an issue reference.
+- `AC-24-5`: When a project-owned PR template exists, `Finisher` treats it as authoritative and uses the `superteam` PR template as fallback/default guidance rather than as an override.
+- `AC-24-6`: The repo PR templates use Sentence case headings, and the issue reference stays in a dedicated `Linked issue` section rather than moving into `Summary`.
 
 ## Testing And Verification
 
@@ -88,5 +112,7 @@ At the time of implementation, this means checking the repository-owned PR templ
 - inspect the relevant `Finisher` contract text to confirm the behavior is conditional on both issue presence and issue-completing intent
 - verify the template includes a non-closing issue-reference explanation path for issue-linked partial work
 - verify the implementation rules do not introduce new heuristics for inferring intent
-- inspect mirrored PR-facing docs and confirm only genuinely contradictory docs were changed
+- inspect the fallback template and `Finisher` wording to confirm project-owned PR templates take precedence when they exist
+- inspect mirrored PR-facing docs and confirm the repository-owned PR template stays aligned with the fallback template
+- verify the affected PR headings use Sentence case and keep `Linked issue` as a dedicated section
 - verify there is no template text that implies a closing-keyword line must be emitted when no issue exists

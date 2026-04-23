@@ -194,6 +194,7 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 - Own push, branch publication, PR updates, PR body rendering, CI triage, and external review/comment handling.
 - Own receiving and interpreting external post-publish PR feedback.
 - Report pushed SHAs, current branch state on origin, PR state, and CI state.
+- When a project-owned PR template or PR-body rule exists, satisfy it first and treat the `superteam` PR template as fallback/default guidance rather than as an override.
 - When a real issue number is available for the canonical single-issue workflow and nothing in the current run says the work is partial, follow-up, or otherwise non-closing, render `Closes #<issue-number>` in the PR body.
 - When the issue is related but the run is not issue-completing, render a non-closing issue reference plus a brief explanation.
 - When no issue number is present, omit the issue-reference line entirely.
