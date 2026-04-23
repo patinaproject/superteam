@@ -1,4 +1,4 @@
-# Design: Add a shutdown check for unresolved external PR feedback before declaring a superteam run complete [#18](https://github.com/patinaproject/superteam/issues/18)
+# Design: superteam ends early before workflow is complete [#18](https://github.com/patinaproject/superteam/issues/18)
 
 ## Summary
 
@@ -54,6 +54,43 @@ The concern-reporting rule should stay narrow:
 - if a concern is serious enough that approval would be misleading, halt instead of treating it as a minor note
 
 This keeps approval packets honest without forcing noisy boilerplate when the design is already in good shape.
+
+### Workflow Diagram Accuracy
+
+The workflow diagrams should be updated so they reflect the actual `superteam` contract without collapsing chronology and orchestration into one confusing picture. The repo should use two Mermaid charts:
+
+- a chronological chart that shows the main forward sequence of teammates and artifacts
+- an orchestration chart that shows how `Team Lead` routes work and how feedback re-enters the system
+
+Both charts should:
+
+- use a single vertical top-to-bottom flow
+- limit block types to teammates and artifacts
+- use a lighter artifact treatment with black text for readability
+- keep `Pull Request` styled as an artifact
+
+The chronological chart should read:
+
+`Issue -> Team Lead -> Brainstormer -> Design Doc -> Planner -> Plan Doc -> Executor -> Implementation & Tests -> Reviewer -> Finisher -> Pull Request -> Human Test & Review`
+
+The orchestration chart should keep that same chronological spine, but additionally make these routing rules explicit:
+
+- `Pull Request -> Finisher`
+  - `PR feedback / status`
+- `Human Test & Review -> Team Lead`
+  - `human feedback`
+- `Reviewer -> Team Lead`
+  - `review findings`
+- `Finisher -> Team Lead`
+  - `needs reroute`
+- `Team Lead -> Planner`
+  - `route planning work`
+- `Team Lead -> Executor`
+  - `route implementation work`
+- `Team Lead -> Finisher`
+  - `route publish follow-through`
+
+Do not add a second redundant `Team Lead -> Brainstormer` routing arrow in the orchestration chart. The normal chronological handoff into `Brainstormer` is enough. Human feedback should re-enter through `Team Lead`, while PR-surface status and feedback may loop directly from `Pull Request` back to `Finisher`.
 
 ### Required Finisher Shutdown Checks
 
@@ -115,6 +152,7 @@ The repository changes should stay tightly coupled to the shutdown problem:
 
 - update `skills/superteam/SKILL.md` so `Finisher` owns required publication steps, remains active after PR publication, shutdown is clearly success-only, and operator escalation is required when checks cannot be completed
 - update first-stage guidance so `Brainstormer` approval requests surface remaining approval-relevant concerns when present
+- update the Mermaid workflow diagram so it reflects the real forward path, backward loopbacks, and artifact treatment accurately
 - update only directly relevant `Finisher`-owned prompt or template language if it currently allows completion to be reported before shutdown checks truly pass
 - update repository-local pressure tests to cover the exact failure mode and the new halt behavior
 
@@ -124,6 +162,7 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 
 - inspect the updated `superteam` skill contract for success-only shutdown wording
 - verify `Brainstormer` approval requests surface remaining approval-relevant concerns when present
+- verify the Mermaid workflow diagram uses the simplified vertical structure, labeled backward arrows, and distinct artifact treatment
 - verify the `Finisher` contract makes required publication steps mandatory and removes any notion of valid local-only completion
 - verify the `Finisher` contract makes PR publication a milestone rather than completion
 - verify the `Finisher` contract requires continued follow-through for mergeability, required checks, PR metadata, and external feedback handling
@@ -151,6 +190,7 @@ The change should avoid broad wording cleanup outside the shutdown and external-
 - AC-18-8: Given a top-level reviewer or bot comment contains still-applicable findings on the latest pushed state, when those findings are not fully represented by already-audited inline threads, then `Finisher` counts that top-level comment as a separate blocking finding source rather than deduping it away
 - AC-18-9: Given a `superteam` run, when the branch is still only local or the PR does not yet exist, then the run does not present itself as complete, no local-only end state is accepted, and `Finisher` remains responsible for push and PR creation before post-publish monitoring or shutdown can occur
 - AC-18-10: Given `Brainstormer` requests approval of the design artifact, when approval-relevant concerns remain, then those concerns are surfaced in the approval packet instead of being held back until after approval
+- AC-18-11: Given the Mermaid workflow diagrams are updated for this issue, when they represent the `superteam` flow, then they show a clear vertical chronological path, a separate orchestration view with `Team Lead` as the routing hub, and a distinct lighter artifact treatment including `Pull Request`
 
 ## Implementation Notes
 

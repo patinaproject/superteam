@@ -1,10 +1,10 @@
-# Plan: Add a shutdown check for unresolved external PR feedback before declaring a superteam run complete [#18](https://github.com/patinaproject/superteam/issues/18)
+# Plan: superteam ends early before workflow is complete [#18](https://github.com/patinaproject/superteam/issues/18)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Remove any notion of valid local-only completion from `superteam`, require PR publication on every run, keep `Finisher` alive through publication and post-publish follow-through, and block completion until mergeability, required checks, PR metadata requirements, unresolved inline review threads, unresolved top-level finding comments, and other blocking external PR feedback are handled on the latest pushed state, or the operator is prompted explicitly when the state cannot be determined safely.
 
-**Architecture:** Tighten the contract at the source of truth in `skills/superteam/SKILL.md`, extend first-stage approval guidance to surface approval-relevant concerns, mirror the broader publication-plus-post-publish `Finisher` loop in the directly relevant `Finisher` support text, then add pressure-test coverage for invalid local-only completion, early-stop, status-snapshot, top-level-finding accounting, summary-only dedupe, and operator-prompt failure modes. Keep the change documentation-focused and avoid broad workflow rewrites.
+**Architecture:** Tighten the contract at the source of truth in `skills/superteam/SKILL.md`, extend first-stage approval guidance to surface approval-relevant concerns, add a clearer Mermaid workflow diagram with explicit loopbacks, mirror the broader publication-plus-post-publish `Finisher` loop in the directly relevant `Finisher` support text, then add pressure-test coverage for invalid local-only completion, early-stop, status-snapshot, top-level-finding accounting, summary-only dedupe, and operator-prompt failure modes. Keep the change documentation-focused and avoid broad workflow rewrites.
 
 **Tech Stack:** Markdown docs, repository-local workflow assets, `pnpm sync:plugin`, `rg`, `sed`, `find`
 
@@ -12,9 +12,9 @@
 
 ## File Structure
 
-- `docs/superpowers/specs/2026-04-22-18-add-a-shutdown-check-for-unresolved-external-pr-feedback-before-declaring-a-superteam-run-complete-design.md`
+- `docs/superpowers/specs/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-design.md`
   - Approved design doc and acceptance source for this issue.
-- `docs/superpowers/plans/2026-04-22-18-add-a-shutdown-check-for-unresolved-external-pr-feedback-before-declaring-a-superteam-run-complete-plan.md`
+- `docs/superpowers/plans/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-plan.md`
   - This implementation plan.
 - `skills/superteam/SKILL.md`
   - Canonical `superteam` workflow contract; primary source of shutdown behavior.
@@ -73,7 +73,106 @@ The edit should preserve the existing ownership model: `Finisher` owns publicati
 Run: `sed -n '1,260p' skills/superteam/SKILL.md`
 Expected: the shutdown section reads cleanly, uses `blocking external PR feedback` consistently, and does not weaken existing routing rules.
 
-### Task 2: Mirror the publication, shutdown, and counting rules in the directly relevant Finisher prompt surface
+### Task 2: Add the Mermaid workflow diagram requirements
+
+**Files:**
+- Modify: `skills/superteam/SKILL.md`
+- Modify: `docs/superpowers/specs/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-design.md`
+
+- [ ] **Step 1: Add the two-chart diagram requirement to the source contract**
+
+Update the source workflow docs so they require two Mermaid diagrams:
+
+```md
+- one chronological chart for the forward teammate/artifact sequence
+- one orchestration chart for `Team Lead` routing and feedback intake
+- only two block types: teammates and artifacts
+- `Implementation & Tests` as an artifact between `Executor` and `Reviewer`
+- `Pull Request` as an artifact leading to `Human Test & Review`
+- lighter artifact treatment with black text for readability
+- `Human Test & Review` routes only to `Team Lead`
+- `Pull Request` may route back to `Finisher` for PR feedback / status
+```
+
+- [ ] **Step 2: Use the approved Mermaid blocks**
+
+Carry these exact Mermaid structures into the implementation surface that owns the workflow diagrams:
+
+```mermaid
+flowchart TD
+    issue["Issue"]:::artifact
+    lead["Team Lead"]
+    brainstormer["Brainstormer"]
+    design["Design Doc"]:::artifact
+    planner["Planner"]
+    plan["Plan Doc"]:::artifact
+    executor["Executor"]
+    implementation["Implementation & Tests"]:::artifact
+    reviewer["Reviewer"]
+    finisher["Finisher"]
+    pr["Pull Request"]:::artifact
+    human["Human Test & Review"]
+
+    issue --> lead
+    lead --> brainstormer
+    brainstormer --> design
+    design --> planner
+    planner --> plan
+    plan --> executor
+    executor --> implementation
+    implementation --> reviewer
+    reviewer --> finisher
+    finisher --> pr
+    pr --> human
+
+    classDef artifact fill:#f7f7f7,stroke:#666,stroke-width:1px,color:#000;
+```
+
+```mermaid
+flowchart TD
+    issue["Issue"]:::artifact
+    lead["Team Lead"]
+    brainstormer["Brainstormer"]
+    design["Design Doc"]:::artifact
+    planner["Planner"]
+    plan["Plan Doc"]:::artifact
+    executor["Executor"]
+    implementation["Implementation & Tests"]:::artifact
+    reviewer["Reviewer"]
+    finisher["Finisher"]
+    pr["Pull Request"]:::artifact
+    human["Human Test & Review"]
+
+    issue --> lead
+    lead --> brainstormer
+    brainstormer --> design
+    design --> planner
+    planner --> plan
+    plan --> executor
+    executor --> implementation
+    implementation --> reviewer
+    reviewer --> finisher
+    finisher --> pr
+    pr --> human
+
+    pr -->|"PR feedback / status"| finisher
+    human -->|"human feedback"| lead
+    reviewer -->|"review findings"| lead
+    finisher -->|"needs reroute"| lead
+
+    lead -->|"route planning work"| planner
+    lead -->|"route implementation work"| executor
+    lead -->|"route publish follow-through"| finisher
+
+    classDef artifact fill:#f7f7f7,stroke:#666,stroke-width:1px,color:#000;
+```
+
+- [ ] **Step 3: Re-read the diagram requirement for clarity**
+
+Run: `rg -n "Workflow Diagrams|Human Test & Review|PR feedback / status|review findings|needs reroute|classDef artifact" skills/superteam/SKILL.md docs/superpowers/specs/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-design.md`
+Expected: the approved two-chart structure and readability constraints are represented clearly.
+
+### Task 3: Mirror the publication, shutdown, and counting rules in the directly relevant Finisher prompt surface
 
 **Files:**
 - Modify: `skills/superteam/agent-spawn-template.md`
@@ -106,7 +205,7 @@ Keep the existing done-report contract intact while making the shutdown guard ha
 Run: `sed -n '1,240p' skills/superteam/agent-spawn-template.md`
 Expected: `Finisher` guidance matches the canonical skill contract and still preserves branch-state-aware comment handling.
 
-### Task 3: Add pressure-test coverage for approval concerns, mandatory publication, top-level findings, dedupe, and fallback behavior
+### Task 4: Add pressure-test coverage for approval concerns, mandatory publication, top-level findings, dedupe, and fallback behavior
 
 **Files:**
 - Modify: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
@@ -163,7 +262,7 @@ Update the shutdown-related pressure tests so they explicitly cover:
 Run: `sed -n '1,260p' docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
 Expected: the repo-local pressure tests now exercise both the original miss and the indeterminate-state fallback.
 
-### Task 4: Refresh the packaged plugin copy and verify the repository state
+### Task 5: Refresh the packaged plugin copy and verify the repository state
 
 **Files:**
 - Modify via sync: `plugins/superteam/skills/superteam/SKILL.md`
@@ -184,11 +283,11 @@ Expected: matching shutdown language appears in both source and packaged copies.
 Run: `rg -n "approval-relevant concerns|publish a PR|local-only|demoable|handoffable|top-level|dedupe|prompt the operator|Do not shut down|Do not report completion" docs/superpowers/pressure-tests/superteam-orchestration-contract.md skills/superteam/SKILL.md skills/superteam/agent-spawn-template.md`
 Expected: all core shutdown requirements are represented in the canonical skill, the Finisher prompt surface, and the pressure tests.
 
-### Task 5: Final verification and commit
+### Task 6: Final verification and commit
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-04-22-18-add-a-shutdown-check-for-unresolved-external-pr-feedback-before-declaring-a-superteam-run-complete-design.md`
-- Modify: `docs/superpowers/plans/2026-04-22-18-add-a-shutdown-check-for-unresolved-external-pr-feedback-before-declaring-a-superteam-run-complete-plan.md`
+- Modify: `docs/superpowers/specs/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-design.md`
+- Modify: `docs/superpowers/plans/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-plan.md`
 - Modify: `skills/superteam/SKILL.md`
 - Modify: `skills/superteam/agent-spawn-template.md`
 - Modify: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
@@ -197,7 +296,7 @@ Expected: all core shutdown requirements are represented in the canonical skill,
 
 - [ ] **Step 1: Review the exact changed files**
 
-Run: `git diff -- docs/superpowers/specs/2026-04-22-18-add-a-shutdown-check-for-unresolved-external-pr-feedback-before-declaring-a-superteam-run-complete-design.md docs/superpowers/plans/2026-04-22-18-add-a-shutdown-check-for-unresolved-external-pr-feedback-before-declaring-a-superteam-run-complete-plan.md skills/superteam/SKILL.md skills/superteam/agent-spawn-template.md docs/superpowers/pressure-tests/superteam-orchestration-contract.md plugins/superteam/skills/superteam/SKILL.md plugins/superteam/skills/superteam/agent-spawn-template.md`
+Run: `git diff -- docs/superpowers/specs/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-design.md docs/superpowers/plans/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-plan.md skills/superteam/SKILL.md skills/superteam/agent-spawn-template.md docs/superpowers/pressure-tests/superteam-orchestration-contract.md plugins/superteam/skills/superteam/SKILL.md plugins/superteam/skills/superteam/agent-spawn-template.md`
 Expected: only the planned shutdown-focused changes appear.
 
 - [ ] **Step 2: Confirm working tree state**
@@ -210,8 +309,8 @@ Expected: only the issue-18 spec, plan, source skill files, pressure tests, and 
 Run:
 
 ```bash
-git add docs/superpowers/specs/2026-04-22-18-add-a-shutdown-check-for-unresolved-external-pr-feedback-before-declaring-a-superteam-run-complete-design.md \
-        docs/superpowers/plans/2026-04-22-18-add-a-shutdown-check-for-unresolved-external-pr-feedback-before-declaring-a-superteam-run-complete-plan.md \
+git add docs/superpowers/specs/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-design.md \
+        docs/superpowers/plans/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-plan.md \
         skills/superteam/SKILL.md \
         skills/superteam/agent-spawn-template.md \
         docs/superpowers/pressure-tests/superteam-orchestration-contract.md \
@@ -224,6 +323,6 @@ Expected: one clean commit captures the approved spec tightening, implementation
 
 ## Self-Review
 
-- Spec coverage: Task 1 covers approval concerns, mandatory publication, invalid local-only completion, success-only shutdown, counting rules, and top-level finding handling, Task 2 mirrors the rule in the directly relevant `Finisher` prompt surface, Task 3 covers the documented failure modes, and Task 4 verifies the packaged plugin copy. AC-18-1 through AC-18-10 each map to at least one explicit task.
+- Spec coverage: Task 1 covers approval concerns, mandatory publication, invalid local-only completion, success-only shutdown, counting rules, and top-level finding handling, Task 2 covers the Mermaid workflow diagram requirements, Task 3 mirrors the rule in the directly relevant `Finisher` prompt surface, Task 4 covers the documented failure modes, and Task 5 verifies the packaged plugin copy. AC-18-1 through AC-18-11 each map to at least one explicit task.
 - Placeholder scan: No `TODO`, `TBD`, or vague “handle later” instructions remain; every task lists exact files and concrete commands.
 - Type consistency: The plan consistently uses `blocking external PR feedback`, `latest pushed state`, `prompt the operator`, and `success-only shutdown` across tasks.
