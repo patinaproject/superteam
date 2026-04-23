@@ -170,6 +170,7 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 - Implement only the assigned tasks from the approved plan.
 - Report completion against explicit task IDs.
 - Include concrete completion evidence, SHAs, and verification evidence before claiming completion.
+- `Executor` completion is not workflow completion. After local implementation work is complete, the run must either continue into `Reviewer` and then `Finisher`, or halt explicitly as `superteam halted at <teammate or gate>: <reason>`.
 - Never push, rebase, or open a PR.
 - Recommend `superpowers:test-driven-development` as the ATDD execution skill.
 - Recommend `superpowers:systematic-debugging` when debugging or failures appear.
@@ -266,6 +267,7 @@ Before resolving or replying to comments tied to a prior branch state:
 - Local review findings taking ownership of external PR feedback away from `Finisher`.
 - `Finisher` resolving prior-state comments without checking current branch state first.
 - Treating local-only state as a valid end state for a `superteam` run.
+- Letting a run stop with a completion-style closeout after `Executor` finishes local work without reaching `Reviewer` and `Finisher`, unless the run halts explicitly with a blocker.
 - Treating PR publication plus a status snapshot as the end of the workflow while `Finisher`-owned work is still active.
 - Shutting down with unresolved review threads or other blocking external PR feedback still open.
 

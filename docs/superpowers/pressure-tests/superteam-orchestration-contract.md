@@ -62,6 +62,13 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Halt publish activity, route publish-state follow-through back to the Finisher, and loop incomplete verification back to the Executor before handoff.
 - Rule surface: The teammate ownership contract should keep publishing with the Finisher and require Executor verification before completion claims.
 
+## Run ends after local implementation without reaching Reviewer or Finisher
+
+- Starting condition: `Executor` completes local edits and verification, but no proper `Reviewer` pass occurs, the branch is not pushed, no PR is created or updated, no `Finisher` shutdown checks run, and the run attempts to end with a polished completion-style summary.
+- Required halt or reroute behavior: Do not allow a successful completion state. The workflow must either continue into `Reviewer` and then `Finisher`, or halt explicitly as `superteam halted at <teammate or gate>: <reason>`.
+- Behavioral check: Judge the documented workflow by what it would do in this situation, not by whether it contains strong-sounding wording. A polished local-only closeout should still fail this scenario if the workflow does not reroute or halt explicitly.
+- Rule surface: The canonical skill and delegated prompt surface should both require the post-implementation transition into `Reviewer` and `Finisher`, or an explicit halt, before any success-style closeout.
+
 ## Malformed done-report fields at stage handoff
 
 - Starting condition: A teammate handoff includes a done report with missing required fields, malformed field names, or values too vague for the next stage to trust.
