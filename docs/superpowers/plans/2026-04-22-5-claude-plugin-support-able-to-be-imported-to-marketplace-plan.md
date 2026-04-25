@@ -1,5 +1,7 @@
 # Plan: Claude plugin support (able to be imported to marketplace) [#5](https://github.com/patinaproject/superteam/issues/5)
 
+<!-- markdownlint-disable MD001 MD040 -->
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make `patinaproject/superteam` a valid Claude Code plugin at the repository root so it can be validated locally now and consumed by a Claude marketplace later.

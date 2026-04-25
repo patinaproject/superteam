@@ -1,5 +1,7 @@
 # Plan: Harden superteam orchestration contracts and stage gates [#8](https://github.com/patinaproject/superteam/issues/8)
 
+<!-- markdownlint-disable MD001 MD040 -->
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Update the public `superteam` orchestration surface so it uses the approved teammate roster, hardened approval and handoff gates, explicit `superpowers` skill recommendations and warnings, finish-owned review handling, and repo-local pressure-test coverage.

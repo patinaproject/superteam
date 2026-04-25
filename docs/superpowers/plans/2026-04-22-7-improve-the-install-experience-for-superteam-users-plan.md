@@ -1,5 +1,7 @@
 # Plan: Improve the install experience for Superteam users [#7](https://github.com/patinaproject/superteam/issues/7)
 
+<!-- markdownlint-disable MD001 MD040 -->
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make the repository landing page explain what Superteam does, the problem it solves, and how its continuity-first workflow operates before readers encounter installation mechanics.

@@ -1,5 +1,7 @@
 # Plan: Keep superteam plugin-only and delegate marketplace [#14](https://github.com/patinaproject/superteam/issues/14)
 
+<!-- markdownlint-disable MD001 MD040 -->
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make this repository plugin-only, remove its local Codex marketplace surface, keep the packaged plugin name user-facing as `Superteam`, and align the live docs to that ownership model.

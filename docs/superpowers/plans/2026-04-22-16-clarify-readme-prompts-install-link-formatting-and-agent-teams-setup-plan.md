@@ -1,5 +1,7 @@
 # Plan: Clarify README prompts, install link formatting, and Agent Teams setup [#16](https://github.com/patinaproject/superteam/issues/16)
 
+<!-- markdownlint-disable MD001 MD040 -->
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Update the README so the install and first-use flow is easier to follow by replacing abstract invocation guidance with example prompts, labeling the Superpowers prerequisite link as `obra/superpowers`, adding an optional Claude Agent Teams setup note, and tightening adjacent confusing wording without expanding scope beyond this onboarding path.
