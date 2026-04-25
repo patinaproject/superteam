@@ -1,5 +1,7 @@
 # Plan: Claude plugin support (able to be imported to marketplace) [#5](https://github.com/patinaproject/superteam/issues/5)
 
+<!-- markdownlint-disable MD001 MD040 -->
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make `patinaproject/superteam` a valid Claude Code plugin at the repository root so it can be validated locally now and consumed by a Claude marketplace later.
@@ -13,6 +15,7 @@
 ### Task 1: Add the root Claude plugin manifest
 
 **Files:**
+
 - Create: `.claude-plugin/plugin.json`
 - Modify: `README.md`
 - Test: Claude Code plugin validation against the repository root
@@ -26,6 +29,7 @@ claude plugin validate /Users/tlmader/dev/patinaproject/superteam
 ```
 
 Expected:
+
 - FAIL with `No manifest found in directory. Expected .claude-plugin/marketplace.json or .claude-plugin/plugin.json`
 
 - [ ] **Step 2: Create the root Claude plugin manifest**
@@ -72,6 +76,7 @@ Once Claude Code starts, the plugin skill is available under the plugin namespac
 ```
 
 For marketplace distribution, this repository can be referenced directly as a Claude plugin source.
+
 ```
 
 - [ ] **Step 4: Validate the repository root after adding the manifest**
@@ -83,6 +88,7 @@ claude plugin validate /Users/tlmader/dev/patinaproject/superteam
 ```
 
 Expected:
+
 - PASS with no validation errors
 
 - [ ] **Step 5: Commit the Claude plugin manifest and README changes**
@@ -97,6 +103,7 @@ git commit -m "feat: #5 add claude plugin manifest"
 ### Task 2: Document the dual install surfaces for contributors
 
 **Files:**
+
 - Modify: `docs/file-structure.md`
 - Modify: `AGENTS.md`
 - Test: `README.md`, `docs/file-structure.md`, and `AGENTS.md` all describe the same naming and install model
@@ -147,6 +154,7 @@ rg -n "claude plugin|\\.claude-plugin|plugin install surface|--plugin-dir" READM
 ```
 
 Expected:
+
 - matches in all three files
 - wording consistently identifies the repository root as the Claude plugin surface
 
@@ -159,6 +167,7 @@ claude plugin validate /Users/tlmader/dev/patinaproject/superteam
 ```
 
 Expected:
+
 - PASS with no validation errors
 
 - [ ] **Step 5: Commit the contributor documentation updates**
@@ -173,6 +182,7 @@ git commit -m "docs: #5 document claude plugin install surface"
 ### Task 3: Verify issue-scoped acceptance criteria coverage
 
 **Files:**
+
 - Modify: `docs/superpowers/specs/2026-04-22-5-claude-plugin-support-able-to-be-imported-to-marketplace-design.md`
 - Test: repo status and document references
 
@@ -206,6 +216,7 @@ find docs/superpowers -maxdepth 2 -type f | sort
 ```
 
 Expected:
+
 - `docs/superpowers/specs/2026-04-22-5-claude-plugin-support-able-to-be-imported-to-marketplace-design.md`
 - `docs/superpowers/plans/2026-04-22-5-claude-plugin-support-able-to-be-imported-to-marketplace-plan.md`
 
@@ -218,6 +229,7 @@ git status --short
 ```
 
 Expected:
+
 - only the issue #5 files are modified
 - no `skills` repo files are touched from this plan
 

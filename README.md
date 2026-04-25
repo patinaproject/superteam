@@ -1,16 +1,14 @@
 # Superteam
 
-Orchestrate teams of agents with Superpowers.
+Build with a team of agents using Superpowers.
 
-Spend less time managing implementation loops and babysitting CI.
+`superteam` is a Claude Code + Codex plugin. It ships an installable orchestration skill under `skills/superteam/` and is distributed through the [`patinaproject/skills`](https://github.com/patinaproject/skills) marketplace.
 
-Superteam builds on Superpowers to get you to a real, demoable, testable artifact as quickly as possible, with enough structure to review it, iterate on it, and keep moving.
+Spend less time managing implementation loops and babysitting CI. Superteam builds on Superpowers to get you to a real, demoable, testable artifact as quickly as possible, with enough structure to review it, iterate on it, and keep moving.
 
-It works with agent teams or subagents.
+## What this plugin does
 
-## How Superteam works
-
-Superteam runs one issue through a structured teammate workflow so the next agent, subagent, or human can continue from durable artifacts instead of chat history alone.
+Superteam takes one GitHub issue and routes it through a structured teammate workflow — `Team Lead`, `Brainstormer`, `Planner`, `Executor`, `Reviewer`, `Finisher` — so the next agent, subagent, or human can continue from durable artifacts (design doc, plan doc, branch, PR) instead of chat history alone.
 
 ```mermaid
 flowchart TD
@@ -83,27 +81,16 @@ flowchart TD
 
 The workflow stays portable across agent teams and direct subagent handoffs because it is organized around teammate ownership, repo-owned artifacts, and explicit gates rather than one host runtime's mechanics.
 
-Before any teammate edits governed files, the workflow discovers repository rules from the repo itself, starting with `AGENTS.md` and then any local docs that govern the files being touched.
+## What happens at each stage
 
-Each teammate owns specific artifacts and verification gates, so work stays understandable across handoffs instead of becoming ad hoc subagent output. `Reviewer` owns local pre-publish review intake and finding classification. `Finisher` owns publish-state follow-through, branch and PR handling, CI, and external post-publish review feedback.
+- `Team Lead`: reads the issue, discovers repo rules, decides which teammate should act next, and halts the run when a gate is not satisfied.
+- `Brainstormer`: turns the issue into a design doc, captures the active acceptance criteria, and asks for explicit approval before planning starts.
+- `Planner`: converts the approved design into an implementation plan with concrete tasks.
+- `Executor`: implements only the approved plan, including tests and verification evidence. Does not push branches or open PRs.
+- `Reviewer`: performs local pre-publish review, classifies findings as implementation-, plan-, or spec-level, and pressure-tests skill/workflow changes before publish.
+- `Finisher`: pushes, opens or updates the PR, monitors CI and mergeability, interprets external PR feedback, and keeps the run alive until the published branch state is stable.
 
-When a host runtime supports background agents or subagents, Superteam prefers using them for bounded, independent work that is unlikely to need live clarification. Tightly coupled or ambiguity-heavy steps should stay in the foreground. For publish-state follow-through, durable wakeups remain optional execution aids: in Codex, same-thread automations are a natural fit for `Finisher`, while Claude Code can pair project subagents with optional hooks without changing the shared contract.
-
-## What Happens At Each Stage
-
-This is the short version of what developers should expect during a normal run:
-
-- `Team Lead`: reads the issue, discovers repo rules, decides which teammate should act next, and halts the run when a gate is not satisfied instead of hand-waving it away.
-- `Brainstormer`: turns the issue into a design doc, captures the active acceptance criteria, and asks for explicit approval before planning starts. If there are real approval-relevant concerns, they should be surfaced here.
-- `Planner`: converts the approved design into an implementation plan with concrete tasks. `Planner` is supposed to consume the approved design doc, not improvise from chat summaries.
-- `Executor`: implements only the approved plan, including the required tests and verification evidence. `Executor` does not push branches or open PRs.
-- `Implementation & Tests`: this is the durable output of execution. By the time work reaches review, the branch should already contain the code, tests, and local verification needed to judge the implementation.
-- `Reviewer`: performs local pre-publish review, checks that the right artifacts exist, interprets local findings, classifies them as implementation-level, plan-level, or spec-level so loopbacks are routed correctly, and pressure-tests skill/workflow changes before publish.
-- `Finisher`: owns everything needed to publish and stabilize the branch on GitHub. That includes pushing, opening or updating the PR, checking CI and mergeability, interpreting external PR feedback, and making sure the run does not end early.
-- `Pull Request`: this is the published artifact for the current branch state. It is a milestone, not the end of the workflow.
-- `Human Test & Review`: this is where a person can demo, test, and review the published branch. Human feedback loops back through `Team Lead`, while PR-surface status and findings loop back through `Finisher`.
-
-In practice, this means `superteam` should not report success just because code exists locally, a PR was opened once, or CI looked healthy in a single snapshot. A run is only actually complete when the published branch state is stable enough to hand off cleanly or an explicit blocker is reported.
+A run is only complete when the published branch state is stable enough to hand off cleanly or an explicit blocker is reported.
 
 ## Agent roster
 
@@ -112,55 +99,37 @@ In practice, this means `superteam` should not report success just because code 
 | Team Lead | Orchestration, delegation, gates, and loopbacks | `superpowers:using-superpowers`; `superpowers:dispatching-parallel-agents` when splitting independent work |
 | Brainstormer | Design doc creation and approval handoff | `superpowers:brainstorming` |
 | Planner | Approved implementation plan creation | `superpowers:writing-plans` |
-| Executor | ATDD-driven implementation, code, and tests for the approved plan | `superpowers:test-driven-development`; `superpowers:systematic-debugging` when debugging; `superpowers:verification-before-completion`; `superpowers:writing-skills` when editing `skills/**/*.md` |
-| Reviewer | Local pre-publish review intake, finding classification, and loopback routing | `superpowers:requesting-code-review`; `superpowers:receiving-code-review` when analyzing existing or disputed findings before publish; `superpowers:writing-skills` when reviewing `skills/**/*.md` or workflow-contract docs |
-| Finisher | Publish-state follow-through, branch/PR/CI reporting, and external post-publish review feedback handling | `superpowers:finishing-a-development-branch`; `superpowers:receiving-code-review` when handling PR comments, review threads, or bot feedback after publish |
-
-## Run superteam anytime
-
-Superteam keeps the workflow grounded in explicit teammate ownership, written design and plan artifacts, verification before completion, and finish-owned review follow-through. That means you can invoke Superteam at any point in the lifecycle and have it resume from the right teammate instead of starting the whole process over.
-
-For example:
-
-```text
-/superteam work on issue 16
-/superteam new requirement: make it more super
-```
-
-## Install surfaces
-
-- The repository root is the local Claude Code plugin surface discovered via `.claude-plugin/plugin.json`.
-- The repository root is also the Codex plugin surface via `.codex-plugin/plugin.json`.
+| Executor | ATDD-driven implementation, code, and tests for the approved plan | `superpowers:test-driven-development`; `superpowers:systematic-debugging`; `superpowers:verification-before-completion`; `superpowers:writing-skills` when editing `skills/**/*.md` |
+| Reviewer | Local pre-publish review intake, finding classification, loopback routing | `superpowers:requesting-code-review`; `superpowers:receiving-code-review`; `superpowers:writing-skills` when reviewing `skills/**/*.md` |
+| Finisher | Publish-state follow-through, branch/PR/CI reporting, external post-publish review feedback | `superpowers:finishing-a-development-branch`; `superpowers:receiving-code-review` |
 
 ## Installation
 
-Install Superpowers first by following the setup instructions in [`obra/superpowers`](https://github.com/obra/superpowers).
+`superteam` ships as a Claude Code + Codex plugin. Other supported editors read the repository-level files this plugin emits (`AGENTS.md`, `.cursor/`, `.windsurfrules`, `.github/copilot-instructions.md`) directly. Install Superpowers first by following the setup instructions in [`obra/superpowers`](https://github.com/obra/superpowers).
 
 ### Claude Code
 
-1. After Superpowers is installed, register the Patina Project marketplace in Claude Code:
+1. Register the Patina marketplace:
 
-```bash
-/plugin marketplace add patinaproject/skills
-```
+   ```text
+   /plugin marketplace add patinaproject/skills
+   ```
 
-2. Install Superteam from that marketplace:
+2. Install the plugin:
 
-```bash
-/plugin install superteam@patinaproject-skills
-```
+   ```text
+   /plugin install superteam@patinaproject-skills
+   ```
 
 3. Open the relevant GitHub issue in your Claude Code session, then invoke:
 
-```text
-/superteam:superteam
-```
+   ```text
+   /superteam:superteam
+   ```
 
-### Optional: Enable Agent Teams
+#### Optional: Enable Agent Teams
 
-If you want Claude Code to use Agent Teams for this workflow, enable Agent Teams in your Claude configuration before invoking Superteam.
-
-For local setup, add `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` to the `env` block in `~/.claude/settings.json` for your user-wide config or `.claude/settings.json` for a project-specific config:
+If you want Claude Code to use Agent Teams for this workflow, enable Agent Teams in your Claude configuration before invoking Superteam. Add `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` to the `env` block in `~/.claude/settings.json` (user-wide) or `.claude/settings.json` (project-specific):
 
 ```json
 {
@@ -170,38 +139,97 @@ For local setup, add `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` to the `env` block i
 }
 ```
 
-Then run the same Superteam workflow as usual.
-
-Agent Teams is optional. If you do not enable it, Superteam still works with the regular single-agent or subagent flow described above. When using Agent Teams, prefer them for bounded, independent teammate work; keep highly interactive or clarification-heavy steps in the foreground.
+Agent Teams is optional. If you do not enable it, Superteam still works with the regular single-agent or subagent flow. When using Agent Teams, prefer them for bounded, independent teammate work; keep highly interactive or clarification-heavy steps in the foreground.
 
 ### OpenAI Codex CLI
 
-1. After Superpowers is installed, install or enable the `Superteam` Codex plugin from the plugin source you use for Codex.
-2. When working from this repository directly, treat the repository root as the Codex plugin surface.
-3. Open the relevant GitHub issue in your working context, then invoke Superteam:
+1. Register the Patina marketplace:
 
-```text
-Use $superteam to route this issue through teammate-owned design, planning, execution, review, and Finisher-owned publish follow-through.
-```
+   ```bash
+   codex plugin marketplace add patinaproject/skills
+   ```
+
+2. Install the plugin (pin to a tag for reproducible installs):
+
+   ```bash
+   codex plugin marketplace add patinaproject/superteam@v0.1.0
+   ```
+
+3. Invoke from the target repository:
+
+   ```text
+   Use $superteam to route this issue through teammate-owned design, planning, execution, review, and Finisher-owned publish follow-through.
+   ```
 
 ### OpenAI Codex App
 
-1. After Superpowers is installed, install or enable the `Superteam` Codex plugin from the plugin source you use for Codex.
-2. When working from this repository directly, treat the repository root as the Codex plugin surface.
-3. Open the relevant GitHub issue in the app context, then invoke Superteam:
+1. Install or enable the `superteam` plugin from your Codex plugin source.
+2. Open the target repository in the app.
+3. Invoke:
 
-```text
-Use $superteam to route this issue through teammate-owned design, planning, execution, review, and Finisher-owned publish follow-through.
-```
+   ```text
+   Use $superteam to route this issue through teammate-owned design, planning, execution, review, and Finisher-owned publish follow-through.
+   ```
 
 When `Finisher` is waiting on external publish-state in the Codex app, prefer a thread automation attached to the current thread so follow-through stays in the same conversation context.
 
-## First use
+### GitHub Copilot
 
-After setup in any supported tool, start from a GitHub issue and invoke Superteam through the same teammate-owned workflow. The issue then moves through design, planning, execution, review, and finish handoffs.
+No plugin install required. This repo ships `.github/copilot-instructions.md`, which Copilot Chat reads automatically when the repo is open in your editor.
+
+```text
+@workspace Use the superteam skill for the workflow described above.
+```
+
+### Cursor
+
+No plugin install required. This repo ships `.cursor/rules/superteam.mdc`, which Cursor loads as a project rule whenever the repo is open. Ask the Cursor agent to apply `superteam`.
+
+### Windsurf
+
+No plugin install required. This repo ships `.windsurfrules`, which Windsurf reads natively when the repo is open. Ask Cascade to apply `superteam`.
+
+### Aider, Zed, Cline, Opencode
+
+No plugin install required. These tools read `AGENTS.md` natively. Open the repo and ask the assistant to apply the `superteam` workflow described in `AGENTS.md`.
+
+## Usage
+
+```text
+/superteam:superteam work on issue 16
+/superteam:superteam new requirement: make it more super
+/superteam:superteam resume from review
+```
+
+Superteam keeps the workflow grounded in explicit teammate ownership, written design and plan artifacts, verification before completion, and finish-owned review follow-through. You can invoke Superteam at any point in the lifecycle and have it resume from the right teammate instead of starting over.
+
+## Development
+
+This repository is the source for the plugin. Local workflow:
+
+```bash
+pnpm install           # installs dev deps and wires husky
+pnpm lint:md           # markdownlint-cli2
+pnpm check:versions    # enforce package.json ↔ plugin manifests lockstep
+pnpm commitlint        # one-off commit-message validation
+```
+
+Commits and PR titles follow `type: #<issue> short description`.
+
+Releases are driven by [release-please](https://github.com/googleapis/release-please) — merge the standing release PR to cut a new `vX.Y.Z`. See [`RELEASING.md`](./RELEASING.md).
+
+## Contributing
+
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) and [`AGENTS.md`](./AGENTS.md).
 
 ## Inspiration
 
 - BMAD-Method: Grateful to BMAD for introducing us to agentic frameworks; our earlier quick-dev and TEA experiments helped shape this workflow.
 - Superpowers: Foundational skills framework that brought this to life.
 - Ken Kocienda's *Creative Selection*: Importance of demo culture.
+
+## Related
+
+- [`skills/superteam/SKILL.md`](./skills/superteam/SKILL.md) — skill contract.
+- [`patinaproject/skills`](https://github.com/patinaproject/skills) — marketplace distributing Patina plugins.
+- [`patinaproject/bootstrap`](https://github.com/patinaproject/bootstrap) — scaffolding skill that emitted this repo's baseline.

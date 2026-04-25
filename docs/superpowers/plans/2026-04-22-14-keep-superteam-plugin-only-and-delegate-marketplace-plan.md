@@ -1,5 +1,7 @@
 # Plan: Keep superteam plugin-only and delegate marketplace [#14](https://github.com/patinaproject/superteam/issues/14)
 
+<!-- markdownlint-disable MD001 MD040 -->
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make this repository plugin-only, remove its local Codex marketplace surface, keep the packaged plugin name user-facing as `Superteam`, and align the live docs to that ownership model.
@@ -13,6 +15,7 @@
 ### Task 1: Remove the local Codex marketplace surface
 
 **Files:**
+
 - Delete: `.agents/plugins/marketplace.json`
 
 - [ ] **Step 1: Confirm the marketplace manifest is present before removal**
@@ -40,6 +43,7 @@ Expected: output is `deleted`.
 ### Task 2: Keep the packaged plugin manifest user-facing name as `Superteam`
 
 **Files:**
+
 - Modify: `plugins/superteam/.codex-plugin/plugin.json`
 
 - [ ] **Step 1: Inspect the packaged plugin manifest**
@@ -73,6 +77,7 @@ Expected: one match for the packaged plugin manifest.
 ### Task 3: Align the live docs to the plugin-only ownership model
 
 **Files:**
+
 - Modify: `AGENTS.md`
 - Modify: `README.md`
 - Modify: `docs/file-structure.md`
@@ -126,6 +131,7 @@ Expected: no matches.
 ### Task 4: Verify the final repo state and prepare for publish
 
 **Files:**
+
 - Verify: `AGENTS.md`
 - Verify: `README.md`
 - Verify: `docs/file-structure.md`

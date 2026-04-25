@@ -44,31 +44,37 @@ This avoids package drift and matches the current Codex marketplace pattern alre
 ### Option 1: Direct install only from `superteam`
 
 Pros:
+
 - Minimal implementation
 - One package source
 
 Cons:
+
 - `skills` adds little value for Claude users
 - Marketplace discovery remains incomplete
 
 ### Option 2: Duplicate Claude package in both repos
 
 Pros:
+
 - Each repo can stand alone
 - Marketplace repo can fully vendor the package
 
 Cons:
+
 - High drift risk
 - More maintenance and release overhead
 
 ### Option 3: Source package in `superteam`, marketplace metadata in `skills`
 
 Pros:
+
 - One package source of truth
 - Supports both direct install and marketplace discovery
 - Fits the existing repo split
 
 Cons:
+
 - Requires clear documentation of the source-of-truth boundary
 
 Selected option: Option 3.

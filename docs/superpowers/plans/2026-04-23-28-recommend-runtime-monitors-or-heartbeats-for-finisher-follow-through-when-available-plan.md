@@ -32,6 +32,7 @@
 ### Task 1: Update the canonical workflow contract in `skills/superteam/SKILL.md`
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 
 - [ ] **Step 1: Inspect the current runtime-aware and approval-packet sections**
@@ -78,6 +79,7 @@ Expected: the canonical skill now recommends background-agent delegation and dur
 ### Task 2: Mirror the same runtime-aware guidance in `skills/superteam/agent-spawn-template.md`
 
 **Files:**
+
 - Modify: `skills/superteam/agent-spawn-template.md`
 
 - [ ] **Step 1: Inspect the current delegation template and role-specific blocks**
@@ -124,6 +126,7 @@ Expected: the shared template plus the `Brainstormer` and `Finisher` blocks all 
 ### Task 3: Expand the orchestration pressure tests for runtime-aware follow-through and approval reporting
 
 **Files:**
+
 - Modify: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
 
 - [ ] **Step 1: Inspect the current scenarios that already cover approval packets and `Finisher` follow-through**
@@ -173,6 +176,7 @@ Expected: the pressure tests now cover approval-packet concern reporting, the ex
 ### Task 4: Verify cross-surface alignment and narrow scope
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 - Modify: `skills/superteam/agent-spawn-template.md`
 - Modify: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`

@@ -30,6 +30,7 @@
 ### Task 1: Tighten the canonical approval, publication, and shutdown contract
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 
 - [ ] **Step 1: Inspect the current shutdown and external-feedback wording**
@@ -78,6 +79,7 @@ Expected: the shutdown section reads cleanly, uses `blocking external PR feedbac
 ### Task 2: Add the Mermaid workflow diagram requirements
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 - Modify: `docs/superpowers/specs/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-design.md`
 
@@ -177,6 +179,7 @@ Expected: the approved two-chart structure and readability constraints are repre
 ### Task 2.5: Mirror the workflow diagrams and stage explanations in the public README
 
 **Files:**
+
 - Modify: `README.md`
 
 - [ ] **Step 1: Replace the stale single-chart workflow summary**
@@ -209,6 +212,7 @@ Expected: the README mirrors the approved workflow diagrams and includes a conci
 ### Task 3: Mirror the publication, shutdown, and counting rules in the directly relevant Finisher prompt surface
 
 **Files:**
+
 - Modify: `skills/superteam/agent-spawn-template.md`
 
 - [ ] **Step 1: Inspect the existing Finisher role-specific prompt block**
@@ -242,6 +246,7 @@ Expected: `Finisher` guidance matches the canonical skill contract and still pre
 ### Task 3.5: Require pressure-test review when the run changes skills or workflow-contract docs
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 - Modify: `skills/superteam/agent-spawn-template.md`
 
@@ -267,6 +272,7 @@ Expected: both reviewer-facing surfaces clearly require pressure-test review for
 ### Task 3.6: Clarify review-feedback intake ownership
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 - Modify: `skills/superteam/agent-spawn-template.md`
 - Modify: `README.md`
@@ -294,6 +300,7 @@ Expected: the intake-ownership split is explicit and does not collapse local rev
 ### Task 4: Add pressure-test coverage for approval concerns, mandatory publication, top-level findings, dedupe, and fallback behavior
 
 **Files:**
+
 - Modify: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
 
 - [ ] **Step 1: Inspect the existing shutdown pressure test**
@@ -359,6 +366,7 @@ Add pressure-test scenarios covering:
 ### Task 5: Refresh the packaged plugin copy and verify the repository state
 
 **Files:**
+
 - Modify via sync: `plugins/superteam/skills/superteam/SKILL.md`
 - Modify via sync: `plugins/superteam/skills/superteam/agent-spawn-template.md`
 
@@ -380,6 +388,7 @@ Expected: all core shutdown requirements are represented in the canonical skill,
 ### Task 6: Final verification and commit
 
 **Files:**
+
 - Modify: `docs/superpowers/specs/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-design.md`
 - Modify: `docs/superpowers/plans/2026-04-23-18-superteam-ends-early-before-workflow-is-complete-plan.md`
 - Modify: `skills/superteam/SKILL.md`

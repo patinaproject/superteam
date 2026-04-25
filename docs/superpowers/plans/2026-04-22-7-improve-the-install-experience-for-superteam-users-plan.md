@@ -1,5 +1,7 @@
 # Plan: Improve the install experience for Superteam users [#7](https://github.com/patinaproject/superteam/issues/7)
 
+<!-- markdownlint-disable MD001 MD040 -->
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make the repository landing page explain what Superteam does, the problem it solves, and how its continuity-first workflow operates before readers encounter installation mechanics.
@@ -13,6 +15,7 @@
 ### Task 1: Rewrite the landing-page opening around the product and problem
 
 **Files:**
+
 - Modify: `README.md`
 - Test: `README.md`
 
@@ -25,6 +28,7 @@ sed -n '1,120p' README.md
 ```
 
 Expected:
+
 - the file opens with install surfaces instead of a clear product/problem statement
 - there is no continuity or handoff explanation near the top
 - there is no flagship workflow section
@@ -62,6 +66,7 @@ rg -n "Orchestrate teams of agents with Superpowers|The problem|agent teams or s
 ```
 
 Expected:
+
 - one match for the headline
 - one match for `## The problem`
 - one match that states runtime compatibility in neutral terms
@@ -78,6 +83,7 @@ git commit -m "docs: #7 rewrite superteam landing page opening"
 ### Task 2: Add a flagship workflow section, compact agent roster, and continuity-first diagram
 
 **Files:**
+
 - Modify: `README.md`
 - Test: `README.md`, `skills/superteam/SKILL.md`
 
@@ -90,6 +96,7 @@ sed -n '1,120p' skills/superteam/SKILL.md
 ```
 
 Expected:
+
 - the stage order is visible as brainstorm, plan, execute, pre-push review, finish, comment handling
 - the skill describes artifact ownership and resumable workflow behavior
 
@@ -157,6 +164,7 @@ rg -n "Brainstorm|Plan|Execute|Pre-push review|Finish|Comment handling|## Agent 
 ```
 
 Expected:
+
 - matches for all six stage names in `README.md`
 - one match for `## Agent roster`
 - one match for each listed Superpowers skill in the roster
@@ -174,6 +182,7 @@ git commit -m "docs: #7 add workflow and continuity overview"
 ### Task 3: Split install guidance into tool-specific setup paths and connect each to first use
 
 **Files:**
+
 - Modify: `README.md`
 - Test: `README.md`
 
@@ -256,6 +265,7 @@ rg -n "^## " README.md
 ```
 
 Expected:
+
 - `## The problem` appears before any install section
 - `## How Superteam works` appears before `## Install surfaces`
 - `## Installation` exists after `## Install surfaces`
@@ -270,6 +280,7 @@ sed -n '1,220p' README.md
 ```
 
 Expected:
+
 - a short scan explains what Superteam is
 - runtime compatibility is visible without implying a preference
 - the README makes Superpowers an explicit prerequisite and links to its repo
@@ -292,6 +303,7 @@ git commit -m "docs: #7 connect install guidance to first use"
 ### Task 4: Align supporting docs with the new landing-page narrative
 
 **Files:**
+
 - Modify: `docs/file-structure.md`
 - Test: `README.md`, `docs/file-structure.md`
 
@@ -304,6 +316,7 @@ sed -n '1,220p' docs/file-structure.md
 ```
 
 Expected:
+
 - the file remains contributor-focused
 - no opening language claims that repo structure is the primary user onboarding surface
 
@@ -326,6 +339,7 @@ rg -n "Claude Code plugin surface|packaged Codex install surface|skills/supertea
 ```
 
 Expected:
+
 - the install-surface names match across both files
 - `README.md` remains the user-facing starting point
 
@@ -341,6 +355,7 @@ git commit -m "docs: #7 align supporting docs with onboarding flow"
 ### Task 5: Verify acceptance-criteria coverage and record the planning artifact
 
 **Files:**
+
 - Modify: `docs/superpowers/plans/2026-04-22-7-improve-the-install-experience-for-superteam-users-plan.md`
 - Test: `README.md`, `docs/file-structure.md`, `git status`
 
@@ -373,6 +388,7 @@ find docs/superpowers -maxdepth 2 -type f | sort
 ```
 
 Expected:
+
 - `docs/superpowers/specs/2026-04-22-7-improve-the-install-experience-for-superteam-users-design.md`
 - `docs/superpowers/plans/2026-04-22-7-improve-the-install-experience-for-superteam-users-plan.md`
 
@@ -385,6 +401,7 @@ git status --short
 ```
 
 Expected:
+
 - only the issue `#7` design and plan artifacts are staged or modified before implementation begins
 
 - [ ] **Step 4: Commit the implementation plan**

@@ -35,6 +35,7 @@
 ### Task 1: Tighten the canonical `Reviewer` and `Finisher` contracts
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 
 - [ ] **Step 1: Inspect the current `Reviewer` and `Finisher` contract language**
@@ -88,6 +89,7 @@ Expected: the source skill now treats pending required checks as active `Finishe
 ### Task 2: Mirror the same monitoring and rerun rules in the delegated prompt surface
 
 **Files:**
+
 - Modify: `skills/superteam/agent-spawn-template.md`
 
 - [ ] **Step 1: Inspect the `Reviewer` and `Finisher` prompt blocks**
@@ -126,6 +128,7 @@ Expected: the delegated `Reviewer` and `Finisher` prompts match the canonical so
 ### Task 3: Expand the repo-local pressure tests for the monitoring loop
 
 **Files:**
+
 - Modify: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
 
 - [ ] **Step 1: Inspect current publish-state and review-loop scenarios**
@@ -169,6 +172,7 @@ Expected: the doc now covers pending checks, later failures, later passes, pendi
 ### Task 4: Add the evidence-based repository readiness gate
 
 **Files:**
+
 - Modify: `AGENTS.md`
 
 - [ ] **Step 1: Inspect the existing contributor guidance around testing and publish readiness**
@@ -196,6 +200,7 @@ Expected: the repository gate is evidence-based, auditable, and does not rely on
 ### Task 5: Verify cross-surface alignment, scope, and rerun discipline
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 - Modify: `skills/superteam/agent-spawn-template.md`
 - Modify: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
