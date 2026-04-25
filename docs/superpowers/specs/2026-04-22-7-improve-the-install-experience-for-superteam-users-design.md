@@ -53,32 +53,38 @@ That positioning should be followed immediately by copy that explains the actual
 ### Option 1: Problem-first landing page with a single flagship workflow
 
 Pros:
+
 - Aligns the repo landing page with the actual `superteam` skill behavior
 - Gives first-time users a clear mental model before setup details
 - Makes continuity and team handoff visible early
 - Leaves room to explain compatibility without implying a runtime preference
 
 Cons:
+
 - Requires restructuring the current landing-page narrative
 - May expose supporting docs gaps that also need follow-up work
 
 ### Option 2: Install-first landing page with stronger product copy
 
 Pros:
+
 - Smaller documentation change
 - Easier to implement incrementally
 
 Cons:
+
 - Keeps setup mechanics ahead of understanding
 - Does not solve the core problem that users may still not understand the product after landing
 
 ### Option 3: Docs hub approach with a short landing page and deeper subpages
 
 Pros:
+
 - Scales well if the docs set grows
 - Makes it easier to separate install, workflow, and contributor topics
 
 Cons:
+
 - Weakens the repository landing page as the primary onboarding surface
 - Adds indirection before the user understands what Superteam does
 

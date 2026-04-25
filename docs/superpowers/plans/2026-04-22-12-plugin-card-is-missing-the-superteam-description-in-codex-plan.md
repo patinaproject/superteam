@@ -21,6 +21,7 @@
 ### Task 1: Align the shipped plugin card metadata
 
 **Files:**
+
 - Modify: `plugins/superteam/.codex-plugin/plugin.json`
 
 - [ ] **Step 1: Update the plugin manifest copy**
@@ -45,6 +46,7 @@ Expected: `description`, `shortDescription`, and `longDescription` match the app
 ### Task 2: Align the source and packaged skill UI metadata
 
 **Files:**
+
 - Modify: `skills/superteam/agents/openai.yaml`
 - Modify: `plugins/superteam/skills/superteam/agents/openai.yaml`
 
@@ -78,6 +80,7 @@ Expected: the packaged skill copy shows the same `short_description` value.
 ### Task 3: Prepare the repository for publish
 
 **Files:**
+
 - Modify: `docs/superpowers/specs/2026-04-22-12-plugin-card-is-missing-the-superteam-description-in-codex-design.md`
 - Modify: `docs/superpowers/plans/2026-04-22-12-plugin-card-is-missing-the-superteam-description-in-codex-plan.md`
 - Stage: `plugins/superteam/.codex-plugin/plugin.json`

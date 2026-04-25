@@ -13,6 +13,7 @@
 ### Task 1: Add the imported skill package
 
 **Files:**
+
 - Create: `skills/superteam/SKILL.md`
 - Create: `skills/superteam/agent-spawn-template.md`
 - Create: `skills/superteam/pr-body-template.md`
@@ -20,6 +21,7 @@
 - [ ] **Step 1: Write the imported `superteam` skill as a standalone package**
 
 Create the three Markdown files above, using the Patina Project `super-team` skill as source material while rewriting:
+
 - the skill name from `super-team` to `superteam`
 - internal references from `.claude/skills/...` to `skills/superteam/...` or `skills/**/*.md`
 - repo-specific references from Patina-only docs and paths to repository-generic guidance
@@ -28,6 +30,7 @@ Create the three Markdown files above, using the Patina Project `super-team` ski
 - [ ] **Step 2: Keep the imported structure compact and public**
 
 Do not import Patina-only pressure-test fixtures or hidden adapter wrappers. Preserve only the contributor-facing files that make sense in this repository:
+
 - `SKILL.md`
 - `agent-spawn-template.md`
 - `pr-body-template.md`
@@ -42,6 +45,7 @@ sed -n '1,200p' skills/superteam/SKILL.md
 ```
 
 Expected:
+
 - all three files are present
 - the frontmatter uses `name: superteam`
 - no Patina-private skill path references remain
@@ -49,11 +53,13 @@ Expected:
 ### Task 2: Document repository file structure
 
 **Files:**
+
 - Create: `docs/file-structure.md`
 
 - [ ] **Step 1: Add a concise repository structure guide**
 
 Create `docs/file-structure.md` describing the intended layout for:
+
 - `skills/` for installable skill packages
 - `docs/` for repository documentation and planning artifacts
 - root tooling files such as `package.json`, `commitlint.config.js`, and `.husky/`
@@ -72,5 +78,6 @@ find docs -maxdepth 3 -type f | sort
 ```
 
 Expected:
+
 - `docs/file-structure.md` exists
 - the doc references the actual repository paths that now exist

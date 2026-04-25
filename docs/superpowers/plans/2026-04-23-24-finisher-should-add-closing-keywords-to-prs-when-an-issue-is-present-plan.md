@@ -28,6 +28,7 @@
 ### Task 1: Make the fallback PR body template encode precedence and issue-linking behavior
 
 **Files:**
+
 - Modify: `skills/superteam/pr-body-template.md`
 
 - [ ] **Step 1: Inspect the current template and locate the top-of-body placement**
@@ -58,6 +59,7 @@ Expected: the precedence rule is explicit, the issue-linking contract is easy to
 ### Task 2: Mirror the same narrow rule in the directly relevant Finisher contract
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 - Modify: `skills/superteam/agent-spawn-template.md`
 
@@ -88,6 +90,7 @@ Expected: the PR-body rule is explicit, narrow, and consistent with the approved
 ### Task 3: Align the project-owned PR template with the fallback contract
 
 **Files:**
+
 - Modify: `.github/pull_request_template.md`
 
 - [ ] **Step 1: Inspect the project-owned PR-facing doc**
@@ -120,6 +123,7 @@ Expected: only the fallback PR-body contract, directly relevant `Finisher` wordi
 ### Task 4: Verify acceptance coverage for the final doc changes
 
 **Files:**
+
 - Verify: `skills/superteam/pr-body-template.md`
 - Verify: `skills/superteam/SKILL.md`
 - Verify: `skills/superteam/agent-spawn-template.md`

@@ -13,6 +13,7 @@
 ### Task 1: Rewrite the source `superteam` contract around the canonical teammate roster
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 - Modify: `skills/superteam/agent-spawn-template.md`
 - Modify: `skills/superteam/pr-body-template.md`
@@ -32,6 +33,7 @@ sed -n '1,120p' skills/superteam/agents/openai.yaml
 ```
 
 Expected:
+
 - the approved design shows the canonical teammate roster and hardened gate rules
 - the current skill still uses the older stage/action framing
 - the current templates do not yet require artifact-existence approval checks, task-ID completion evidence, or unavailable-skill warnings
@@ -45,6 +47,7 @@ Using superpowers:writing-skills before editing skills/superteam contract files 
 ```
 
 Expected:
+
 - the implementation work explicitly follows the repo rule for `skills/**/*.md`
 
 - [ ] **Step 3: Rewrite `skills/superteam/SKILL.md` to reflect the approved orchestration contract**
@@ -90,6 +93,7 @@ rg -n "Team Lead|Brainstormer|Planner|Executor|Reviewer|Finisher|artifact.*exist
 ```
 
 Expected:
+
 - matches in `skills/superteam/SKILL.md` for the canonical roster and hardened gate language
 - matches in `skills/superteam/agent-spawn-template.md` for expected skill recommendations and unavailable-skill warnings
 - matches in `skills/superteam/pr-body-template.md` or `skills/superteam/agents/openai.yaml` for updated finisher/reporting language
@@ -106,6 +110,7 @@ git commit -m "docs: #8 harden superteam skill contracts"
 ### Task 2: Add repo-local pressure-test coverage for the hardened workflow
 
 **Files:**
+
 - Create: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
 - Modify: `docs/file-structure.md`
 - Test: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`, `docs/file-structure.md`
@@ -145,6 +150,7 @@ rg -n "pressure-tests|artifact exists|full requirement set|task IDs|implementati
 ```
 
 Expected:
+
 - the new pressure-test doc contains all major failure-path scenarios from the design
 - `docs/file-structure.md` points contributors at the new pressure-test location
 
@@ -160,6 +166,7 @@ git commit -m "docs: #8 add superteam pressure test coverage"
 ### Task 3: Update user-facing and contributor-facing docs to match the teammate workflow
 
 **Files:**
+
 - Modify: `README.md`
 - Modify: `docs/file-structure.md`
 - Test: `README.md`, `docs/file-structure.md`, `skills/superteam/SKILL.md`
@@ -173,6 +180,7 @@ sed -n '1,220p' README.md
 ```
 
 Expected:
+
 - the README still centers the older stage diagram and agent roster
 - it does not mention `Team Lead`
 - it does not mention unavailable-skill warnings or finisher-owned receipt of review feedback after local review
@@ -206,6 +214,7 @@ rg -n "Team Lead|Brainstormer|Planner|Executor|Reviewer|Finisher|using-superpowe
 ```
 
 Expected:
+
 - the README and contributor doc use the canonical teammate names
 - the documented skill recommendations are consistent with `skills/superteam/SKILL.md`
 - pressure-test docs are discoverable from contributor guidance
@@ -222,6 +231,7 @@ git commit -m "docs: #8 align superteam docs with teammate workflow"
 ### Task 4: Regenerate the packaged Codex plugin copy and verify parity
 
 **Files:**
+
 - Modify: `plugins/superteam/skills/superteam/SKILL.md`
 - Modify: `plugins/superteam/skills/superteam/agent-spawn-template.md`
 - Modify: `plugins/superteam/skills/superteam/pr-body-template.md`
@@ -237,6 +247,7 @@ pnpm sync:plugin
 ```
 
 Expected:
+
 - the packaged copy under `plugins/superteam/skills/superteam/` refreshes from `skills/superteam/`
 
 - [ ] **Step 2: Verify packaged files reflect the rewritten source contract**
@@ -252,6 +263,7 @@ rg -n "Team Lead|Brainstormer|Planner|Executor|Reviewer|Finisher|artifact.*exist
 ```
 
 Expected:
+
 - the packaged copies mirror the source contract and template changes
 - no stale action-first roster or outdated prompt phrasing remains in the packaged skill surface
 
@@ -267,6 +279,7 @@ find docs/superpowers -maxdepth 3 -type f | sort
 ```
 
 Expected:
+
 - only the skill source files, packaged plugin mirrors, README/docs, and the new pressure-test doc changed for this issue
 - the new plan file remains untouched during execution
 

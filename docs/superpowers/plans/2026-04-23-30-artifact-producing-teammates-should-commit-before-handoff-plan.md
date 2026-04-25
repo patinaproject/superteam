@@ -32,6 +32,7 @@
 ### Task 1: Tighten the canonical workflow contract and done reports
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 
 - [ ] **Step 1: Inspect the current workflow-level and role-specific handoff language**
@@ -92,6 +93,7 @@ Expected: the canonical skill now makes uncommitted artifact-dependent handoffs 
 ### Task 2: Mirror the same handoff-commit rule in the delegated teammate prompt
 
 **Files:**
+
 - Modify: `skills/superteam/agent-spawn-template.md`
 
 - [ ] **Step 1: Inspect the artifact-producing teammate prompt blocks**
@@ -127,6 +129,7 @@ Expected: the delegated prompts now mirror the source contract on artifact-produ
 ### Task 3: Expand the repo-local pressure tests for handoff commits
 
 **Files:**
+
 - Modify: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
 
 - [ ] **Step 1: Inspect the current handoff and done-report scenarios**
@@ -166,6 +169,7 @@ Expected: the pressure-test doc now covers uncommitted design, plan, and impleme
 ### Task 4: Verify cross-surface alignment and local review expectations
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 - Modify: `skills/superteam/agent-spawn-template.md`
 - Modify: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`

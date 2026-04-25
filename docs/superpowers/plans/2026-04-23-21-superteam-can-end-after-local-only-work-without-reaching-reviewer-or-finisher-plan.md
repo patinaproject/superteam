@@ -26,6 +26,7 @@
 ### Task 1: Tighten the canonical post-implementation routing contract
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 
 - [ ] **Step 1: Inspect the current execution, review, finish, and failure wording**
@@ -59,6 +60,7 @@ Expected: the role contracts, red flags, and failure handling consistently refle
 ### Task 2: Mirror the same rule in the delegated teammate prompt surface
 
 **Files:**
+
 - Modify: `skills/superteam/agent-spawn-template.md`
 
 - [ ] **Step 1: Inspect the role-specific prompt blocks that govern the handoff**
@@ -86,6 +88,7 @@ Expected: the template agrees with the canonical skill on the same two allowed p
 ### Task 3: Add a pressure test for the exact Codex early-stop failure mode
 
 **Files:**
+
 - Modify: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
 
 - [ ] **Step 1: Inspect existing pressure-test coverage around execution, review, and finish**
@@ -115,13 +118,14 @@ Expected: the new scenario is specific to the Codex early-stop failure mode, rea
 ### Task 4: Verify the edited docs match the approved design
 
 **Files:**
+
 - Modify: `skills/superteam/SKILL.md`
 - Modify: `skills/superteam/agent-spawn-template.md`
 - Modify: `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
 
 - [ ] **Step 1: Compare the edited surfaces against the design requirements**
 
-Run: `rg -n "Executor completion is not workflow completion|continue into `Reviewer`|superteam halted at <teammate or gate>: <reason>|completion-style closeout|Run ends after local implementation without reaching Reviewer or Finisher" skills/superteam/SKILL.md skills/superteam/agent-spawn-template.md docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
+Run: `rg -n "Executor completion is not workflow completion|continue into`Reviewer`|superteam halted at <teammate or gate>: <reason>|completion-style closeout|Run ends after local implementation without reaching Reviewer or Finisher" skills/superteam/SKILL.md skills/superteam/agent-spawn-template.md docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
 Expected: all three surfaces explicitly cover the same post-implementation rule and the `#21` failure mode.
 
 - [ ] **Step 2: Review the diff for scope control**

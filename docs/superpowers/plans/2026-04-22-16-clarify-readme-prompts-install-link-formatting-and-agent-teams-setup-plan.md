@@ -13,6 +13,7 @@
 ### Task 1: Capture the current README onboarding flow and branch-local context
 
 **Files:**
+
 - Modify: `README.md`
 - Reference: `AGENTS.md`
 - Reference: `.github/pull_request_template.md`
@@ -29,6 +30,7 @@ sed -n '1,220p' README.md
 ```
 
 Expected:
+
 - the design limits scope to README wording and structure changes
 - the `Run superteam anytime`, `Installation`, `Optional: Enable Agent Teams`, and first-use sections are all visible
 - the current README still contains the abstract two-line prompt guidance and raw Superpowers URL block
@@ -43,6 +45,7 @@ sed -n '1,160p' .github/pull_request_template.md
 ```
 
 Expected:
+
 - `AGENTS.md` says GitHub issue titles should be plain-language and should not use conventional-commit prefixes
 - `.github/pull_request_template.md` says the commit-style title rule applies to pull requests only
 - no plan changes are needed for those files in this issue
@@ -56,6 +59,7 @@ rg -n "For a resumed issue|For a new requirement|https://github.com/obra/superpo
 ```
 
 Expected:
+
 - matches for both abstract prompt lines
 - a match for the raw Superpowers URL
 - matches for the surrounding install and runtime sections that will receive wording-only clarity edits
@@ -63,6 +67,7 @@ Expected:
 ### Task 2: Rewrite the README invocation guidance and install copy
 
 **Files:**
+
 - Modify: `README.md`
 - Test: `README.md`
 
@@ -77,6 +82,7 @@ For example:
 Continue issue #16 with Superteam from the current Planner artifact state and pick up from the next required teammate.
 Add this new requirement to issue #16: make issue titles plain-language summaries, then route the workflow back through the right design and planning gates.
 ```
+
 ```
 
 Keep the examples concrete and readable. They should make resumed work and requirement changes legible without changing any workflow behavior described elsewhere in the README.
@@ -113,6 +119,7 @@ rg -n "Continue issue #16|Add this new requirement to issue #16|\\[`obra/superpo
 ```
 
 Expected:
+
 - one match for the resumed-work example prompt
 - one match for the new-requirement example prompt
 - one match for the labeled `obra/superpowers` link
@@ -121,6 +128,7 @@ Expected:
 ### Task 3: Add optional Agent Teams setup guidance without changing the default workflow
 
 **Files:**
+
 - Modify: `README.md`
 - Test: `README.md`
 
@@ -153,6 +161,7 @@ rg -n "Optional: Enable Agent Teams|enable Agent Teams in your Claude configurat
 ```
 
 Expected:
+
 - one match for the optional section heading
 - one match for the Claude configuration guidance
 - one explicit statement that Agent Teams is optional
@@ -162,6 +171,7 @@ Expected:
 ### Task 4: Perform final README-focused validation and preserve adjacent branch edits
 
 **Files:**
+
 - Modify: `README.md`
 - Reference: `AGENTS.md`
 - Reference: `.github/pull_request_template.md`
@@ -176,6 +186,7 @@ sed -n '1,240p' README.md
 ```
 
 Expected:
+
 - the install and first-use flow reads cleanly from invocation guidance through runtime setup
 - example prompts read like prompts, not meta-instructions
 - the Agent Teams note is concise and clearly optional
@@ -190,6 +201,7 @@ rg -n "plain-language summaries|conventional-commit prefixes|pull requests only"
 ```
 
 Expected:
+
 - `AGENTS.md` still contains the plain-language issue-title rule
 - `.github/pull_request_template.md` still limits commit-style title requirements to PRs
 - the README changes do not require any further edits to those files for this issue
@@ -204,6 +216,7 @@ git diff -- README.md
 ```
 
 Expected:
+
 - `README.md` shows the planned clarity edits
 - existing branch-local edits in `AGENTS.md` and `.github/pull_request_template.md` remain untouched
 - no unrelated files were modified during execution

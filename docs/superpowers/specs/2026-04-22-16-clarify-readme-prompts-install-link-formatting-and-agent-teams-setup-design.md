@@ -52,30 +52,36 @@ This should be a targeted documentation pass, not a full rewrite. The issue is b
 ### Option 1: Tight README patch in the affected sections
 
 Pros:
+
 - Directly addresses the confusion reported in the issue
 - Keeps scope small and easy to review
 - Avoids reworking unrelated parts of the README
 
 Cons:
+
 - Leaves the broader README structure unchanged
 
 ### Option 2: Broader onboarding rewrite around install and invocation
 
 Pros:
+
 - Could improve readability more dramatically
 - Might surface additional onboarding improvements
 
 Cons:
+
 - Expands beyond the issue's stated scope
 - Makes review harder because more wording changes would be subjective
 
 ### Option 3: Move clarifications into separate docs instead of the README
 
 Pros:
+
 - Keeps the README shorter
 - Makes room for more detailed runtime notes elsewhere
 
 Cons:
+
 - Pushes first-use clarification away from the place where confusion currently happens
 - Adds navigation overhead for a problem that should be solved inline
 
