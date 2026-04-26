@@ -2,6 +2,8 @@
 
 Model per teammate is dictated by the `superteam` workflow. Inject `{model}` from the active teammate assignment instead of hardcoding it.
 
+Known placeholders include `{model}`, `{role}`, `{N}`, `{slug}`, `{branch}`, `{id}`, `{skill}`, `{effort}`, and `{execution_mode}`. `Team Lead` resolves `{execution_mode}` during pre-flight per `SKILL.md` `## Execution-mode injection` and `pre-flight.md` `## Execution-mode capability detection`.
+
 ```text
 Agent({
   subagent_type: "general-purpose",
@@ -102,6 +104,13 @@ Done-report contract:
 Append this block in place of `{role-specific inputs}`:
 
 ```text
+The execution mode for this delegation has been pre-selected by `Team Lead` per `skills/superteam/SKILL.md` `## Execution-mode injection`: {execution_mode}.
+Do NOT ask the operator to choose between subagent-driven and inline execution; the choice is already made.
+Do NOT invoke `superpowers:executing-plans` unless `{execution_mode}` is explicitly `inline` (the only operator-override path).
+For `subagent-driven`, invoke `superpowers:subagent-driven-development` directly.
+For `team mode`, invoke the host runtime's native team-mode capability directly.
+Carry this suppression wording into any nested delegation you perform for the same execution batch.
+
 Recommend `superpowers:test-driven-development`.
 Recommend `superpowers:systematic-debugging` when debugging or failures appear.
 Recommend `superpowers:verification-before-completion` before claiming completion.

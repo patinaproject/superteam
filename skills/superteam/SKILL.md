@@ -140,6 +140,27 @@ Execution-mode capability detection is part of this pre-flight. See `pre-flight.
 - If the host lacks those capabilities, do not stop early; continue using the portable teammate and `Finisher` contracts or report an explicit blocker when follow-through cannot safely continue.
 - Keep runtime-specific checks lightweight. Teammate ownership, gate discipline, and artifact authority are the important parts.
 
+## Execution-mode injection
+
+`Team Lead` resolves the execution mode during pre-flight (per `pre-flight.md` `## Execution-mode capability detection`) and binds every execute-phase delegation to that mode at delegation time.
+
+Rule (R14):
+
+- Prefer **team mode** when `Team Lead` recorded that capability as available during pre-flight (per R17). In team mode, `Team Lead` invokes the host's native team-mode capability directly.
+- Otherwise fall back to **subagent-driven** by invoking `superpowers:subagent-driven-development` directly. Delegation prompts in this mode MUST NOT instruct the teammate to invoke `superpowers:executing-plans`.
+- **Never auto-select inline.** Inline is only reachable when the operator explicitly overrides the default with an unambiguous token (`inline`, `run inline`, `execute in this session`); only an explicit override may route through `superpowers:executing-plans`.
+
+Team Lead duties (R14):
+
+- Detect host-runtime team-mode capability up front in pre-flight, alongside phase detection (extending `## Pre-flight` capability checks per `pre-flight.md`), using the deterministic detection rule in R17.
+- Bind every execution-phase delegation to the chosen execution-mode skill **directly** (`superpowers:subagent-driven-development` for the subagent path, or the host's native team-mode capability for the team path). The delegation MUST NOT name `superpowers:executing-plans` as the entry skill when the resolved mode is `team mode` or `subagent-driven`.
+- Inject the pre-selected execution mode into every execution-phase delegation prompt so the developer is not prompted to choose.
+- State the resolved mode in the delegation prompt and instruct the teammate not to ask the operator to choose between subagent-driven and inline execution. Carry the same suppression wording into any nested delegation the teammate performs for the same execution batch.
+
+Operator override:
+
+An explicit `inline` (or equivalent: `run inline`, `execute in this session`) instruction in the prompt switches the resolved mode to inline for that delegation only, and is the only path that may route through `superpowers:executing-plans`. Ambiguous "inline-ish" / "faster" / "forever" framing is NOT an override.
+
 ## Canonical rule discovery
 
 Before any teammate touches governed files, discover the canonical repository rules from repo guidance instead of relying on hard-coded literals:
@@ -200,6 +221,9 @@ Headline behaviors:
 - Route requirement-changing deltas back through `Brainstormer`.
 - Recommend `superpowers:using-superpowers`.
 - Also recommend `superpowers:dispatching-parallel-agents` when splitting bounded, independent work, and keep tightly coupled or interactive steps in the foreground.
+- During execute-phase delegation, bind directly to the chosen execution-mode skill (`superpowers:subagent-driven-development` for subagent-driven, or the host's native team-mode capability for team mode). Do NOT route execute-phase delegations through `superpowers:executing-plans` on default paths.
+- Inject the pre-selected execution mode (resolved per R17 in pre-flight) into every execute-phase delegation prompt and instruct the teammate not to ask the operator to choose between subagent-driven and inline execution. Carry the same suppression wording into any nested delegation.
+- Treat ambiguous "inline-ish" / "faster" / "forever" framing as NOT an explicit operator override. Inline is reachable only via unambiguous tokens (`inline`, `run inline`, `execute in this session`).
 
 ### Brainstormer
 
@@ -377,6 +401,8 @@ Before resolving or replying to comments tied to a prior branch state:
 | "We've already done a lot of work on this — restarting would waste it, so let me just keep going from a fresh top-of-workflow." | The default for repeated `/superteam` invocations is **resume**. Restart requires an explicit operator token (`restart`, `start over`, `new run`) per R7. "Pivot, no need to re-confirm" in the prompt is itself the disallowed shortcut. |
 | "Gate 1 was approved last session; the operator just told me so — no need to re-open it." | Gate 1 is durably observable iff a plan doc has been committed on the branch (R15). Ephemeral in-session approval is NOT durable. Operator memory is not the durable signal; the committed plan doc is. |
 | "It's just a small fix; I don't need to add a `Loopback:` trailer." | Loopback class is the durable cross-session signal. A loopback commit without its trailer is invisible to a fresh-session pre-flight and breaks the resume-default rule. The trailer is mandatory on every loopback-originated commit and on the resolving commit. |
+| "The operator said 'faster' / 'this is taking forever' — that's basically asking for inline." | Inline is auto-selected NEVER. Only unambiguous tokens (`inline`, `run inline`, `execute in this session`) are operator overrides per R14. Ambiguous framing is not. Not even when the CTO is cited. Not even under deadline pressure. |
+| "It's simpler to just route through `superpowers:executing-plans` and let it ask the developer." | Execute-phase delegations bind directly to the chosen execution-mode skill per R14. Routing through `superpowers:executing-plans` on default paths surfaces a redundant prompt to the developer and is forbidden when the resolved mode is `team mode` or `subagent-driven`. |
 
 ## Red flags
 
@@ -410,6 +436,9 @@ Before resolving or replying to comments tied to a prior branch state:
 - A commit landing during an active loopback without the matching `Loopback:` trailer.
 - A loopback resolution commit landing without the `Loopback: resolved` trailer.
 - Resume on a fresh `/superteam` session without scanning `git log` for `Loopback:` trailers per `loopback-trailers.md`.
+- An execute-phase delegation prompt that names `superpowers:executing-plans` as the entry skill when the resolved mode is `team mode` or `subagent-driven`.
+- An execute-phase delegation that omits the resolved execution mode and asks the developer to choose.
+- Treating ambiguous "faster" / "inline-ish" / "forever" framing as an inline override.
 
 ## Shutdown
 
