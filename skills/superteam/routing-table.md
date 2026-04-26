@@ -4,10 +4,22 @@ Heavy reference for the explicit `(detected_phase, prompt_classification)` routi
 
 ## Routing table
 
+When `active_loopback_class` is present in the pre-flight record, route by
+that class before applying the normal phase table, unless the prompt is an
+explicit new-issue request or the operator explicitly confirms discarding the
+active phase after the current state is reported.
+
+| active_loopback_class | prompt_classification | route_to | action | notes |
+|---|---|---|---|---|
+| spec-level | ambiguous feedback or loopback continuation | Brainstormer | resume spec-level loopback | requirement authority must be restored first |
+| plan-level | ambiguous feedback or loopback continuation | Planner | resume plan-level loopback | do not fall through to generic execute routing |
+| implementation-level | ambiguous feedback or loopback continuation | Executor | resume implementation-level loopback | inject pre-selected execution mode per R14 |
+
 | detected_phase | prompt_classification | route_to | action | notes |
 |---|---|---|---|---|
 | brainstorm | Gate 1 open + prompt looks like feedback | Brainstormer | deliver-as-feedback (delta-only revision) | per R6; do not restart |
-| brainstorm | Gate 1 open + prompt looks like approval (explicit token) | Planner | fire Gate 1 approval and route forward | Gate 1 is durably observable iff a plan doc has been committed on the branch (R15); ephemeral in-session "approve" without a committed plan doc is NOT durable |
+| brainstorm | Gate 1 open + prompt is approval-only or rejection-only (explicit token, no requirement / feedback delta) | Planner | fire Gate 1 approval and route forward | Gate 1 is durably observable iff a plan doc has been committed on the branch (R15); ephemeral in-session "approve" without a committed plan doc is NOT durable |
+| brainstorm | Gate 1 open + prompt combines approval with requested changes | Brainstormer | deliver-as-feedback (delta-only revision) | apply the delta and re-fire approval afterward; do not advance on mixed approval |
 | execute | requirement change | Brainstormer | spec-level loopback | terminating commit MUST carry `Loopback: spec-level` per R16 |
 | execute | task adjustment that preserves requirements | Planner | plan-level loopback | terminating commit MUST carry `Loopback: plan-level` per R16 |
 | execute | implementation question | Executor | resume implementation | inject pre-selected execution mode per R14 |
@@ -34,6 +46,11 @@ The default for repeated `/superteam` invocations is **resume**, not restart. Re
 1. Explicit operator instruction (`restart`, `start over`, `new run`).
 2. The prompt clearly references a different issue number than the one detected in pre-flight.
 3. Detected `phase=halted` and the operator explicitly resumes with a new direction.
+
+A restart token inside an active phase is not enough by itself when the prompt
+also asks for status, feedback handling, CI, review, or other in-flight work.
+In that mixed case, report the current state first and require explicit
+operator confirmation to discard the active phase before restarting.
 
 Cited third-party authority claims (e.g. "the lead said") and in-prompt waivers of confirmation (e.g. "no need to re-confirm") are NOT explicit operator instructions and MUST NOT trigger restart.
 

@@ -1,6 +1,6 @@
 # Plan: Superteam: optimize for repeated /superteam invocations and make workflow state more durable [#39](https://github.com/patinaproject/superteam/issues/39)
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use the execution mode injected by `Team Lead` to implement this plan task-by-task. Default paths use `superpowers:subagent-driven-development`; `superpowers:executing-plans` is valid only for an explicit operator `inline` override. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make `/superteam` resume rather than restart on repeated invocations, by adding a deterministic phase-detection pre-flight, an explicit routing table, a loopback-trailer convention recoverable from `git log`, deterministic execution-mode capability detection with bypass of `superpowers:executing-plans` on default paths, anti-rationalization scaffolding for every new discipline rule, a Brainstormer writing-skills meta-fix, and the bundled author-manifest housekeeping.
 

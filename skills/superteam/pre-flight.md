@@ -55,8 +55,8 @@ Use the `git log` algorithm in `loopback-trailers.md` `## Recovery algorithm` to
 
 Run the deterministic probe in this order, top to bottom. Stop at the first match.
 
-1. **Team mode.** Selected when the host runtime exposes a documented multi-agent / background-agent capability surface (e.g. `BackgroundAgent`, `Team`, or equivalent dispatch tool, OR a plugin-declared team-mode capability flag in the active host's plugin manifest). When the signal is absent or ambiguous, treat team mode as unavailable and continue.
-2. **Subagent-driven.** Selected when team mode is unavailable AND a subagent-dispatch tool surface is detectable (e.g. a `Task` / `Agent` tool surface, or the documented entry point for `superpowers:subagent-driven-development`).
+1. **Team mode.** Selected when the host runtime exposes an explicit documented team-mode capability name (e.g. `BackgroundAgent`, `Team`) OR a plugin-declared team-mode capability flag in the active host's plugin manifest. Generic `Task`, `Agent`, or one-off background dispatch surfaces do not count as team mode unless the host or manifest explicitly marks them that way. When the signal is absent or ambiguous, treat team mode as unavailable and continue.
+2. **Subagent-driven.** Selected when team mode is unavailable AND a subagent-dispatch tool surface is detectable (e.g. a `Task` / `Agent` tool surface, one-off background dispatch, or the documented entry point for `superpowers:subagent-driven-development`).
 3. **Halt.** `superteam halted at Pre-flight: no execution mode available`.
 
 Inline mode is NEVER auto-selected at any step. Only an explicit operator override (per R14, see `SKILL.md` `## Execution-mode injection`) reaches inline; that path is the only one that may route through `superpowers:executing-plans`.

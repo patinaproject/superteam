@@ -9,11 +9,19 @@ Heavy reference for the conventional-commit trailer convention that makes loopba
 - `Loopback: implementation-level`
 - `Loopback: resolved`
 
+`Loopback:` MUST appear in the commit trailer / footer block, one trailer per
+line after the message body. A prose mention such as "this resolves
+Loopback: plan-level" in the commit body is not a durable loopback signal.
+
 ## When to emit
 
 When work originating from a loopback is committed, the commit message MUST include the matching `Loopback:` class trailer. When the loopback is resolved (the work is complete and the workflow returns to its prior phase), the terminating commit MUST include `Loopback: resolved`.
 
 The trailer is mandatory on every loopback-originated commit and on the resolving commit.
+
+If one commit contains both a loopback class trailer and `Loopback: resolved`,
+`resolved` wins for that commit. The class trailer is evidence of what was
+resolved and MUST NOT reopen the loopback.
 
 ## Worked examples
 
@@ -46,13 +54,15 @@ Loopback: resolved
 ```text
 1. git log --pretty=format:'%H%x09%(trailers:key=Loopback,valueonly)' <branch>
    from oldest to newest.
-2. Find the most recent commit whose Loopback trailer is `resolved`.
+2. For any commit with multiple `Loopback:` trailers, treat `resolved` as
+   winning for that commit.
+3. Find the most recent commit whose Loopback trailer is `resolved`.
    Call its index R (0 if none).
-3. Among commits with index > R, find the most recent commit whose Loopback
+4. Among commits with index > R, find the most recent commit whose Loopback
    trailer is one of {spec-level, plan-level, implementation-level}. That is
    the active loopback class.
-4. If no such commit exists, no active loopback is in flight.
-5. If multiple unresolved Loopback: trailers are present, the most recent one
+5. If no such commit exists, no active loopback is in flight.
+6. If multiple unresolved Loopback: trailers are present, the most recent one
    wins.
 ```
 

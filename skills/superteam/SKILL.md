@@ -236,7 +236,7 @@ Headline behaviors:
 - Render the operator-facing no-concerns line exactly as `Remaining concerns: None`.
 - Surface any remaining approval-relevant concerns when requesting approval.
 - Include the handoff commit SHA for the committed design artifact in the done report.
-- When the design under brainstorming will touch `skills/**/*.md` or any workflow-contract surface (the `superteam` skill itself, agent-spawn templates, PR-body templates, or other repository-owned workflow contracts), invoke `superpowers:writing-skills` BEFORE authoring requirements. This is unconditional on the trigger, not "consider"; once the design touches a skill or workflow-contract surface, writing-skills is the load-bearing reference for what the design must contain (loophole-closure language, rationalization-table rows, red-flags bullets, token-efficiency targets, RED-phase baseline obligation). A `Brainstormer` who skips writing-skills at design time forces every downstream teammate to re-derive it. Not even when an authority claim is cited. Not even under deadline pressure.
+- Determine the intended surface from the issue before authoring requirements. When the design under brainstorming will touch `skills/**/*.md` or any workflow-contract surface (the `superteam` skill itself, agent-spawn templates, PR-body templates, or other repository-owned workflow contracts), invoke `superpowers:writing-skills` BEFORE authoring requirements. If the issue plausibly targets those surfaces and the exact files are uncertain, invoke `superpowers:writing-skills` first or halt for clarification. This is unconditional on the trigger, not "consider"; once the design touches or plausibly targets a skill or workflow-contract surface, writing-skills is the load-bearing reference for what the design must contain (loophole-closure language, rationalization-table rows, red-flags bullets, token-efficiency targets, RED-phase baseline obligation). A `Brainstormer` who skips writing-skills at design time forces every downstream teammate to re-derive it. Not even when an authority claim is cited. Not even under deadline pressure.
 - Recommend `superpowers:brainstorming`.
 
 ### Planner
@@ -402,9 +402,11 @@ Before resolving or replying to comments tied to a prior branch state:
 | "We've already done a lot of work on this — restarting would waste it, so let me just keep going from a fresh top-of-workflow." | The default for repeated `/superteam` invocations is **resume**. Restart requires an explicit operator token (`restart`, `start over`, `new run`) per R7. "Pivot, no need to re-confirm" in the prompt is itself the disallowed shortcut. |
 | "Gate 1 was approved last session; the operator just told me so — no need to re-open it." | Gate 1 is durably observable iff a plan doc has been committed on the branch (R15). Ephemeral in-session approval is NOT durable. Operator memory is not the durable signal; the committed plan doc is. |
 | "It's just a small fix; I don't need to add a `Loopback:` trailer." | Loopback class is the durable cross-session signal. A loopback commit without its trailer is invisible to a fresh-session pre-flight and breaks the resume-default rule. The trailer is mandatory on every loopback-originated commit and on the resolving commit. |
+| "A body sentence mentioning `Loopback:` is close enough." | `Loopback:` must be a commit trailer/footer parsed by `git log %(trailers)`, not prose in the commit body. If a commit contains both a loopback class and `Loopback: resolved`, resolved wins for that commit and the class does not reopen the loopback. |
 | "The operator said 'faster' / 'this is taking forever' — that's basically asking for inline." | Inline is auto-selected NEVER. Only unambiguous tokens (`inline`, `run inline`, `execute in this session`) are operator overrides per R14. Ambiguous framing is not. Not even when the CTO is cited. Not even under deadline pressure. |
 | "It's simpler to just route through `superpowers:executing-plans` and let it ask the developer." | Execute-phase delegations bind directly to the chosen execution-mode skill per R14. Routing through `superpowers:executing-plans` on default paths surfaces a redundant prompt to the developer and is forbidden when the resolved mode is `team mode` or `subagent-driven`. |
 | "The maintainer already signed off on the direction; I can skip writing-skills and just draft the spec." | Per R25, when the design under brainstorming touches `skills/**/*.md` or any workflow-contract surface, invoking `superpowers:writing-skills` is unconditional on the trigger. Cited authority does not waive the rule. The discipline is required because the design itself must carry loophole-closure language, rationalization-table rows, red-flags bullets, token-efficiency targets, and a RED-phase baseline obligation for any new discipline rule. |
+| "The issue only says workflow contract; I don't know the file yet, so I can draft first and decide later." | Plausible skill or workflow-contract scope is enough to load `superpowers:writing-skills` before authoring requirements. If the intended surface is uncertain, load writing-skills first or halt for clarification. |
 
 ## Red flags
 
@@ -437,11 +439,13 @@ Before resolving or replying to comments tied to a prior branch state:
 - Silently switching issues mid-run when the prompt names a different issue without explicit operator confirmation.
 - A commit landing during an active loopback without the matching `Loopback:` trailer.
 - A loopback resolution commit landing without the `Loopback: resolved` trailer.
+- `Loopback:` text written only in commit body prose instead of the trailer/footer block.
 - Resume on a fresh `/superteam` session without scanning `git log` for `Loopback:` trailers per `loopback-trailers.md`.
 - An execute-phase delegation prompt that names `superpowers:executing-plans` as the entry skill when the resolved mode is `team mode` or `subagent-driven`.
 - An execute-phase delegation that omits the resolved execution mode and asks the developer to choose.
 - Treating ambiguous "faster" / "inline-ish" / "forever" framing as an inline override.
 - `Brainstormer` designing a skill or workflow-contract change without loading `superpowers:writing-skills` first.
+- `Brainstormer` drafting requirements for a plausibly skill/workflow-contract issue before determining the intended surface or loading `superpowers:writing-skills`.
 
 ## Shutdown
 

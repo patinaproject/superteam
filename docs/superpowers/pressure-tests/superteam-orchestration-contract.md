@@ -292,6 +292,24 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Continue with the normal portable teammate workflow and do not allow the missing runtime capability to become an early-stop excuse.
 - Rule surface: The runtime-aware delegation guidance should make background-agent execution a preference for bounded, independent work when available and preserve the portable teammate workflow when it is not.
 
+## Ambiguous team-mode signal does not select team mode
+
+- Starting condition: The host exposes generic `Task`, `Agent`, or one-off background dispatch, but no explicit team-mode capability name and no plugin-declared team-mode flag.
+- Required halt or reroute behavior: Treat team mode as unavailable and continue the deterministic probe to subagent-driven mode, or halt only if no subagent-driven capability exists.
+- Rule surface: Execution-mode capability detection should reserve team mode for explicit team-mode signals and treat generic dispatch as subagent-driven.
+
+## Execute delegation does not ask the two-options prompt
+
+- Starting condition: `Team Lead` has resolved execution mode during pre-flight and delegates execute-phase work, but the delegated prompt routes through `superpowers:executing-plans` or asks the operator to choose between subagent-driven and inline execution.
+- Required halt or reroute behavior: Rewrite the delegation to bind directly to the pre-selected execution mode. Default paths use `superpowers:subagent-driven-development` or native team mode; `superpowers:executing-plans` is valid only for explicit operator `inline` override.
+- Rule surface: Execution-mode injection should suppress the downstream two-options prompt and name the resolved mode in the delegation.
+
+## Brainstormer skips writing-skills when workflow surface is uncertain
+
+- Starting condition: The issue plausibly targets `skills/**/*.md` or a workflow-contract surface, but the exact files are not known yet, and Brainstormer starts drafting requirements before loading `superpowers:writing-skills`.
+- Required halt or reroute behavior: Load `superpowers:writing-skills` before authoring requirements, or halt for clarification if the intended surface cannot be determined safely.
+- Rule surface: Brainstormer skill-change guidance should trigger on plausible skill/workflow-contract scope, not only on already-known file paths.
+
 ## Missing runtime follow-up support does not permit Finisher to stop early
 
 - Starting condition: The runtime does not support durable follow-up features such as thread heartbeats or monitors, pending external publish-state still exists, and the workflow tries to stop with a completion-style handoff anyway.
