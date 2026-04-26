@@ -140,12 +140,51 @@ R13. All edits to `skills/superteam/SKILL.md` must go through
 `superpowers:writing-skills` with pressure-test walkthroughs covering at
 least the canonical cases enumerated in the Pressure Tests section below.
 
+R14. `skills/superteam/SKILL.md` must define a **deterministic
+execution-mode selection rule** that `Team Lead` applies whenever it
+delegates execution-phase work that would otherwise trigger the
+downstream "Two execution options" prompt from the executing-plans /
+subagent-driven-development surface. The rule is:
+
+  1. Prefer **team mode** (the host runtime's native multi-agent or
+     background-agent capability per the `Pre-flight` section) when
+     `Team Lead` has detected that capability as available during
+     pre-flight.
+  2. Otherwise fall back to **subagent-driven** execution
+     (`superpowers:subagent-driven-development`).
+  3. Never auto-select **inline execution**. Inline is only used when
+     the operator explicitly overrides the default (e.g. `inline`,
+     `run inline`, `execute in this session`).
+
+`Team Lead` carries three duties under this rule:
+
+  (a) Detect host-runtime team-mode capability up front in pre-flight,
+      alongside phase detection (extending the existing `Pre-flight`
+      capability checks rather than introducing a new surface).
+  (b) Inject the pre-selected execution mode into every delegation
+      prompt that would otherwise reach the downstream "which approach?"
+      ask, so the developer is not prompted to choose.
+  (c) Suppress the downstream prompt explicitly in the delegation
+      language by stating the resolved mode and instructing the
+      Executor not to ask the operator to choose between subagent-
+      driven and inline execution.
+
+Operator override remains available: an explicit `inline` (or
+equivalent) instruction in the prompt switches the resolved mode to
+inline for that delegation only.
+
 ## Approach
 
 ### Phase-detection pre-flight
 
 At the top of every `/superteam` invocation, before any teammate
-delegation, `Team Lead` runs a deterministic detection sequence:
+delegation, `Team Lead` runs a deterministic detection sequence. The
+pre-flight covers both **phase detection** and **execution-mode
+capability detection** (per R14): the same pre-flight pass records
+whether the host runtime exposes a team-mode / background-agent
+capability that satisfies the existing `Pre-flight` section of
+`SKILL.md`, so `Team Lead` can pre-select the execution mode without a
+second pass.
 
 1. Resolve the active issue from the prompt, branch name, or operator.
 2. Inspect committed artifacts:
@@ -167,6 +206,10 @@ delegation, `Team Lead` runs a deterministic detection sequence:
      -> halt per R8
 5. Classify the incoming prompt under R6.
 6. Route per the table in R5.
+7. Resolve the execution mode under R14 from the recorded team-mode
+   capability and any explicit operator override in the prompt. The
+   resolved mode is attached to every subsequent execution-phase
+   delegation made in this invocation.
 
 ### Detection inputs in detail
 
@@ -210,6 +253,37 @@ The classifier is a small bulleted decision list in `SKILL.md`:
 - If the prompt names a different issue number explicitly, require
   operator confirmation before starting a new run.
 - Otherwise, treat the prompt as feedback for the active teammate.
+
+### Execution-mode injection at delegation time
+
+When the resolved phase is `execute` and the routing table sends work
+to `Executor` (or any teammate that would otherwise hit the downstream
+"Two execution options: 1. Subagent-Driven 2. Inline Execution. Which
+approach?" prompt), `Team Lead`'s delegation prompt must include the
+pre-selected execution mode and explicitly suppress the downstream
+ask. Concretely the delegation prompt must:
+
+- State the resolved mode: `team mode` (host runtime native), or
+  `subagent-driven` (fallback when team mode is unavailable), or
+  `inline` (only when the operator explicitly overrode).
+- Instruct the delegated teammate not to ask the operator to choose
+  between subagent-driven and inline execution; the choice is already
+  made.
+- Carry the same suppression wording into any nested delegation the
+  teammate performs for the same execution batch.
+
+This duty applies to every routing-table row that targets `Executor`
+during `phase=execute` (resume, deliver-as-feedback, plan-level
+loopback returning to execution, and implementation questions), and to
+any future row that would otherwise surface the same prompt.
+
+`Team Lead` contract is extended accordingly: in addition to running
+phase detection (R9), `Team Lead` records the host runtime's
+team-mode capability during the same pre-flight pass and injects the
+resolved execution mode into every execution-phase delegation prompt
+per R14. This is a `Team Lead` delegation-surface change only; it
+does not modify `superpowers:executing-plans` or
+`superpowers:subagent-driven-development` themselves.
 
 ### Resume vs restart
 
@@ -271,6 +345,19 @@ number 39. Operator runs `/superteam #41 something different`. Expected:
 require explicit operator confirmation before starting a new run; do
 not silently switch.
 
+PT-8. Mid-execute developer is not asked the two-options question.
+Detection shows `phase=execute` (plan doc committed, no PR). Operator
+runs `/superteam status`, or any prompt that classifies as resume,
+implementation question, or plan-level loopback returning to
+`Executor`. Expected: `Team Lead`'s delegation prompt to `Executor`
+already states the resolved execution mode (team mode if the host
+runtime exposes the capability detected in pre-flight, otherwise
+subagent-driven) and explicitly tells the teammate not to ask the
+operator to choose between subagent-driven and inline execution. The
+developer never sees the "Two execution options: 1. Subagent-Driven
+2. Inline Execution. Which approach?" prompt unless they have
+explicitly opted into inline execution in their prompt.
+
 ## Out of Scope
 
 - Replacing `superteam` with a stateful agent harness (explicitly
@@ -286,6 +373,12 @@ not silently switch.
 - Changes to the canonical roster, gates, or the loopback class set.
   This design strictly adds detection and routing on top of the existing
   contract.
+- Modifying `superpowers:executing-plans` or
+  `superpowers:subagent-driven-development` themselves. The
+  execution-mode pre-selection and the suppression of the downstream
+  "Two execution options" ask happen in `superteam`'s own delegation
+  surface (the prompt `Team Lead` constructs for `Executor`), not by
+  editing other `superpowers` skills.
 
 ## Recommended skills for implementation
 
@@ -343,3 +436,15 @@ and CI signals.
 The seven pressure-test walkthroughs (PT-1 through PT-7) pass during
 `superpowers:writing-skills` review of the resulting `SKILL.md` change,
 and the Reviewer reports pass/fail per workflow-contract rules.
+
+### AC-39-7
+
+`skills/superteam/SKILL.md` requires `Team Lead` to detect host-
+runtime team-mode capability during the same pre-flight pass as phase
+detection, pre-select an execution mode using the deterministic rule
+(team mode -> subagent-driven -> never inline by default; operator
+override only), and inject that resolved mode into every execution-
+phase delegation prompt while explicitly suppressing the downstream
+"Two execution options: 1. Subagent-Driven 2. Inline Execution.
+Which approach?" ask. PT-8 passes during `superpowers:writing-skills`
+review of the resulting `SKILL.md` change.
