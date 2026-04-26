@@ -15,9 +15,9 @@ Loopback: plan-level" in the commit body is not a durable loopback signal.
 
 ## When to emit
 
-When work originating from a loopback is committed, the commit message MUST include the matching `Loopback:` class trailer. When the loopback is resolved (the work is complete and the workflow returns to its prior phase), the terminating commit MUST include `Loopback: resolved`.
+When work originating from a loopback is committed, intermediate commits MUST include the matching `Loopback:` class trailer. When the loopback is resolved (the work is complete and the workflow returns to its prior phase), the terminating commit MUST include `Loopback: resolved`.
 
-The trailer is mandatory on every loopback-originated commit and on the resolving commit.
+The class trailer is mandatory on every non-resolving loopback-originated commit. The resolving commit may also include the matching class trailer as evidence of what was resolved, but `Loopback: resolved` is the required durable resolution signal.
 
 If one commit contains both a loopback class trailer and `Loopback: resolved`,
 `resolved` wins for that commit. The class trailer is evidence of what was
@@ -49,20 +49,37 @@ feat: #39 land routing-table.md after plan-level loopback
 Loopback: resolved
 ```
 
+Resolution commit with optional class evidence:
+
+```text
+docs: #39 close plan-level loopback for routing table
+
+Loopback: plan-level
+Loopback: resolved
+```
+
 ## Recovery algorithm
 
 ```text
-1. git log --pretty=format:'%H%x09%(trailers:key=Loopback,valueonly)' <branch>
-   from oldest to newest.
-2. For any commit with multiple `Loopback:` trailers, treat `resolved` as
+1. Determine the branch-only range for the active issue, normally
+   `<merge-base>..<branch>` where `<merge-base>` is the merge base between
+   the active branch and its default branch. Do not use a triple-dot range
+   with `git log`; that is a symmetric difference and can include default-
+   branch-only commits. Inspect the scoped range from oldest to newest.
+2. Ignore commits whose conventional-commit subject does not reference the
+   active issue tag (for example `#39`). This prevents stale trailers from
+   other issues or inherited history from becoming the active loopback class.
+3. Run `git log --pretty=format:'%H%x09%s%x09%(trailers:key=Loopback,valueonly)' <range>`
+   over the scoped range.
+4. For any commit with multiple `Loopback:` trailers, treat `resolved` as
    winning for that commit.
-3. Find the most recent commit whose Loopback trailer is `resolved`.
+5. Find the most recent commit whose Loopback trailer is `resolved`.
    Call its index R (0 if none).
-4. Among commits with index > R, find the most recent commit whose Loopback
+6. Among commits with index > R, find the most recent commit whose Loopback
    trailer is one of {spec-level, plan-level, implementation-level}. That is
    the active loopback class.
-5. If no such commit exists, no active loopback is in flight.
-6. If multiple unresolved Loopback: trailers are present, the most recent one
+7. If no such commit exists, no active loopback is in flight.
+8. If multiple unresolved Loopback: trailers are present, the most recent one
    wins.
 ```
 

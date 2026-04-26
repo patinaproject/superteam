@@ -211,8 +211,9 @@ doc is present and no plan doc exists on the branch, `phase=brainstorm`
 with Gate 1 open.
 
 R16. **Loopback class is recoverable from conventional-commit
-trailers.** When work originating from a loopback is committed, the
-commit message MUST include one of the following trailers:
+trailers.** When intermediate work originating from a loopback is
+committed, the commit message MUST include one of the following
+trailers:
 
 - `Loopback: spec-level`
 - `Loopback: plan-level`
@@ -224,15 +225,19 @@ include the trailer:
 
 - `Loopback: resolved`
 
-The pre-flight inspects commit trailers on the current branch since
-the most recent `Loopback: resolved` trailer (or the branch start if
-none exists) to recover the active loopback class. If multiple
-unresolved `Loopback:` trailers are present, the most recent one
-wins. This convention extends the existing conventional-commits
-infrastructure already governed by `AGENTS.md` ("Conventional commits
-with no scope and a required GitHub issue tag") with a defined
-trailer; it is NOT a new persistence file or sidecar artifact, and
-does not require any new tooling beyond `git log`.
+The resolving commit may also include the matching class trailer as
+evidence of what was resolved, but `Loopback: resolved` wins for that
+commit and the class trailer does not reopen the loopback.
+
+The pre-flight inspects commit trailers on branch-only commits for the
+active issue since the most recent `Loopback: resolved` trailer (or
+the branch start if none exists) to recover the active loopback class.
+If multiple unresolved `Loopback:` trailers are present, the most
+recent one wins. This convention extends the existing
+conventional-commits infrastructure already governed by `AGENTS.md`
+("Conventional commits with no scope and a required GitHub issue tag")
+with a defined trailer; it is NOT a new persistence file or sidecar
+artifact, and does not require any new tooling beyond `git log`.
 
 R17. **Execution-mode capability detection is deterministic.** The
 pre-flight resolves execution mode by probing tool/runtime surfaces
@@ -250,10 +255,16 @@ in this fixed order:
    a `Task` / `Agent` tool surface, or the documented entry point
    for `superpowers:subagent-driven-development`). This is the
    default in most environments.
-3. **Halt** if neither team mode nor subagent dispatch is
-   detectable, with the blocker
-   `superteam halted at Pre-flight: no execution mode available`,
-   per existing `Failure handling` rules.
+3. **Unavailable** if neither team mode nor subagent dispatch is
+   detectable.
+
+If the selected route requires execute-phase delegation while
+execution mode is unavailable, halt with the blocker `superteam halted
+at Pre-flight: no execution mode available`, per existing `Failure
+handling` rules. Non-execute routes such as Gate 1 feedback, local
+review interpretation, and `Finisher` status checks continue through
+their owning teammate instead of halting solely because execution
+delegation is unavailable.
 
 Inline mode is never auto-selected at any step; it is reachable only
 via explicit operator override per R14.
@@ -414,6 +425,39 @@ the existing Rationalization table for the specific excuse it
 defeats, and a new bullet in the existing Red flags list naming the
 observable signal that `Brainstormer` is about to violate the rule).
 PT-13 verifies the rule survives combined pressure.
+
+R26. **End-to-end loopback and finish-phase routing must preserve spec
+authority.** A later pressure-test review found that several individual
+rule surfaces were covered, but the end-to-end chain from pre-flight to
+routing to teammate handoff could still slip. The workflow must close
+these gaps:
+
+- Missing execution-mode capability blocks only routes that require
+  execute-phase delegation. Non-execute routes such as Gate 1 feedback,
+  local review interpretation, and `Finisher` status checks continue
+  through their owning teammate.
+- An active loopback class recovered during pre-flight has routing
+  precedence over normal phase routing for any non-new / non-discard
+  prompt, including status, CI, publish, and "is it done" prompts.
+- Requirement-bearing deltas route spec-first regardless of source.
+  PR feedback, human-test feedback, and direct operator prompts all
+  return to `Brainstormer`, then `Planner`, then `Executor` before
+  `Finisher` ready/shutdown can resume.
+- Loopback recovery is scoped to branch-only commits for the active
+  issue so stale trailers from inherited history or other issues do
+  not hijack routing.
+- Resolving loopback commits must use unambiguous trailer semantics:
+  `Loopback: resolved` is the required resolution signal; a class
+  trailer may also appear as evidence, but `resolved` wins and does
+  not reopen the loopback.
+- Durable `Finisher` follow-up wakeups must carry a resume payload:
+  branch, PR, latest pushed SHA, current publish-state, pending
+  signals, and the instruction to resume the latest-head shutdown
+  checklist in the same `Finisher` loop.
+
+The repo-local pressure-test file must include end-to-end scenarios for
+these chains so future review can check the whole orchestration path,
+not only the isolated rule text.
 
 ## Approach
 

@@ -14,7 +14,7 @@ Run this pre-flight at the top of every `/superteam` invocation, before any team
 4. **Inspect PR state.** Determine whether a PR exists for this branch on origin and, if so, whether it is open or merged, and the latest `Finisher` substate signals (CI, review state, mergeability).
 5. **Derive the detected phase** per the phase derivation rules below.
 6. **Classify the operator prompt** per `routing-table.md` `## Prompt-classification heuristic`.
-7. **Resolve execution mode** per the `## Execution-mode capability detection` section below.
+7. **Probe execution-mode capability** per the `## Execution-mode capability detection` section below.
 8. **Recover the active loopback class** from `git log` per `loopback-trailers.md` `## Recovery algorithm`. The recovered class is part of the pre-flight output.
 9. **Route** per `routing-table.md` using the `(detected_phase, prompt_classification)` pair as the key.
 
@@ -53,13 +53,15 @@ Use the `git log` algorithm in `loopback-trailers.md` `## Recovery algorithm` to
 
 ## Execution-mode capability detection
 
-Run the deterministic probe in this order, top to bottom. Stop at the first match.
+Run the deterministic probe in this order, top to bottom. Stop at the first match. This probe records execution capability for later routing; missing execution capability halts only when the selected route requires execute-phase delegation.
 
 1. **Team mode.** Selected when the host runtime exposes an explicit documented team-mode capability name (e.g. `BackgroundAgent`, `Team`) OR a plugin-declared team-mode capability flag in the active host's plugin manifest. Generic `Task`, `Agent`, or one-off background dispatch surfaces do not count as team mode unless the host or manifest explicitly marks them that way. When the signal is absent or ambiguous, treat team mode as unavailable and continue.
 2. **Subagent-driven.** Selected when team mode is unavailable AND a subagent-dispatch tool surface is detectable (e.g. a `Task` / `Agent` tool surface, one-off background dispatch, or the documented entry point for `superpowers:subagent-driven-development`).
-3. **Halt.** `superteam halted at Pre-flight: no execution mode available`.
+3. **Unavailable.** Record `execution_mode=unavailable`.
 
 Inline mode is NEVER auto-selected at any step. Only an explicit operator override (per R14, see `SKILL.md` `## Execution-mode injection`) reaches inline; that path is the only one that may route through `superpowers:executing-plans`.
+
+If the selected route requires execute-phase delegation and `execution_mode=unavailable`, halt with `superteam halted at Pre-flight: no execution mode available`. Non-execute routes such as Gate 1 feedback, local review interpretation, and `Finisher` status checks continue through their owning teammate instead of halting solely because execution delegation is unavailable.
 
 ## Output of pre-flight
 

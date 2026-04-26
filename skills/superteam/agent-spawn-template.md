@@ -182,6 +182,7 @@ Treat pending required checks on the latest pushed head as active `Finisher` mon
 If later required checks fail while monitoring, re-enter triage automatically on the latest pushed head.
 If later required checks pass while monitoring, only hand off as ready after the rest of the latest-head publish-state sweep is also clear.
 If pending external systems still block readiness and the run cannot safely keep monitoring, report an explicit blocker instead of a completion-style summary.
+When scheduling a thread heartbeat, monitor, automation, or equivalent wakeup, include a durable resume payload with: branch, PR URL/number, latest pushed SHA, current publish-state, pending signals, and the instruction to resume the latest-head shutdown checklist in the same `Finisher` loop.
 Shutdown is success-only. Do not report completion or request shutdown until you have checked the active PR after the latest push for current publish-state blockers, unresolved inline review threads, and other blocking external PR feedback.
 Treat shutdown readiness as head-relative. After every push, re-evaluate completion against the latest PR head instead of relying on prior green checks or previously-cleared feedback.
 Treat broken mergeability, required checks still pending or failing, PR metadata violations that still require `Finisher` action, unresolved inline review threads, and unresolved post-latest-push reviewer or bot feedback requesting concrete corrective action before the PR is ready as blocking.

@@ -5,26 +5,28 @@ Heavy reference for the explicit `(detected_phase, prompt_classification)` routi
 ## Routing table
 
 When `active_loopback_class` is present in the pre-flight record, route by
-that class before applying the normal phase table, unless the prompt is an
-explicit new-issue request or the operator explicitly confirms discarding the
-active phase after the current state is reported.
+that class before applying the normal phase table. This precedence applies to
+status, CI, publish, "is it done", and other prompts that would normally route
+by detected phase. The only exceptions are an explicit new-issue request or an
+operator-confirmed discard after the current loopback state is reported.
 
 | active_loopback_class | prompt_classification | route_to | action | notes |
 |---|---|---|---|---|
-| spec-level | ambiguous feedback or loopback continuation | Brainstormer | resume spec-level loopback | requirement authority must be restored first |
-| plan-level | ambiguous feedback or loopback continuation | Planner | resume plan-level loopback | do not fall through to generic execute routing |
-| implementation-level | ambiguous feedback or loopback continuation | Executor | resume implementation-level loopback | inject pre-selected execution mode per R14 |
+| spec-level | any non-new / non-discard prompt | Brainstormer | resume spec-level loopback | requirement authority must be restored first; do not fall through to `execute` or `finish` |
+| plan-level | any non-new / non-discard prompt | Planner | resume plan-level loopback | do not fall through to generic execute routing |
+| implementation-level | any non-new / non-discard prompt | Executor | resume implementation-level loopback | inject pre-selected execution mode per R14; do not fall through to `Finisher` status checks |
 
 | detected_phase | prompt_classification | route_to | action | notes |
 |---|---|---|---|---|
 | brainstorm | Gate 1 open + prompt looks like feedback | Brainstormer | deliver-as-feedback (delta-only revision) | per R6; do not restart |
 | brainstorm | Gate 1 open + prompt is approval-only or rejection-only (explicit token, no requirement / feedback delta) | Planner | fire Gate 1 approval and route forward | Gate 1 is durably observable iff a plan doc has been committed on the branch (R15); ephemeral in-session "approve" without a committed plan doc is NOT durable |
 | brainstorm | Gate 1 open + prompt combines approval with requested changes | Brainstormer | deliver-as-feedback (delta-only revision) | apply the delta and re-fire approval afterward; do not advance on mixed approval |
-| execute | requirement change | Brainstormer | spec-level loopback | terminating commit MUST carry `Loopback: spec-level` per R16 |
-| execute | task adjustment that preserves requirements | Planner | plan-level loopback | terminating commit MUST carry `Loopback: plan-level` per R16 |
+| execute | requirement change | Brainstormer | spec-level loopback | intermediate loopback commits carry `Loopback: spec-level`; resolving commit carries `Loopback: resolved` per R16 |
+| execute | task adjustment that preserves requirements | Planner | plan-level loopback | intermediate loopback commits carry `Loopback: plan-level`; resolving commit carries `Loopback: resolved` per R16 |
 | execute | implementation question | Executor | resume implementation | inject pre-selected execution mode per R14 |
 | finish | Finisher state in {triage, monitoring, blocked} + status check | Finisher | resume; do not restart | run latest-head sweep |
 | finish | requirement-bearing PR feedback | Brainstormer | spec-first per existing external-feedback rules | then Planner, then Executor |
+| finish | requirement-bearing operator or human-test feedback | Brainstormer | spec-level loopback | applies even when feedback is not phrased as PR feedback; then Planner, then Executor before Finisher ready/shutdown can resume |
 | halted | anything | (none) | show halt reason; require explicit operator instruction before resuming | recovery is operator-driven |
 | any | unambiguously a new top-of-workflow request for a different issue | (none) | require explicit operator confirmation before starting a new run | "no need to re-confirm" framing in the prompt is itself the disallowed shortcut per R7 |
 
@@ -35,6 +37,7 @@ active phase after the current state is reported.
 - If `phase=execute` and prompt mentions changing tasks, sequencing, or workstreams without changing requirements, classify as `plan-level` loopback.
 - If `phase=execute` and prompt is a question about implementation, classify as implementation work for `Executor`.
 - If `phase=finish` and prompt is a status / "is it done" / "check CI" prompt, route to `Finisher` with the latest-head sweep.
+- If `phase=finish` and prompt adds or changes requirements, acceptance criteria, or "what we are building", classify as `spec-level` loopback even when it is not PR feedback.
 - If the prompt names a different issue number explicitly, require operator confirmation before starting a new run.
 - Otherwise, treat the prompt as feedback for the active teammate.
 - **Bias:** when a phase is in flight and the prompt is ambiguous, classify as feedback. Ambiguous prompts MUST NOT silently start a new phase.

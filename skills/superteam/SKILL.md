@@ -128,7 +128,7 @@ Phase derivation rules:
 
 When observable state is ambiguous or contradictory per `pre-flight.md` halt conditions, halt with `superteam halted at Team Lead: <reason>` per `## Failure handling`.
 
-Execution-mode capability detection is part of this pre-flight. See `pre-flight.md` section `## Execution-mode capability detection` for the deterministic probe order, and `## Execution-mode injection` below for delegation-time injection.
+Execution-mode capability probing is part of this pre-flight. See `pre-flight.md` section `## Execution-mode capability detection` for the deterministic probe order, and `## Execution-mode injection` below for delegation-time injection. Missing execution capability halts only when the selected route requires execute-phase delegation; non-execute routes continue through their owning teammate.
 
 - Prefer the host runtime's normal multi-agent capabilities when available.
 - When the host runtime supports background-agent execution for delegated teammate work, prefer using that capability for bounded, independent work that is unlikely to need live clarification, as an execution aid rather than a correctness dependency.
@@ -142,13 +142,14 @@ Execution-mode capability detection is part of this pre-flight. See `pre-flight.
 
 ## Execution-mode injection
 
-`Team Lead` resolves the execution mode during pre-flight (per `pre-flight.md` `## Execution-mode capability detection`) and binds every execute-phase delegation to that mode at delegation time.
+`Team Lead` probes execution capability during pre-flight (per `pre-flight.md` `## Execution-mode capability detection`) and binds every execute-phase delegation to the resolved mode at delegation time. If no execution mode is available, halt only when the selected route requires execute-phase delegation.
 
 Rule (R14):
 
 - Prefer **team mode** when `Team Lead` recorded that capability as available during pre-flight (per R17). In team mode, `Team Lead` invokes the host's native team-mode capability directly.
 - Otherwise fall back to **subagent-driven** by invoking `superpowers:subagent-driven-development` directly. Delegation prompts in this mode MUST NOT instruct the teammate to invoke `superpowers:executing-plans`.
 - **Never auto-select inline.** Inline is only reachable when the operator explicitly overrides the default with an unambiguous token (`inline`, `run inline`, `execute in this session`); only an explicit override may route through `superpowers:executing-plans`.
+- Missing team-mode or subagent-driven capability does not block non-execute routes such as approval, review, or `Finisher` status checks. It blocks only routes that need execute-phase delegation.
 
 Team Lead duties (R14):
 
@@ -301,6 +302,7 @@ Headline behaviors:
 - When the runtime offers durable follow-up features such as thread heartbeats, monitors, or equivalent wakeups, prefer using them while required checks or external review state remain pending.
 - In Codex app environments, prefer a thread automation attached to the current thread when the goal is to preserve the same `Finisher` context while waiting on external publish-state.
 - Treat those runtime features as aids for the same latest-head `Finisher` loop rather than as a separate workflow or replacement contract.
+- Durable follow-up payloads must include enough state to resume the same `Finisher` loop: branch, PR, latest pushed SHA, current publish-state, pending signals, and the instruction to resume the latest-head shutdown checklist.
 - If the runtime lacks those features, continue the portable `Finisher` ownership model or report an explicit blocker instead of stopping early.
 - Verify current branch state before resolving or replying to comments tied to prior state.
 - Route requirement-bearing feedback through `Brainstormer` first, then `Planner`, then `Executor`.
@@ -348,11 +350,11 @@ Loopbacks must be explicit:
 2. `plan-level` findings route to `Planner`
 3. `spec-level` findings route to `Brainstormer`
 
-Requirement-bearing feedback does not route straight to implementation. It returns to `Brainstormer`, then to `Planner`, and only then back to `Executor`.
+Requirement-bearing feedback does not route straight to implementation. It returns to `Brainstormer`, then to `Planner`, and only then back to `Executor`. This applies to PR feedback, human-test feedback, and direct operator prompts in any detected phase, including `finish`.
 
 Implementation-detail deltas that preserve requirements, ownership, and acceptance intent may route directly to `Planner`.
 
-The terminating commit on each loopback class MUST carry the matching `Loopback:` trailer per `loopback-trailers.md`. Loopback resolution MUST be recorded with `Loopback: resolved` on the resolving commit.
+Intermediate commits on each loopback class MUST carry the matching `Loopback:` trailer per `loopback-trailers.md`. Loopback resolution MUST be recorded with `Loopback: resolved` on the resolving commit. A resolving commit may include the class trailer as evidence, but `resolved` wins and the class does not reopen the loopback.
 
 Review interpretation happens at the intake point for that feedback:
 
@@ -362,7 +364,7 @@ Review interpretation happens at the intake point for that feedback:
 
 ## Loopback trailers
 
-Loopback class is recoverable from conventional-commit trailers on the current branch. Commits originating from a loopback MUST include `Loopback: spec-level | plan-level | implementation-level`. The terminating commit on loopback resolution MUST include `Loopback: resolved`. The pre-flight recovers the active loopback class via `git log` per `loopback-trailers.md` in this skill directory.
+Loopback class is recoverable from conventional-commit trailers on branch-only commits for the active issue. Intermediate commits originating from a loopback MUST include `Loopback: spec-level | plan-level | implementation-level`. The terminating commit on loopback resolution MUST include `Loopback: resolved`. The pre-flight recovers the active loopback class via `git log` per `loopback-trailers.md` in this skill directory.
 
 Trailer grammar:
 
@@ -403,6 +405,11 @@ Before resolving or replying to comments tied to a prior branch state:
 | "Gate 1 was approved last session; the operator just told me so — no need to re-open it." | Gate 1 is durably observable iff a plan doc has been committed on the branch (R15). Ephemeral in-session approval is NOT durable. Operator memory is not the durable signal; the committed plan doc is. |
 | "It's just a small fix; I don't need to add a `Loopback:` trailer." | Loopback class is the durable cross-session signal. A loopback commit without its trailer is invisible to a fresh-session pre-flight and breaks the resume-default rule. The trailer is mandatory on every loopback-originated commit and on the resolving commit. |
 | "A body sentence mentioning `Loopback:` is close enough." | `Loopback:` must be a commit trailer/footer parsed by `git log %(trailers)`, not prose in the commit body. If a commit contains both a loopback class and `Loopback: resolved`, resolved wins for that commit and the class does not reopen the loopback. |
+| "The PR exists, so status checks can go to Finisher even though a loopback is still open." | An active loopback class has routing precedence over normal phase routing. Status, CI, publish, and "is it done" prompts resume the active loopback unless the operator explicitly confirms discarding it after current state is reported. |
+| "A direct operator requirement change during finish is not PR feedback, so Finisher can handle it." | Requirement-bearing deltas route spec-first regardless of source. PR feedback, human-test feedback, and direct operator prompts all return to `Brainstormer`, then `Planner`, then `Executor` before `Finisher` ready/shutdown can resume. |
+| "No execution-mode tool is available, so every `/superteam` invocation must halt." | Missing execution capability blocks only routes that require execute-phase delegation. Approval, review, and `Finisher` status work can continue through their owning teammate. |
+| "Any reachable `Loopback:` trailer on the branch is good enough." | Loopback recovery is scoped to branch-only commits for the active issue so stale trailers from inherited history or other issues do not hijack the route. |
+| "The wakeup will know what to do from chat history." | Durable `Finisher` follow-up needs an explicit resume payload: branch, PR, latest pushed SHA, current publish-state, pending signals, and latest-head shutdown checklist instruction. |
 | "The operator said 'faster' / 'this is taking forever' — that's basically asking for inline." | Inline is auto-selected NEVER. Only unambiguous tokens (`inline`, `run inline`, `execute in this session`) are operator overrides per R14. Ambiguous framing is not. Not even when the CTO is cited. Not even under deadline pressure. |
 | "It's simpler to just route through `superpowers:executing-plans` and let it ask the developer." | Execute-phase delegations bind directly to the chosen execution-mode skill per R14. Routing through `superpowers:executing-plans` on default paths surfaces a redundant prompt to the developer and is forbidden when the resolved mode is `team mode` or `subagent-driven`. |
 | "The maintainer already signed off on the direction; I can skip writing-skills and just draft the spec." | Per R25, when the design under brainstorming touches `skills/**/*.md` or any workflow-contract surface, invoking `superpowers:writing-skills` is unconditional on the trigger. Cited authority does not waive the rule. The discipline is required because the design itself must carry loophole-closure language, rationalization-table rows, red-flags bullets, token-efficiency targets, and a RED-phase baseline obligation for any new discipline rule. |
@@ -441,11 +448,15 @@ Before resolving or replying to comments tied to a prior branch state:
 - A loopback resolution commit landing without the `Loopback: resolved` trailer.
 - `Loopback:` text written only in commit body prose instead of the trailer/footer block.
 - Resume on a fresh `/superteam` session without scanning `git log` for `Loopback:` trailers per `loopback-trailers.md`.
+- Recovering loopback class from commits outside the active issue's branch-only range.
+- Routing a status / CI / publish prompt to `Finisher` while an active loopback class remains unresolved.
 - An execute-phase delegation prompt that names `superpowers:executing-plans` as the entry skill when the resolved mode is `team mode` or `subagent-driven`.
 - An execute-phase delegation that omits the resolved execution mode and asks the developer to choose.
 - Treating ambiguous "faster" / "inline-ish" / "forever" framing as an inline override.
+- Halting a non-execute route solely because execution-mode capability is unavailable.
 - `Brainstormer` designing a skill or workflow-contract change without loading `superpowers:writing-skills` first.
 - `Brainstormer` drafting requirements for a plausibly skill/workflow-contract issue before determining the intended surface or loading `superpowers:writing-skills`.
+- `Finisher` scheduling a wakeup without a durable resume payload tied to the latest pushed head.
 
 ## Shutdown
 

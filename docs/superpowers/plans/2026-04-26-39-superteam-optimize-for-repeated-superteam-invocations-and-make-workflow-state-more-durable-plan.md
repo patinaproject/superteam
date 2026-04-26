@@ -135,7 +135,7 @@ Write the full pre-flight algorithm. The file MUST contain:
 7. **Section: Execution-mode capability detection (R17).** The deterministic probe order verbatim from R17:
    1. Team mode — selected when host runtime exposes a documented multi-agent / background-agent capability surface (e.g. `BackgroundAgent`, `Team`, or equivalent dispatch tool, OR a plugin-declared team-mode capability flag in the active host's plugin manifest). When the signal is absent or ambiguous, treat team mode as unavailable and continue.
    2. Subagent-driven — selected when team mode is unavailable AND a subagent-dispatch tool surface is detectable (e.g. a `Task` / `Agent` tool surface, or the documented entry point for `superpowers:subagent-driven-development`).
-   3. Halt — `superteam halted at Pre-flight: no execution mode available`.
+   3. Unavailable — record `execution_mode=unavailable`; halt with `superteam halted at Pre-flight: no execution mode available` only if the selected route requires execute-phase delegation.
    Inline mode is NEVER auto-selected at any step; only an explicit operator override (R14) reaches inline.
 8. **Section: Output of pre-flight.** A small enumerated record: `{active_issue, detected_phase, open_gate?, active_loopback_class?, execution_mode, operator_override?}`. State that this record is the input to the routing table in `routing-table.md`.
 
@@ -180,7 +180,7 @@ Add to the existing `## Red flags`:
 
 - [ ] **Step 6: GREEN — verify all PTs in this batch.**
 
-Verify PT-1 (phase-detection portion: detection produces `phase=brainstorm, Gate 1 open`), PT-2 (phase-detection portion: detection produces `phase=execute`), PT-6 (halt fires with the exact blocker string), PT-11 (halt fires with `superteam halted at Pre-flight: no execution mode available`) against the edited skill, using the same evidence path chosen in Step 1 per "RED-phase baseline conventions" above. Path A: re-run live and capture verbatim transcripts (`GREEN-PASS`). Path B: capture `git grep` / `rg` output showing the new content is present in the edited skill plus a one-paragraph reasoned analysis per PT confirming the new content addresses the gap (`GREEN-PASS-INFERRED`).
+Verify PT-1 (phase-detection portion: detection produces `phase=brainstorm, Gate 1 open`), PT-2 (phase-detection portion: detection produces `phase=execute`), PT-6 (halt fires with the exact blocker string), PT-11 (execute-phase delegation with no execution mode halts with `superteam halted at Pre-flight: no execution mode available`) against the edited skill, using the same evidence path chosen in Step 1 per "RED-phase baseline conventions" above. Path A: re-run live and capture verbatim transcripts (`GREEN-PASS`). Path B: capture `git grep` / `rg` output showing the new content is present in the edited skill plus a one-paragraph reasoned analysis per PT confirming the new content addresses the gap (`GREEN-PASS-INFERRED`).
 
 - [ ] **Step 7: Lint.**
 
@@ -532,7 +532,7 @@ Append to `## Red flags`:
 Verify PT-8 and PT-11 against the edited skill, using the same evidence path chosen in Step 1 per "RED-phase baseline conventions" above. Each MUST now show `GREEN-PASS` (Path A) or `GREEN-PASS-INFERRED` (Path B):
 
 - PT-8: `Team Lead` resolves execution mode deterministically per R17, ambiguous "faster" / "forever" is not an inline override, delegation invokes the chosen execution-mode skill directly, developer never sees the "Two execution options" prompt.
-- PT-11: pre-flight halts with `superteam halted at Pre-flight: no execution mode available`; "inline-ish if you have to" is not an explicit override.
+- PT-11: execute-phase delegation halts with `superteam halted at Pre-flight: no execution mode available`; "inline-ish if you have to" is not an explicit override.
 
 - [ ] **Step 7: Lint.**
 
@@ -805,3 +805,4 @@ After each batch's commit, the Executor done-report MUST include:
 ## Loopback log
 
 - **2026-04-26 — Plan-level loopback resolved.** Executor halted because the plan's RED-phase convention mandated a single evidence form (live subagent transcripts) that is not satisfiable from inside an Executor subagent in the current runtime — subagents cannot themselves dispatch subagents. The plan's RED/GREEN evidence form was over-specified relative to R20 in the design (which permits both behavioral and inspection-based forms). The convention now offers Path A (live subagent transcript, preferred when subagent dispatch is available) and Path B (inspection-based absence evidence: `git grep` proof of missing content plus a one-paragraph reasoned analysis per PT with line-range citations into the unchanged skill at SHA `b5e5955`). Both paths preserve the Iron Law: prove the gap exists before fixing it. GREEN-phase verification uses the same path as RED. R20 in the design is unchanged; only the plan was amended. Batches 1–7 substantive content (steps, files modified, R/AC coverage) are unchanged; only the RED/GREEN evidence form differs.
+- **2026-04-26 — Spec-level loopback for end-to-end pressure gaps.** Reviewer pressure tests found that the isolated rule surfaces passed while several full-chain scenarios were underspecified: non-execute invocations could halt on missing execution mode; active loopbacks could fall through to `Finisher` status routing; loopback recovery could pick up stale historical trailers; resolving trailer wording conflicted; finish-phase operator requirement deltas were not explicitly spec-first; and `Finisher` follow-up wakeups lacked a durable resume payload. The resolving work adds repo-local e2e pressure scenarios and updates `SKILL.md`, `pre-flight.md`, `routing-table.md`, `loopback-trailers.md`, and `agent-spawn-template.md` so the pre-flight -> routing -> teammate handoff -> publish-state chain is covered.
