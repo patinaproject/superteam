@@ -19,9 +19,29 @@ When work originating from a loopback is committed, intermediate commits MUST in
 
 The class trailer is mandatory on every non-resolving loopback-originated commit. The resolving commit may also include the matching class trailer as evidence of what was resolved, but `Loopback: resolved` is the required durable resolution signal.
 
-If one commit contains both a loopback class trailer and `Loopback: resolved`,
-`resolved` wins for that commit. The class trailer is evidence of what was
-resolved and MUST NOT reopen the loopback.
+On any single commit, `Loopback: resolved` wins. Every other `Loopback:`
+trailer on the same commit — regardless of class, and regardless of whether
+it matches the class being resolved — is treated as evidence of what was
+resolved and MUST NOT open or reopen any loopback. This unified rule covers
+both subcases:
+
+- **Same-class evidence**: `Loopback: plan-level` + `Loopback: resolved` on
+  one commit closes the active plan-level loopback. The class trailer
+  documents which class was resolved.
+- **Different-class follow-on**: `Loopback: plan-level` +
+  `Loopback: implementation-level` + `Loopback: resolved` on one commit
+  closes the active plan-level loopback. The `implementation-level` trailer
+  is evidence only and does NOT open a new implementation-level loopback.
+
+**Corollary.** Opening a follow-on loopback after resolving one requires a
+separate later commit. When an author wants to resolve loopback A and
+immediately open loopback B, the workflow MUST produce two commits — the
+resolving commit carrying `Loopback: resolved` (optionally with class-A
+evidence), then a later commit carrying `Loopback: <class-B>` as the
+originating trailer for B. This is a direct consequence of the precedence
+rule above, not a separate constraint; it is called out because authors
+will otherwise be tempted to combine the two intents into one commit, which
+the precedence rule silently swallows.
 
 ## Worked examples
 
@@ -58,6 +78,35 @@ Loopback: plan-level
 Loopback: resolved
 ```
 
+Different-class follow-on (two commits required):
+
+The resolving commit closes the active plan-level loopback. It MAY carry
+the matching class trailer as evidence; if it ALSO carries an
+`implementation-level` trailer, that trailer is evidence only and is
+silently swallowed by the precedence rule — it does NOT open a follow-on
+implementation-level loopback.
+
+```text
+docs: #41 close plan-level loopback and note follow-on
+
+Loopback: plan-level
+Loopback: implementation-level
+Loopback: resolved
+```
+
+To actually open the follow-on implementation-level loopback, a separate
+later commit MUST carry the originating trailer:
+
+```text
+feat: #41 begin implementation-level follow-on
+
+Loopback: implementation-level
+```
+
+Combining both intents into a single commit (as in the first block above
+without the second) leaves no active follow-on — the precedence rule
+silently swallows the originating trailer on the resolving commit.
+
 ## Recovery algorithm
 
 ```text
@@ -71,8 +120,11 @@ Loopback: resolved
    other issues or inherited history from becoming the active loopback class.
 3. Run `git log --pretty=format:'%H%x09%s%x09%(trailers:key=Loopback,valueonly)' <range>`
    over the scoped range.
-4. For any commit with multiple `Loopback:` trailers, treat `resolved` as
-   winning for that commit.
+4. For any commit containing `Loopback: resolved`, `resolved` wins for that
+   commit regardless of how many other `Loopback:` trailers (of any class,
+   matching or not) appear on the same commit. No other trailer on that
+   commit opens or reopens a loopback — this covers both the same-class
+   evidence case and the different-class follow-on case.
 5. Find the most recent commit whose Loopback trailer is `resolved`.
    Call its index R (0 if none).
 6. Among commits with index > R, find the most recent commit whose Loopback

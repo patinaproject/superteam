@@ -354,9 +354,9 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 
 ## Resolving loopback commit uses unambiguous trailer semantics
 
-- Starting condition: A terminating loopback commit completes work that originated from `Loopback: plan-level`.
-- Required halt or reroute behavior: The resolving commit must include `Loopback: resolved`. A matching class trailer may appear as evidence on the same commit, but `resolved` wins and the class trailer must not reopen the loopback. The contract must not require both class and resolved trailers in a way that conflicts with the recovery algorithm.
-- Rule surface: `SKILL.md` and `loopback-trailers.md` should agree on resolving-commit trailer semantics.
+- Starting condition: A terminating loopback commit completes work that originated from `Loopback: plan-level`. Two shapes are exercised: (a) a same-class resolving commit carrying `Loopback: plan-level` + `Loopback: resolved`, and (b) a different-class follow-on resolving commit carrying `Loopback: plan-level` + `Loopback: implementation-level` + `Loopback: resolved`.
+- Required halt or reroute behavior: In both shapes, the resolving commit must include `Loopback: resolved`, and `resolved` wins for that commit. Any other `Loopback:` trailer on the same commit — matching the resolved class or not — is evidence only and must not open or reopen a loopback. For shape (b), recovery must report the active loopback as resolved (no class-B loopback opened from the same commit, assuming no later originating trailers); to actually open a follow-on implementation-level loopback, a separate later commit carrying `Loopback: implementation-level` as the originating trailer is required. The contract must not require both class and resolved trailers in a way that conflicts with the recovery algorithm.
+- Rule surface: `SKILL.md` and `loopback-trailers.md` should agree on resolving-commit trailer semantics, including that follow-on loopbacks of any class require a separate later originating commit.
 
 ## Missing runtime follow-up support does not permit Finisher to stop early
 
