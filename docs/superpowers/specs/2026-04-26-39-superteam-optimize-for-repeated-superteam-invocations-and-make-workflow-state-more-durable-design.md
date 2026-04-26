@@ -142,36 +142,138 @@ least the canonical cases enumerated in the Pressure Tests section below.
 
 R14. `skills/superteam/SKILL.md` must define a **deterministic
 execution-mode selection rule** that `Team Lead` applies whenever it
-delegates execution-phase work that would otherwise trigger the
-downstream "Two execution options" prompt from the executing-plans /
-subagent-driven-development surface. The rule is:
+delegates execution-phase work. The downstream prompt asking the
+operator to pick between "Subagent-Driven" and "Inline Execution" is
+sourced from `superpowers:executing-plans`. To eliminate the intercept-
+failure risk, `Team Lead` must NOT route execution-phase delegations
+through `superpowers:executing-plans`; instead it invokes the chosen
+execution-mode skill directly. The rule is:
 
-  1. Prefer **team mode** (the host runtime's native multi-agent or
-     background-agent capability per the `Pre-flight` section) when
-     `Team Lead` has detected that capability as available during
-     pre-flight.
-  2. Otherwise fall back to **subagent-driven** execution
-     (`superpowers:subagent-driven-development`).
-  3. Never auto-select **inline execution**. Inline is only used when
-     the operator explicitly overrides the default (e.g. `inline`,
-     `run inline`, `execute in this session`).
+- Prefer **team mode** (the host runtime's native multi-agent or
+  background-agent capability detected per R17) when `Team Lead` has
+  recorded that capability as available during pre-flight. In team
+  mode, `Team Lead` invokes the host's native team-mode capability
+  directly.
+- Otherwise fall back to **subagent-driven** execution by invoking
+  `superpowers:subagent-driven-development` directly. Delegation
+  prompts in this mode MUST NOT instruct the teammate to invoke
+  `superpowers:executing-plans` (which is the source of the
+  downstream prompt).
+- Never auto-select **inline execution**. Inline is only reachable
+  when the operator explicitly overrides the default (e.g. `inline`,
+  `run inline`, `execute in this session`); only an explicit
+  override may route through `superpowers:executing-plans`.
 
-`Team Lead` carries three duties under this rule:
+`Team Lead` carries four duties under this rule:
 
-  (a) Detect host-runtime team-mode capability up front in pre-flight,
-      alongside phase detection (extending the existing `Pre-flight`
-      capability checks rather than introducing a new surface).
-  (b) Inject the pre-selected execution mode into every delegation
-      prompt that would otherwise reach the downstream "which approach?"
-      ask, so the developer is not prompted to choose.
-  (c) Suppress the downstream prompt explicitly in the delegation
-      language by stating the resolved mode and instructing the
-      Executor not to ask the operator to choose between subagent-
-      driven and inline execution.
+- Detect host-runtime team-mode capability up front in pre-flight,
+  alongside phase detection (extending the existing `Pre-flight`
+  capability checks rather than introducing a new surface), using
+  the deterministic detection rule in R17.
+- Bind every execution-phase delegation to the chosen execution-mode
+  skill directly (`superpowers:subagent-driven-development` for the
+  subagent path, or the host's native team-mode capability for the
+  team path). The delegation MUST NOT name
+  `superpowers:executing-plans` as the entry skill when the resolved
+  mode is `team mode` or `subagent-driven`.
+- Inject the pre-selected execution mode into every delegation prompt
+  so the developer is not prompted to choose.
+- State the resolved mode in the delegation prompt and instruct the
+  teammate not to ask the operator to choose between subagent-driven
+  and inline execution. Carry the same suppression wording into any
+  nested delegation the teammate performs for the same execution
+  batch.
 
 Operator override remains available: an explicit `inline` (or
 equivalent) instruction in the prompt switches the resolved mode to
-inline for that delegation only.
+inline for that delegation only, and is the only path that may route
+through `superpowers:executing-plans`.
+
+R15. **Gate 1 approval is durably observable iff a plan doc has been
+committed on the branch.** The committed plan doc at the canonical
+plans path (`docs/superpowers/plans/YYYY-MM-DD-<issue>-<title>-plan.md`)
+is the durable signal that Gate 1 was approved. Until that commit
+lands on the branch, the design intentionally treats further
+`/superteam` prompts as feedback to `Brainstormer` per R6 (ambiguous
+prompts during an open Gate 1 are feedback, not approval). This is
+the intended fidelity contract, not a detection limitation: ephemeral
+in-session approval that is not yet reified as a committed plan doc
+is treated as not-yet-approved on subsequent invocations. The pre-
+flight rule set in the Approach section must call out this rule
+explicitly, and the routing table (R5) must reflect it: when a design
+doc is present and no plan doc exists on the branch, `phase=brainstorm`
+with Gate 1 open.
+
+R16. **Loopback class is recoverable from conventional-commit
+trailers.** When work originating from a loopback is committed, the
+commit message MUST include one of the following trailers:
+
+- `Loopback: spec-level`
+- `Loopback: plan-level`
+- `Loopback: implementation-level`
+
+When the loopback is resolved (the loopback work is complete and the
+workflow returns to its prior phase), the terminating commit MUST
+include the trailer:
+
+- `Loopback: resolved`
+
+The pre-flight inspects commit trailers on the current branch since
+the most recent `Loopback: resolved` trailer (or the branch start if
+none exists) to recover the active loopback class. If multiple
+unresolved `Loopback:` trailers are present, the most recent one
+wins. This convention extends the existing conventional-commits
+infrastructure already governed by `AGENTS.md` ("Conventional commits
+with no scope and a required GitHub issue tag") with a defined
+trailer; it is NOT a new persistence file or sidecar artifact, and
+does not require any new tooling beyond `git log`.
+
+R17. **Execution-mode capability detection is deterministic.** The
+pre-flight resolves execution mode by probing tool/runtime surfaces
+in this fixed order:
+
+1. **Team mode** is selected when the host runtime exposes a
+   documented multi-agent / background-agent capability surface
+   (concretely: a runtime-provided background-agent tool surface
+   such as a `BackgroundAgent`, `Team`, or equivalent dispatch tool,
+   OR a plugin-declared team-mode capability flag in the active
+   host's plugin manifest). When the signal is absent or ambiguous,
+   treat team mode as unavailable and continue.
+2. **Subagent-driven** is selected when team mode is unavailable
+   AND a subagent-dispatch tool surface is detectable (concretely:
+   a `Task` / `Agent` tool surface, or the documented entry point
+   for `superpowers:subagent-driven-development`). This is the
+   default in most environments.
+3. **Halt** if neither team mode nor subagent dispatch is
+   detectable, with the blocker
+   `superteam halted at Pre-flight: no execution mode available`,
+   per existing `Failure handling` rules.
+
+Inline mode is never auto-selected at any step; it is reachable only
+via explicit operator override per R14.
+
+R18. **Update repository manifest `author` field.** The `author`
+field in the following repository manifests must be set to:
+
+```json
+"author": {
+  "name": "Ted Mader",
+  "email": "ted@patinaproject.com",
+  "url": "https://github.com/tlmader"
+}
+```
+
+Files in scope:
+
+- `package.json`
+- `.claude-plugin/plugin.json`
+- `.codex-plugin/plugin.json`
+
+This requirement is housekeeping bundled with #39 by operator
+request and is unrelated to the phase-detection theme. It is
+implementation work for `Executor`; this design only states the
+requirement and identifies the files. See `Out of Scope` for the
+narrow scoping note.
 
 ## Approach
 
@@ -330,10 +432,16 @@ exists, required checks pending). Operator runs `/superteam where are we`.
 Expected: routed to `Finisher`; `Finisher` runs the latest-head sweep
 and reports state; no restart, no new spec, no new plan.
 
-PT-5. Ambiguous prompt during loopback. Detection shows `phase=execute`
-with a recent `plan-level` loopback signal in the active session. Operator
-runs `/superteam ok`. Expected: treated as feedback for the active
-teammate (`Planner`), not as a top-of-workflow request.
+PT-5. Ambiguous prompt during loopback, **recovered from a fresh
+session**. Detection shows `phase=execute` with the most recent
+`Loopback: plan-level` trailer on the branch and no subsequent
+`Loopback: resolved` trailer. The operator opens a brand new
+`/superteam` session (no in-session memory of the loopback) and runs
+`/superteam ok`. Expected: pre-flight reads the trailer via `git log`,
+recovers the active loopback class as `plan-level`, and treats the
+prompt as feedback for the active teammate (`Planner`), not as a
+top-of-workflow request. The loopback class is recoverable purely
+from git history, with no in-memory session state required.
 
 PT-6. Ambiguous observable state. Branch claims to be working on issue
 number 39 but no design doc exists at the canonical specs path and the PR for
@@ -349,14 +457,56 @@ PT-8. Mid-execute developer is not asked the two-options question.
 Detection shows `phase=execute` (plan doc committed, no PR). Operator
 runs `/superteam status`, or any prompt that classifies as resume,
 implementation question, or plan-level loopback returning to
-`Executor`. Expected: `Team Lead`'s delegation prompt to `Executor`
-already states the resolved execution mode (team mode if the host
-runtime exposes the capability detected in pre-flight, otherwise
-subagent-driven) and explicitly tells the teammate not to ask the
-operator to choose between subagent-driven and inline execution. The
-developer never sees the "Two execution options: 1. Subagent-Driven
-2. Inline Execution. Which approach?" prompt unless they have
-explicitly opted into inline execution in their prompt.
+`Executor`. Expected: `Team Lead` resolves execution mode
+deterministically per R17 (probe team-mode signals first, then
+subagent-dispatch signals, halt otherwise). `Team Lead`'s delegation
+prompt invokes the chosen execution-mode skill **directly**
+(`superpowers:subagent-driven-development` for the subagent path, or
+the host's native team-mode capability for the team path) and does
+NOT name `superpowers:executing-plans` as the entry skill. The
+delegation states the resolved mode and tells the teammate not to
+ask the operator to choose. The developer never sees the "Two
+execution options: 1. Subagent-Driven 2. Inline Execution. Which
+approach?" prompt unless they have explicitly opted into inline
+execution in their prompt.
+
+PT-9. Gate 1 fidelity: durable approval requires committed plan doc.
+Detection shows `phase=brainstorm` with a design doc committed at the
+canonical specs path and no plan doc committed. A prior in-session
+"approve" was issued but the Planner never committed a plan doc (the
+session ended before that commit). The operator opens a fresh
+`/superteam` session and runs `/superteam tighten the schema once
+more`. Expected: pre-flight reports `phase=brainstorm` with Gate 1
+still open (per R15, the absence of a committed plan doc is the
+durable signal that Gate 1 has not been approved), the prompt is
+classified as feedback per R6, and the prompt is delivered to
+`Brainstormer` as a delta-only revision. The skill must NOT treat
+the previous in-session approval as binding on a fresh invocation.
+
+PT-10. Loopback trailer recovery across resolution. Branch history
+contains, in chronological order: `Loopback: plan-level` (commit A),
+several follow-up commits, `Loopback: resolved` (commit R), then
+`Loopback: spec-level` (commit S), then no further loopback trailers.
+Operator opens a fresh `/superteam` session and runs `/superteam ok`.
+Expected: pre-flight scans `git log` for the most recent
+`Loopback: resolved` trailer (commit R), then identifies the most
+recent `Loopback:` trailer after R (commit S, `spec-level`), and
+recovers the active loopback class as `spec-level`. The prompt
+routes to `Brainstormer` as feedback for the active spec-level
+loopback.
+
+PT-11. No execution mode available. Pre-flight detects neither a
+team-mode capability surface nor a subagent-dispatch surface in the
+host runtime. Expected: halt with the blocker
+`superteam halted at Pre-flight: no execution mode available` per
+R17, and require explicit operator instruction (e.g. an explicit
+`inline` override) before any execution-phase delegation.
+
+PT-12. Manifest author update. Executor runs the implementation work
+for R18. Expected: `package.json`, `.claude-plugin/plugin.json`, and
+`.codex-plugin/plugin.json` each carry the exact `author` object
+specified in R18 (name, email, url). No other manifest fields are
+modified by this change.
 
 ## Out of Scope
 
@@ -378,7 +528,20 @@ explicitly opted into inline execution in their prompt.
   execution-mode pre-selection and the suppression of the downstream
   "Two execution options" ask happen in `superteam`'s own delegation
   surface (the prompt `Team Lead` constructs for `Executor`), not by
-  editing other `superpowers` skills.
+  editing other `superpowers` skills. The bypass works by binding
+  `Team Lead`'s delegation directly to the chosen execution-mode
+  skill (per R14) so the prompter skill (`superpowers:executing-plans`)
+  is no longer invoked on the default paths.
+
+### Housekeeping bundled with #39
+
+R18 (manifest `author` update) is housekeeping bundled with #39 by
+operator request. It is unrelated to the phase-detection theme that
+forms the bulk of this design and is therefore narrowly scoped to
+the `author` field update on the three identified manifests
+(`package.json`, `.claude-plugin/plugin.json`,
+`.codex-plugin/plugin.json`). No other manifest fields, no other
+files, and no other repository-wide rebranding work are in scope.
 
 ## Recommended skills for implementation
 
@@ -448,3 +611,51 @@ phase delegation prompt while explicitly suppressing the downstream
 "Two execution options: 1. Subagent-Driven 2. Inline Execution.
 Which approach?" ask. PT-8 passes during `superpowers:writing-skills`
 review of the resulting `SKILL.md` change.
+
+### AC-39-8
+
+`skills/superteam/SKILL.md` documents (per R15) that Gate 1 approval
+is durably observable iff a plan doc has been committed on the branch
+at the canonical plans path, and that until that commit lands further
+`/superteam` prompts during `phase=brainstorm` are intentionally
+treated as feedback to `Brainstormer` per R6. The pre-flight rule
+set and the routing table both reflect this rule. PT-9 passes during
+`superpowers:writing-skills` review.
+
+### AC-39-9
+
+`skills/superteam/SKILL.md` documents (per R16) the conventional-
+commit trailer convention for loopbacks
+(`Loopback: spec-level | plan-level | implementation-level | resolved`),
+and the pre-flight recovers the active loopback class from `git log`
+on the current branch by finding the most recent `Loopback:` trailer
+after the most recent `Loopback: resolved` trailer (or branch start).
+PT-5 (revised) and PT-10 pass during `superpowers:writing-skills`
+review.
+
+### AC-39-10
+
+`skills/superteam/SKILL.md` documents (per R17) the deterministic
+execution-mode capability detection rule (team mode signals first,
+then subagent-dispatch signals, halt otherwise), and binds `Team
+Lead`'s delegation directly to the chosen execution-mode skill
+(`superpowers:subagent-driven-development` or the host's native team-
+mode capability) rather than routing through
+`superpowers:executing-plans`. PT-11 passes during
+`superpowers:writing-skills` review.
+
+### AC-39-11
+
+The `author` field in `package.json`, `.claude-plugin/plugin.json`,
+and `.codex-plugin/plugin.json` is set to:
+
+```json
+"author": {
+  "name": "Ted Mader",
+  "email": "ted@patinaproject.com",
+  "url": "https://github.com/tlmader"
+}
+```
+
+with no other manifest fields modified by this change. PT-12 passes
+during `Executor` verification.
