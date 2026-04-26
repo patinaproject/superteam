@@ -492,3 +492,6 @@ Do not silently continue past failed checks, missing artifacts, ambiguous reposi
 
 - [agent-spawn-template.md](./agent-spawn-template.md): teammate-specific spawn guidance
 - [pr-body-template.md](./pr-body-template.md): PR checklist template used by `Finisher`
+- [pre-flight.md](./pre-flight.md): phase-detection sequence, execution-mode capability detection, halt conditions
+- [routing-table.md](./routing-table.md): phase x prompt-class routing, classification heuristic, resume vs restart, Gate 1 durability
+- [loopback-trailers.md](./loopback-trailers.md): `Loopback:` trailer grammar and `git log` recovery algorithm
