@@ -178,6 +178,16 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 2. Include only the requirements changed by those deltas.
 3. Keep already-approved content authoritative unless it changed.
 
+## Routing table
+
+Every `/superteam` invocation, after pre-flight, routes via an explicit `(detected_phase, prompt_classification)` table. See `routing-table.md` in this skill directory for the complete table, prompt-classification heuristic, resume-not-restart default, and Gate 1 durability rule.
+
+Headline behaviors:
+
+- Default for repeated `/superteam` invocations is **resume**, not restart (R7).
+- Ambiguous prompts during an open gate or in-flight phase are classified as **feedback for the active teammate**, never as silent phase advance (R6).
+- **Gate 1 is durably observable iff a plan doc has been committed on the branch.** Prior in-session "approve" without a committed plan doc is treated as not-yet-approved on subsequent invocations (R15).
+
 ## Teammate contracts
 
 ### Team Lead
@@ -348,6 +358,9 @@ Before resolving or replying to comments tied to a prior branch state:
 | "Reviewer already found it, so Reviewer can own PR comment handling too." | External review feedback stays with `Finisher`. |
 | "That comment is old, but I can still resolve it." | `Finisher` must verify current branch state before resolving prior-state comments. |
 | "Just pick the most likely interpretation and proceed." | Ambiguous or contradictory observable state halts the run with an explicit blocker per `## Failure handling`. Resume requires explicit operator clarification of the intended issue, branch, or phase. Not even when there is a deadline. Not even when an authority claim is cited. |
+| "The prompt is short/ambiguous, but the operator clearly meant approval — just advance the gate." | Ambiguous prompts during an open gate are feedback to the active teammate per `routing-table.md`. Approval requires an explicit token (`approve`, `lgtm`, etc.). Not even when an authority claim is cited. Not even when the prior in-session approval feels binding. |
+| "We've already done a lot of work on this — restarting would waste it, so let me just keep going from a fresh top-of-workflow." | The default for repeated `/superteam` invocations is **resume**. Restart requires an explicit operator token (`restart`, `start over`, `new run`) per R7. "Pivot, no need to re-confirm" in the prompt is itself the disallowed shortcut. |
+| "Gate 1 was approved last session; the operator just told me so — no need to re-open it." | Gate 1 is durably observable iff a plan doc has been committed on the branch (R15). Ephemeral in-session approval is NOT durable. Operator memory is not the durable signal; the committed plan doc is. |
 
 ## Red flags
 
@@ -374,6 +387,10 @@ Before resolving or replying to comments tied to a prior branch state:
 - Shutting down with unresolved review threads or other blocking external PR feedback still open.
 - `Team Lead` continuing past contradictory branch / artifact / PR state without halting.
 - Resolving execution-mode capability without running the deterministic probe order in `pre-flight.md`.
+- Classifying an ambiguous prompt during an open gate as approval rather than feedback.
+- Restarting a run on a repeated `/superteam` invocation without an explicit operator restart token or an unambiguous new-issue signal.
+- Treating a prior in-session "approve" as Gate 1 approval when no plan doc has been committed on the branch.
+- Silently switching issues mid-run when the prompt names a different issue without explicit operator confirmation.
 
 ## Shutdown
 
