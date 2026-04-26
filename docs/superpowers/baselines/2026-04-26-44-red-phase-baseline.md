@@ -69,3 +69,67 @@ Each captured rationalization above maps to an acceptance criterion in the desig
 | 7. "Inline the kebab/checkout/rebase logic." | AC-44-6 | "We can re-implement the kebab + checkout + rebase logic inside `superteam` so we don't depend on `github-flows`." |
 
 The GREEN-phase verification (Workstream 4) re-runs Scenarios A and B and the AC-44-3 / AC-44-4 / AC-44-5 scenarios against the updated `pre-flight.md`, and appends results below.
+
+## GREEN-phase verification
+
+Walked AC-44-1 ... AC-44-8 against the updated `skills/superteam/pre-flight.md` (commit `c4a712b`) and `skills/superteam/SKILL.md` (commit `a175ea5`). Each AC below has a one-line evidence pointer to the file + line where the requirement is realized.
+
+### AC-44-1: clean tree on default branch with `#44` -> auto-switch fires
+
+- Re-walk of Scenario A: source 1 fires (active_issue=44). Step 2 (`Auto-switch to issue branch`) fires because trigger conditions hold (source 1 + current branch == default). `/github-flows:new-branch` runs against `44`, switching to `44-<kebab-title>`. Step 3 (committed-artifact inspection) then runs on the new branch.
+- Evidence: `skills/superteam/pre-flight.md:12` (renumbered detection step 2) + `skills/superteam/pre-flight.md:30-38` (`## Auto-switch to issue branch` with trigger, algorithm, no-op, forbidden clauses).
+
+### AC-44-2: dirty tree on default branch -> halt verbatim
+
+- Re-walk of Scenario B: trigger fires; `/github-flows:new-branch` Step 3 refusal on dirty tree. `superteam` maps the refusal to halt 5.
+- Evidence: `skills/superteam/pre-flight.md:48` -- verbatim `superteam halted at Team Lead: dirty working tree blocks auto-switch to issue branch`.
+
+### AC-44-3: already on `<n>-<slug>` matching the issue -> no switch
+
+- Walk: source 2 (branch name `44-<slug>`) supplies the active issue. Source 1 did NOT fire (or even if `#44` is in prompt, current branch is not the default branch). The trigger requires source 1 AND default branch; both must hold, so this no-ops on either failure. The `## Auto-switch to issue branch` `No-op` clause covers both cases explicitly.
+- Evidence: `skills/superteam/pre-flight.md:36` (`No-op on <n>-<slug> matching the issue, or sources 2/3.`).
+
+### AC-44-4: `gh repo view` failure -> halt verbatim
+
+- Walk: trigger evaluation requires `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`. Non-zero or empty maps to halt 6.
+- Evidence: `skills/superteam/pre-flight.md:49` -- verbatim `superteam halted at Team Lead: default-branch lookup failed; cannot determine whether auto-switch is required`.
+
+### AC-44-5: rebase conflict on existing issue branch -> halt verbatim
+
+- Walk: `/github-flows:new-branch` Step 5 surfaces rebase conflict. `superteam` maps to halt 7. The `Forbidden:` clause prohibits `git rebase --abort`. Halt 7 itself reiterates `do NOT run git rebase --abort`.
+- Evidence: `skills/superteam/pre-flight.md:38` (forbidden auto-abort) and `skills/superteam/pre-flight.md:50` -- verbatim `superteam halted at Team Lead: rebase conflict on existing issue branch; resolve manually before re-running superteam` plus the `(do NOT run git rebase --abort)` reminder.
+
+### AC-44-6: design + plan + skill cite `/github-flows:new-branch` and do NOT inline algorithm
+
+- Walked the new section: cites `/github-flows:new-branch` (`patinaproject/github-flows`, `skills/new-branch/workflow.md`) as authoritative; explicit `Do NOT inline kebab, default-branch, dirty-tree, fetch, checkout, or rebase logic.`; `Skip its Step 6 (lockfile install).` Confirmed grep: zero kebab-casing pseudocode, zero `git checkout`, zero `git rebase` invocation in the new section.
+- Evidence: `skills/superteam/pre-flight.md:34` (algorithm reference) + `skills/superteam/SKILL.md` rationalization row "We can re-implement the kebab + checkout + rebase logic inside superteam..." + design `## Algorithm` and `## Out of scope`.
+
+### AC-44-7: 180-word / 1,400-char budget
+
+- Concatenated content measured: new step 2 (detection sequence), `## Auto-switch to issue branch` section, `## Active-issue resolution` cross-ref line, four new halt entries (5-8). Result: **175 words, 1,281 characters**. Both within the 180-word / 1,400-char budget.
+- Evidence: `wc -w -m /tmp/budget-44.md` -> `175 1281`.
+
+### AC-44-8: RED-phase baseline precedes `pre-flight.md` edit
+
+- `git log --oneline`: `2950fd7 test: #44 capture RED-phase baseline...` precedes `c4a712b feat: #44 auto-switch to issue branch...` precedes `a175ea5 docs: #44 add auto-switch rationalizations and red flags`.
+- Evidence: commit ordering above; ancestry `2950fd7 < c4a712b`.
+
+## Halt-condition non-collision check (existing halts 1-4)
+
+Re-walked the four pre-existing halt conditions against the updated `## Halt conditions`:
+
+1. plan-implied phase without design doc on branch -> independent of auto-switch trigger; still fires on the active branch after auto-switch resolves.
+2. `phase=finish` without PR on origin -> independent; PR-state inspection still runs in step 5.
+3. multiple candidate issues unreconciled -> takes precedence over auto-switch (auto-switch's `Mismatched <n> fires halt 3` explicitly defers).
+4. committed artifacts vs PR state mismatch -> independent; runs after auto-switch.
+
+Halts 5-8 are scoped to the auto-switch step and do not shadow halts 1-4. No collision.
+
+## Tooling smoke checks
+
+- `pnpm lint:md`: exit 0 (output: `Summary: 0 error(s)`).
+- `pnpm exec commitlint --edit /tmp/msg-44.txt` (`feat: #44 auto-switch to issue branch in superteam pre-flight`): exit 0.
+
+## GREEN summary
+
+All ACs (AC-44-1 ... AC-44-8) verified against committed state on this branch. Budget: 175/180 words, 1,281/1,400 chars. RED baseline preserved verbatim above for traceability.
