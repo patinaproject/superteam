@@ -4,8 +4,9 @@
   "private": true,
   "description": "Build with a team of agents using Superpowers",
   "author": {
-    "name": "Patina Project",
-    "email": "ted@patinaproject.com"
+    "name": "Ted Mader",
+    "email": "ted@patinaproject.com",
+    "url": "https://github.com/tlmader"
   },
   "license": "MIT",
   "packageManager": "pnpm@10.33.2",

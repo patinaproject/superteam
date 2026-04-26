@@ -2,6 +2,8 @@
 
 Model per teammate is dictated by the `superteam` workflow. Inject `{model}` from the active teammate assignment instead of hardcoding it.
 
+Known placeholders include `{model}`, `{role}`, `{N}`, `{slug}`, `{branch}`, `{id}`, `{skill}`, `{effort}`, and `{execution_mode}`. `Team Lead` resolves `{execution_mode}` during pre-flight per `SKILL.md` `## Execution-mode injection` and `pre-flight.md` `## Execution-mode capability detection`.
+
 ```text
 Agent({
   subagent_type: "general-purpose",
@@ -59,6 +61,8 @@ After revisions, re-fire approval with delta-only content and only the changed r
 Append this block in place of `{role-specific inputs}`:
 
 ```text
+Determine the intended surface from the issue before authoring requirements. If the design under brainstorming will touch `skills/**/*.md` or any workflow-contract surface (the `superteam` skill itself, agent-spawn templates, PR-body templates, or other repository-owned workflow contracts), invoke `superpowers:writing-skills` BEFORE authoring requirements. If the issue plausibly targets those surfaces and the exact files are uncertain, invoke `superpowers:writing-skills` first or halt for clarification. This is unconditional on the trigger; the design MUST then carry loophole-closure language, rationalization-table rows, red-flags bullets, token-efficiency targets, and a RED-phase baseline obligation for any new discipline rule it introduces.
+
 Recommend `superpowers:brainstorming`.
 
 Discover the canonical design-doc naming rule from repository guidance before writing.
@@ -102,6 +106,13 @@ Done-report contract:
 Append this block in place of `{role-specific inputs}`:
 
 ```text
+The execution mode for this delegation has been pre-selected by `Team Lead` per `skills/superteam/SKILL.md` `## Execution-mode injection`: {execution_mode}.
+Do NOT ask the operator to choose between subagent-driven and inline execution; the choice is already made.
+Do NOT invoke `superpowers:executing-plans` unless `{execution_mode}` is explicitly `inline` (the only operator-override path).
+For `subagent-driven`, invoke `superpowers:subagent-driven-development` directly.
+For `team mode`, invoke the host runtime's native team-mode capability directly.
+Carry this suppression wording into any nested delegation you perform for the same execution batch.
+
 Recommend `superpowers:test-driven-development`.
 Recommend `superpowers:systematic-debugging` when debugging or failures appear.
 Recommend `superpowers:verification-before-completion` before claiming completion.
@@ -171,6 +182,7 @@ Treat pending required checks on the latest pushed head as active `Finisher` mon
 If later required checks fail while monitoring, re-enter triage automatically on the latest pushed head.
 If later required checks pass while monitoring, only hand off as ready after the rest of the latest-head publish-state sweep is also clear.
 If pending external systems still block readiness and the run cannot safely keep monitoring, report an explicit blocker instead of a completion-style summary.
+When scheduling a thread heartbeat, monitor, automation, or equivalent wakeup, include a durable resume payload with: branch, PR URL/number, latest pushed SHA, current publish-state, pending signals, and the instruction to resume the latest-head shutdown checklist in the same `Finisher` loop.
 Shutdown is success-only. Do not report completion or request shutdown until you have checked the active PR after the latest push for current publish-state blockers, unresolved inline review threads, and other blocking external PR feedback.
 Treat shutdown readiness as head-relative. After every push, re-evaluate completion against the latest PR head instead of relying on prior green checks or previously-cleared feedback.
 Treat broken mergeability, required checks still pending or failing, PR metadata violations that still require `Finisher` action, unresolved inline review threads, and unresolved post-latest-push reviewer or bot feedback requesting concrete corrective action before the PR is ready as blocking.
