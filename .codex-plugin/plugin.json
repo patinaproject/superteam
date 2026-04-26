@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "Build with a team of agents using Superpowers",
   "author": {
-    "name": "Patina Project",
-    "url": "https://github.com/patinaproject"
+    "name": "Ted Mader",
+    "email": "ted@patinaproject.com",
+    "url": "https://github.com/tlmader"
   },
   "homepage": "https://github.com/patinaproject/superteam",
   "repository": "https://github.com/patinaproject/superteam",
