@@ -61,6 +61,8 @@ After revisions, re-fire approval with delta-only content and only the changed r
 Append this block in place of `{role-specific inputs}`:
 
 ```text
+If the design under brainstorming will touch `skills/**/*.md` or any workflow-contract surface (the `superteam` skill itself, agent-spawn templates, PR-body templates, or other repository-owned workflow contracts), invoke `superpowers:writing-skills` BEFORE authoring requirements. This is unconditional on the trigger; the design MUST then carry loophole-closure language, rationalization-table rows, red-flags bullets, token-efficiency targets, and a RED-phase baseline obligation for any new discipline rule it introduces.
+
 Recommend `superpowers:brainstorming`.
 
 Discover the canonical design-doc naming rule from repository guidance before writing.

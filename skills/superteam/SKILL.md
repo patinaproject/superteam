@@ -236,6 +236,7 @@ Headline behaviors:
 - Render the operator-facing no-concerns line exactly as `Remaining concerns: None`.
 - Surface any remaining approval-relevant concerns when requesting approval.
 - Include the handoff commit SHA for the committed design artifact in the done report.
+- When the design under brainstorming will touch `skills/**/*.md` or any workflow-contract surface (the `superteam` skill itself, agent-spawn templates, PR-body templates, or other repository-owned workflow contracts), invoke `superpowers:writing-skills` BEFORE authoring requirements. This is unconditional on the trigger, not "consider"; once the design touches a skill or workflow-contract surface, writing-skills is the load-bearing reference for what the design must contain (loophole-closure language, rationalization-table rows, red-flags bullets, token-efficiency targets, RED-phase baseline obligation). A `Brainstormer` who skips writing-skills at design time forces every downstream teammate to re-derive it. Not even when an authority claim is cited. Not even under deadline pressure.
 - Recommend `superpowers:brainstorming`.
 
 ### Planner
@@ -403,6 +404,7 @@ Before resolving or replying to comments tied to a prior branch state:
 | "It's just a small fix; I don't need to add a `Loopback:` trailer." | Loopback class is the durable cross-session signal. A loopback commit without its trailer is invisible to a fresh-session pre-flight and breaks the resume-default rule. The trailer is mandatory on every loopback-originated commit and on the resolving commit. |
 | "The operator said 'faster' / 'this is taking forever' — that's basically asking for inline." | Inline is auto-selected NEVER. Only unambiguous tokens (`inline`, `run inline`, `execute in this session`) are operator overrides per R14. Ambiguous framing is not. Not even when the CTO is cited. Not even under deadline pressure. |
 | "It's simpler to just route through `superpowers:executing-plans` and let it ask the developer." | Execute-phase delegations bind directly to the chosen execution-mode skill per R14. Routing through `superpowers:executing-plans` on default paths surfaces a redundant prompt to the developer and is forbidden when the resolved mode is `team mode` or `subagent-driven`. |
+| "The maintainer already signed off on the direction; I can skip writing-skills and just draft the spec." | Per R25, when the design under brainstorming touches `skills/**/*.md` or any workflow-contract surface, invoking `superpowers:writing-skills` is unconditional on the trigger. Cited authority does not waive the rule. The discipline is required because the design itself must carry loophole-closure language, rationalization-table rows, red-flags bullets, token-efficiency targets, and a RED-phase baseline obligation for any new discipline rule. |
 
 ## Red flags
 
@@ -439,6 +441,7 @@ Before resolving or replying to comments tied to a prior branch state:
 - An execute-phase delegation prompt that names `superpowers:executing-plans` as the entry skill when the resolved mode is `team mode` or `subagent-driven`.
 - An execute-phase delegation that omits the resolved execution mode and asks the developer to choose.
 - Treating ambiguous "faster" / "inline-ish" / "forever" framing as an inline override.
+- `Brainstormer` designing a skill or workflow-contract change without loading `superpowers:writing-skills` first.
 
 ## Shutdown
 
