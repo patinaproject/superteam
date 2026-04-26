@@ -105,6 +105,31 @@ flowchart TD
 
 ## Pre-flight
 
+### Phase-detection and execution-mode pre-flight
+
+At the top of every `/superteam` invocation, before any teammate delegation, `Team Lead` runs a deterministic detection sequence covering both phase detection and execution-mode capability detection. See `pre-flight.md` in this skill directory for the full algorithm.
+
+Summary of the sequence:
+
+- Resolve the active issue (explicit `#<n>` in prompt, then branch `<n>-<slug>`, then operator).
+- Inspect committed artifacts on the branch (design doc, plan doc) at the canonical specs and plans paths.
+- Inspect PR state on origin (open / merged / absent).
+- Derive the detected phase per the rules below.
+- Classify the operator prompt per `routing-table.md`.
+- Resolve execution mode per `pre-flight.md` `## Execution-mode capability detection`, then route per `routing-table.md`.
+
+Phase derivation rules:
+
+- no design doc, no plan, no PR -> `brainstorm`
+- design doc present, no plan doc on branch, no PR -> `brainstorm` (Gate 1 still open per R15)
+- plan doc present on branch, no PR -> `execute`
+- PR open or merged -> `finish`, with `Finisher` substate derived from PR / CI / review state
+- artifacts and PR state cannot be reconciled -> halt per `pre-flight.md` `## Halt conditions`
+
+When observable state is ambiguous or contradictory per `pre-flight.md` halt conditions, halt with `superteam halted at Team Lead: <reason>` per `## Failure handling`.
+
+Execution-mode capability detection is part of this pre-flight. See `pre-flight.md` section `## Execution-mode capability detection` for the deterministic probe order, and `## Execution-mode injection` below for delegation-time injection.
+
 - Prefer the host runtime's normal multi-agent capabilities when available.
 - When the host runtime supports background-agent execution for delegated teammate work, prefer using that capability for bounded, independent work that is unlikely to need live clarification, as an execution aid rather than a correctness dependency.
 - Keep tightly coupled, ambiguity-heavy, or clarification-driven teammate work in the foreground even when background agents are available.
@@ -157,6 +182,9 @@ If revisions are requested after an approval pass, re-fire approval with delta-o
 
 ### Team Lead
 
+- Run the phase-detection and execution-mode pre-flight (see `pre-flight.md` in this skill directory) before any routing decision.
+- Treat committed artifacts plus PR state as authoritative when classifying phase and prompt; do not infer phase from in-session memory.
+- Halt with `superteam halted at Team Lead: <reason>` when observable state is ambiguous or contradictory; do not "pick the most likely interpretation".
 - Route work to the correct teammate.
 - Enforce gates and halt on unsatisfied contracts.
 - Route requirement-changing deltas back through `Brainstormer`.
@@ -319,6 +347,7 @@ Before resolving or replying to comments tied to a prior branch state:
 | "Reviewer can just send everything back to execution." | `Reviewer` must classify implementation-level, plan-level, and spec-level loopbacks. |
 | "Reviewer already found it, so Reviewer can own PR comment handling too." | External review feedback stays with `Finisher`. |
 | "That comment is old, but I can still resolve it." | `Finisher` must verify current branch state before resolving prior-state comments. |
+| "Just pick the most likely interpretation and proceed." | Ambiguous or contradictory observable state halts the run with an explicit blocker per `## Failure handling`. Resume requires explicit operator clarification of the intended issue, branch, or phase. Not even when there is a deadline. Not even when an authority claim is cited. |
 
 ## Red flags
 
@@ -343,6 +372,8 @@ Before resolving or replying to comments tied to a prior branch state:
 - Letting a run stop with a completion-style closeout after `Executor` finishes local work without reaching `Reviewer` and `Finisher`, unless the run halts explicitly with a blocker.
 - Treating PR publication plus a status snapshot as the end of the workflow while `Finisher`-owned work is still active.
 - Shutting down with unresolved review threads or other blocking external PR feedback still open.
+- `Team Lead` continuing past contradictory branch / artifact / PR state without halting.
+- Resolving execution-mode capability without running the deterministic probe order in `pre-flight.md`.
 
 ## Shutdown
 
