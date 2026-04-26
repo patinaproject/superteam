@@ -327,11 +327,26 @@ Requirement-bearing feedback does not route straight to implementation. It retur
 
 Implementation-detail deltas that preserve requirements, ownership, and acceptance intent may route directly to `Planner`.
 
+The terminating commit on each loopback class MUST carry the matching `Loopback:` trailer per `loopback-trailers.md`. Loopback resolution MUST be recorded with `Loopback: resolved` on the resolving commit.
+
 Review interpretation happens at the intake point for that feedback:
 
 - `Reviewer` receives and classifies local pre-publish findings
 - `Finisher` receives and classifies external post-publish PR feedback
 - `Brainstormer`, `Planner`, and `Executor` own remediation after routing rather than primary review intake
+
+## Loopback trailers
+
+Loopback class is recoverable from conventional-commit trailers on the current branch. Commits originating from a loopback MUST include `Loopback: spec-level | plan-level | implementation-level`. The terminating commit on loopback resolution MUST include `Loopback: resolved`. The pre-flight recovers the active loopback class via `git log` per `loopback-trailers.md` in this skill directory.
+
+Trailer grammar:
+
+- `Loopback: spec-level`
+- `Loopback: plan-level`
+- `Loopback: implementation-level`
+- `Loopback: resolved`
+
+See `loopback-trailers.md` for worked examples and the recovery algorithm.
 
 ## External feedback ownership
 
@@ -361,6 +376,7 @@ Before resolving or replying to comments tied to a prior branch state:
 | "The prompt is short/ambiguous, but the operator clearly meant approval — just advance the gate." | Ambiguous prompts during an open gate are feedback to the active teammate per `routing-table.md`. Approval requires an explicit token (`approve`, `lgtm`, etc.). Not even when an authority claim is cited. Not even when the prior in-session approval feels binding. |
 | "We've already done a lot of work on this — restarting would waste it, so let me just keep going from a fresh top-of-workflow." | The default for repeated `/superteam` invocations is **resume**. Restart requires an explicit operator token (`restart`, `start over`, `new run`) per R7. "Pivot, no need to re-confirm" in the prompt is itself the disallowed shortcut. |
 | "Gate 1 was approved last session; the operator just told me so — no need to re-open it." | Gate 1 is durably observable iff a plan doc has been committed on the branch (R15). Ephemeral in-session approval is NOT durable. Operator memory is not the durable signal; the committed plan doc is. |
+| "It's just a small fix; I don't need to add a `Loopback:` trailer." | Loopback class is the durable cross-session signal. A loopback commit without its trailer is invisible to a fresh-session pre-flight and breaks the resume-default rule. The trailer is mandatory on every loopback-originated commit and on the resolving commit. |
 
 ## Red flags
 
@@ -391,6 +407,9 @@ Before resolving or replying to comments tied to a prior branch state:
 - Restarting a run on a repeated `/superteam` invocation without an explicit operator restart token or an unambiguous new-issue signal.
 - Treating a prior in-session "approve" as Gate 1 approval when no plan doc has been committed on the branch.
 - Silently switching issues mid-run when the prompt names a different issue without explicit operator confirmation.
+- A commit landing during an active loopback without the matching `Loopback:` trailer.
+- A loopback resolution commit landing without the `Loopback: resolved` trailer.
+- Resume on a fresh `/superteam` session without scanning `git log` for `Loopback:` trailers per `loopback-trailers.md`.
 
 ## Shutdown
 
