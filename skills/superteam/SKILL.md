@@ -446,7 +446,7 @@ Before resolving or replying to comments tied to a prior branch state:
 - `Planner` starts while a blocker or material `adversarial_review_findings[]` item remains open.
 - Brainstormer-originated findings are treated as a replacement for adversarial review.
 - Oversized approval requests collapsed into a vague summary instead of split into clean sections.
-- Approval requests that hide real approval-relevant concerns.
+- Approval requests that hide real approval-relevant findings.
 - Replaying already-approved content instead of sending delta-only approval after revisions.
 - Touching governed files without canonical-rule discovery from repository guidance.
 - Delegated teammate work that either ignores available background-agent execution for clearly bounded, independent work or forces background execution on tightly coupled, clarification-heavy work.
