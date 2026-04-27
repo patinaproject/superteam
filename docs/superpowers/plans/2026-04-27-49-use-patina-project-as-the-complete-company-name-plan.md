@@ -34,7 +34,7 @@ verify no protected identifiers were renamed.
   Run:
 
   ```bash
-  rg -n '"Patina marketplace"|"Patina plugins"|"outside Patina"|"Patina marketplace manifest"' README.md RELEASING.md
+  rg -n 'Patina marketplace|Patina plugins|outside Patina|Patina marketplace manifest' README.md RELEASING.md
   ```
 
   Expected before implementation: output includes the known affected
@@ -83,7 +83,7 @@ verify no protected identifiers were renamed.
   Run:
 
   ```bash
-  ! rg -n '"Patina marketplace"|"Patina plugins"|"outside Patina"|"Patina marketplace manifest"' README.md RELEASING.md
+  ! rg -n -P 'Patina marketplace|Patina plugins|outside Patina(?! Project)|Patina marketplace manifest' README.md RELEASING.md
   ```
 
   Expected after implementation: command succeeds because the old
@@ -94,7 +94,7 @@ verify no protected identifiers were renamed.
   Run:
 
   ```bash
-  rg -n '"Patina Project marketplace"|"Patina Project plugins"|"outside Patina Project"|"Patina Project marketplace manifest"' README.md RELEASING.md
+  rg -n 'Patina Project marketplace|Patina Project plugins|outside Patina Project|Patina Project marketplace manifest' README.md RELEASING.md
   ```
 
   Expected after implementation: output includes the replacement phrases.
