@@ -5,8 +5,8 @@
 Add a distinct adversarial design-review gate between `Brainstormer` design
 authoring and `Planner` planning. The gate should complement
 `superpowers:brainstorming`: keep Brainstormer's collaborative design work and
-existing `concerns[]` reporting, but require an explicit review-owned attack on
-the committed design artifact before Gate 1 approval can advance.
+fold approval-relevant concerns into a single `adversarial_review_findings[]`
+concept before Gate 1 approval can advance.
 
 The change should borrow the useful parts of BMad and gstack without importing
 either workflow wholesale:
@@ -22,11 +22,11 @@ either workflow wholesale:
 ## Problem Framing
 
 Today `Brainstormer` owns the design artifact and reports `concerns[]` in the
-Gate 1 approval packet. That catches approval-relevant uncertainty, but it is
-still author-local: the same teammate who authored the design decides which
-concerns to surface. Superteam can therefore proceed to planning with a coherent
-design that has not been attacked for missing requirements, weak assumptions,
-stage-gate bypasses, or plan-readiness gaps.
+Gate 1 approval packet. That catches approval-relevant uncertainty, but the
+field is author-local and too soft: the same teammate who authored the design
+decides which concerns to surface, and the packet has no required signal that
+the design was attacked for missing requirements, weak assumptions, stage-gate
+bypasses, or plan-readiness gaps.
 
 The problem is sharpest for `skills/**/*.md` and workflow-contract changes.
 Those designs can sound complete while still missing RED/GREEN pressure-test
@@ -38,10 +38,11 @@ tasks.
 ## Requirements
 
 - Preserve `Brainstormer` as the owner of the design artifact.
-- Keep `concerns[]` in the approval packet as Brainstormer-owned
-  approval-relevant concerns.
-- Add a separate adversarial-review result that is review-owned and attacks the
-  committed design artifact.
+- Replace Gate 1 `concerns[]` with `adversarial_review_findings[]` as the
+  single approval-relevant finding concept.
+- Preserve finding provenance inside `adversarial_review_findings[]` so
+  Brainstormer-originated concerns and review-originated attacks remain
+  distinguishable without parallel lists.
 - Require the adversarial review before Gate 1 approval can advance to
   `Planner`.
 - Require material findings to be dispositioned before planning.
@@ -65,20 +66,22 @@ Gate 1 should become a two-part approval gate:
 3. `Team Lead` verifies the design artifact exists at the reported path.
 4. `Team Lead` runs or dispatches adversarial design review against the
    committed artifact.
-5. `Brainstormer` dispositions any material adversarial findings.
+5. `Brainstormer` dispositions any material
+   `adversarial_review_findings[]`.
 6. If the design materially changes, `Team Lead` reruns the relevant
    adversarial review dimensions or records why rerun is unnecessary.
-7. `Team Lead` presents the Gate 1 approval packet with both `concerns[]` and
-   the adversarial-review result.
+7. `Team Lead` presents the Gate 1 approval packet with
+   `adversarial_review_findings[]` and the clean-pass rationale when no material
+   findings remain.
 8. Only explicit operator approval advances to `Planner`.
 
 The adversarial-review gate is not a replacement for user approval. It gives
 the operator a sharper packet to approve.
 
-If self-review or adversarial findings change the design after the initial
-commit, `Brainstormer` must commit the revised design before Gate 1 approval is
-presented. Downstream teammates rely on committed branch state, so a clean
-review of uncommitted changes is not enough for handoff.
+If self-review or `adversarial_review_findings[]` change the design after the
+initial commit, `Brainstormer` must commit the revised design before Gate 1
+approval is presented. Downstream teammates rely on committed branch state, so
+a clean review of uncommitted changes is not enough for handoff.
 
 ### Review ownership
 
@@ -95,25 +98,31 @@ The same-thread path is a portability fallback, not a claim that fresh-context
 review is unnecessary.
 
 The review result is Team Lead-owned gate evidence, not a new teammate role.
-`Brainstormer` may report how findings were addressed, but `Team Lead` remains
-responsible for verifying that the review result exists and is fit for approval.
+`Brainstormer` may seed `adversarial_review_findings[]` with known concerns and
+report how findings were addressed, but `Team Lead` remains responsible for
+verifying that the adversarial-review pass occurred and that the findings list
+is fit for approval.
 
 ### Review output
 
-The Gate 1 packet should add an adversarial-review block beside the existing
-Brainstormer fields:
+The Gate 1 packet should replace `concerns[]` with one findings block:
 
 ```markdown
 Adversarial review: <clean | findings dispositioned | blocked>
 Reviewer context: <fresh subagent | parallel specialists | same-thread fallback>
-Findings:
-- <severity> <artifact section/path> - <finding>
+adversarial_review_findings[]:
+- source: <brainstormer | adversarial-review>
+  severity: <blocker | material | minor>
+  location: <artifact section/path>
+  finding: <finding>
   Disposition: <fixed in design | deferred/out of scope | rejected with rationale>
 Clean-pass rationale: <required when no material findings remain>
 ```
 
-`concerns[]` remains Brainstormer-owned. Adversarial findings are review-owned.
-The two surfaces should not be collapsed into one generic "concerns" list.
+`adversarial_review_findings[]` is the single approval-finding surface. The
+`source` field preserves whether a finding came from Brainstormer's own concern
+surfacing or the adversarial review pass. Gate 1 must not advance while any
+`blocker` or `material` finding is still open.
 
 ### Review dimensions
 
@@ -141,7 +150,7 @@ For `skills/**/*.md` and workflow-contract changes, the review must also check:
 
 ### Findings disposition
 
-Material findings must be dispositioned before planning:
+Material `adversarial_review_findings[]` must be dispositioned before planning:
 
 - `fixed in design`: the design changed and the finding is resolved
 - `deferred/out of scope`: the design records why the issue is intentionally not
@@ -181,28 +190,30 @@ Update `skills/superteam/SKILL.md`:
   advance to `Planner`.
 - `Team Lead` owns enforcing the review gate and including the review block in
   approval packets.
-- `Brainstormer` done reports include `adversarial_findings_addressed[]` when
-  findings caused design changes, or an explicit empty result when no design
-  changes were required by review.
+- `Brainstormer` done reports replace `concerns[]` with
+  `adversarial_review_findings[]`, including Brainstormer-originated concerns
+  when present.
 - Team Lead approval packets include `adversarial_review_status`,
-  `adversarial_findings[]`, and `clean_pass_rationale` when applicable.
-- Rationalization table and red flags close bypasses such as "concerns[] is the
-  same as review" and "same-thread review is always enough."
+  `adversarial_review_findings[]`, and `clean_pass_rationale` when applicable.
+- Rationalization table and red flags close bypasses such as
+  "`adversarial_review_findings[]` can be Brainstormer-only" and "same-thread
+  review is always enough."
 
 Update `skills/superteam/agent-spawn-template.md`:
 
 - Team Lead approval packets require the adversarial-review block.
-- Brainstormer done reports include finding-addressed state for design changes
-  made in response to adversarial review.
-- Brainstormer prompts state that `concerns[]` does not satisfy adversarial
-  review.
+- Brainstormer done reports use `adversarial_review_findings[]` instead of
+  `concerns[]`.
+- Brainstormer prompts state that Brainstormer-originated findings do not
+  satisfy the adversarial-review pass by themselves.
 
 Update `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`:
 
-- Add pressure tests for skipped adversarial review, collapsed review/concerns,
-  clean pass without rationale, material findings without disposition, workflow
-  surfaces reviewed without `writing-skills` dimensions, material design changes
-  without rerun, and runtime support treated as a hard dependency.
+- Add pressure tests for skipped adversarial review, Brainstormer-only findings
+  treated as sufficient, clean pass without rationale, material findings without
+  disposition, workflow surfaces reviewed without `writing-skills` dimensions,
+  material design changes without rerun, and runtime support treated as a hard
+  dependency.
 
 ## Loophole-Closure Language
 
@@ -210,7 +221,7 @@ The workflow must close these rationalizations:
 
 | Excuse | Reality |
 |--------|---------|
-| "`concerns[]` already covers review." | `concerns[]` is Brainstormer-owned. Adversarial design review is a separate review-owned attack on the committed artifact. |
+| "`adversarial_review_findings[]` already has Brainstormer entries, so review happened." | Brainstormer-originated findings are useful but not sufficient. Gate 1 also requires an explicit adversarial-review pass against the committed artifact. |
 | "The operator can catch design gaps during approval." | Gate 1 should present an already-attacked design; operator approval is not a substitute for required review. |
 | "No findings means no review block is needed." | A clean pass must include the checked dimensions and a rationale for why no material findings remain. |
 | "Same-thread review is good enough even for workflow contracts." | Fresh-context review is preferred for workflow-critical or broad designs when available; same-thread review is only the portable fallback. |
@@ -219,10 +230,12 @@ The workflow must close these rationalizations:
 
 ## Red Flags
 
-- Gate 1 approval packet has `concerns[]` but no adversarial-review block.
+- Gate 1 approval packet has `adversarial_review_findings[]` entries but no
+  evidence that an adversarial-review pass occurred.
 - Adversarial review reports "clean" without naming checked dimensions.
 - Material findings are listed without dispositions.
-- `Planner` starts from a design with unresolved material adversarial findings.
+- `Planner` starts from a design with unresolved material
+  `adversarial_review_findings[]`.
 - Skill or workflow-contract designs skip RED/GREEN pressure-test obligations.
 - Requirement, ownership, pressure-test, or gate-order changes land after review
   without rerunning affected review dimensions.
@@ -237,16 +250,19 @@ baseline may be live behavioral evidence or inspection-based evidence, but it
 must show all of the following against the unchanged contract:
 
 1. Gate 1 approval requires artifact path, intent summary, requirements,
-   `concerns[]`, and `Remaining concerns: None`, but not adversarial review.
+   `concerns[]`, and `Remaining concerns: None`, but not
+   `adversarial_review_findings[]` or adversarial review.
 2. `Brainstormer` done reports require design path, AC IDs, requirements,
-   `concerns[]`, and handoff SHA, but not review findings or clean-pass
-   rationale.
+   `concerns[]`, and handoff SHA, but not `adversarial_review_findings[]` or
+   clean-pass rationale.
 3. Existing pressure tests cover approval packet shape and `concerns[]`, but do
-   not fail a packet that omits adversarial review.
+   not fail a packet that omits `adversarial_review_findings[]` or adversarial
+   review evidence.
 
 The plan should record the baseline evidence before editing workflow surfaces.
 GREEN verification should then show the same scenarios now require the
-adversarial-review block and halt or reroute when it is missing.
+`adversarial_review_findings[]`, adversarial-review evidence, and halt or
+reroute when either is missing.
 
 ## Adversarial Review of This Design
 
@@ -263,8 +279,8 @@ Review dimensions checked:
   local `Reviewer`
 - plan readiness for `superpowers:writing-plans`
 - workflow-contract pressure-test obligations from `superpowers:writing-skills`
-- loopholes around `concerns[]`, uncommitted artifacts, runtime dependency, and
-  endless review loops
+- loopholes around Brainstormer-only findings, uncommitted artifacts, runtime
+  dependency, and endless review loops
 
 Findings:
 
@@ -276,8 +292,8 @@ Findings:
 - High `## Surface Changes` - The original done-report proposal put
   `adversarial_review_status` on `Brainstormer`, which blurred the review-owned
   gate evidence with Brainstormer-owned remediation. Disposition: fixed in
-  design by keeping review status on the Team Lead approval packet and limiting
-  Brainstormer to findings-addressed state.
+  design by keeping review status on the Team Lead approval packet while
+  allowing Brainstormer to seed and address `adversarial_review_findings[]`.
 - Medium `## Review ownership` - The draft said review-owned, but did not say
   whether this creates a new teammate or reuses existing ownership. Disposition:
   fixed in design by naming the review result as Team Lead-owned gate evidence,
@@ -291,13 +307,22 @@ Findings:
   implementation plan could still over-specify repeated review. Disposition:
   deferred to planning; the plan should include one bounded rerun rule and avoid
   open-ended specialist loops.
+- Medium `## Review output` - Operator feedback showed that two parallel
+  concepts, `concerns[]` and adversarial findings, add unnecessary cognitive
+  overhead. Disposition: fixed in design by merging them into
+  `adversarial_review_findings[]` with `source` metadata, while keeping the
+  explicit adversarial-review pass as required gate evidence.
 
 Self-analysis:
 
 - What works: the proposed strategy caught ownership and artifact-state bugs
-  that normal `concerns[]` reporting could easily miss. It forced traceable
+  that author-local finding reporting could easily miss. It forced traceable
   dispositions and made the review context visible instead of pretending a
   same-thread review has fresh-context strength.
+- What changed after operator review: the design now uses a single
+  `adversarial_review_findings[]` concept instead of separate `concerns[]` and
+  adversarial findings. This reduces approval-packet complexity while preserving
+  provenance through `source`.
 - What does not work yet: same-thread review is useful for bootstrapping, but it
   is not the target quality bar for broad or workflow-critical designs. A later
   implementation should prefer a fresh-context pass when the runtime supports
@@ -305,10 +330,10 @@ Self-analysis:
 - Potential gap: requiring review before approval adds another gate that could
   slow small changes. The proportionality rule and bounded rerun rule are
   load-bearing and should be kept concise in implementation.
-- Potential gap: review findings can become a second requirements source if
-  dispositions are vague. The implementation should require requirement-bearing
-  findings to update the design first, then planning, preserving the spec-first
-  loop.
+- Potential gap: `adversarial_review_findings[]` can become a second
+  requirements source if dispositions are vague. The implementation should
+  require requirement-bearing findings to update the design first, then
+  planning, preserving the spec-first loop.
 
 ## Acceptance Criteria
 
@@ -323,8 +348,9 @@ planning can start.
 
 **Given** the adversarial review finds material issues,
 **When** Gate 1 approval is presented,
-**Then** those findings are surfaced separately from `concerns[]` and each
-finding has a disposition before `Planner` is invoked.
+**Then** those findings are recorded in `adversarial_review_findings[]` with
+`source: adversarial-review`, and each material finding has a disposition before
+`Planner` is invoked.
 
 ### AC-50-3
 
@@ -361,9 +387,9 @@ requirement.
 **Given** the implementation changes workflow-contract guidance,
 **When** verification runs,
 **Then** the relevant pressure-test walkthroughs cover skipped review, collapsed
-review/concerns, missing clean-pass rationale, missing finding dispositions,
-missing workflow-contract dimensions, missing rerun after material changes, and
-runtime support overreach.
+Brainstormer-only findings treated as sufficient, missing clean-pass rationale,
+missing finding dispositions, missing workflow-contract dimensions, missing
+rerun after material changes, and runtime support overreach.
 
 ## Out of Scope
 
