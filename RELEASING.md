@@ -4,13 +4,19 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 
 ## How it works
 
-1. On every push to `main`, the `Release` workflow runs `release-please`. The same workflow can also be triggered manually from **Actions → Release → Run workflow** as an escape hatch — use it to seed the very first release PR before any push to `main`, or to re-run after a transient failure.
-2. `release-please` scans Conventional Commits since the last tag.
-3. It opens (or updates) a standing **"chore: release X.Y.Z"** PR that:
+The `Release` workflow runs on every push to `main`. There is no separate UI-triggered release path. Cutting a release is the natural by-product of merging PRs:
+
+1. **Merge any PR into `main`.** The push event runs `Release`. `release-please` scans Conventional Commits since the last tag and opens, or updates, a standing **"chore: release X.Y.Z"** PR that:
+
    - Bumps `package.json` version.
    - Syncs `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` to the new version (configured in `release-please-config.json`).
    - Appends generated entries to `CHANGELOG.md`.
-4. **Clicking Merge on that PR** is the release action. It tags `vX.Y.Z` and publishes a GitHub Release with notes generated from the same commits.
+
+   Release-please attaches the `autorelease: pending` label to this PR. If there are no releasable commits since the last tag, the run no-ops.
+
+2. **Merge the release PR.** Squash-merging the PR is itself a push to `main`, so `Release` runs again. release-please now sees the merged release PR (still labeled `autorelease: pending`), creates the tag `vX.Y.Z`, publishes the GitHub Release with the Conventional-Commit-derived notes, and dispatches the marketplace bump on `patinaproject/skills`. The PR's label flips to `autorelease: tagged`.
+
+The result: every merge keeps the standing release PR fresh; merging that PR cuts the release. No `gh workflow run` step is required.
 
 ## Prerequisites (one-time settings)
 
