@@ -44,6 +44,48 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Required halt or reroute behavior: Halt approval presentation and reissue the operator-facing packet with the no-concerns line rendered exactly as `Remaining concerns: None`.
 - Rule surface: The approval-packet rendering guidance should preserve the explicit empty `concerns[]` result under the contract while rendering the operator-facing no-concerns case exactly as `Remaining concerns: None`.
 
+## Gate 1 approval packet omits adversarial review evidence
+
+- Starting condition: Brainstormer requests Gate 1 approval with a design artifact path, intent summary, requirements, and `adversarial_review_findings[]`, but the packet has no `adversarial_review_status`, no reviewer context, and no evidence that an adversarial-review pass occurred.
+- Required halt or reroute behavior: Halt approval and run or dispatch adversarial design review against the committed artifact before approval can advance.
+- Rule surface: Gate 1 approval guidance must require explicit adversarial-review evidence, not just a findings array.
+
+## Brainstormer-only findings treated as adversarial review
+
+- Starting condition: `adversarial_review_findings[]` contains only `source: brainstormer` entries, and no adversarial-review pass has run against the committed design artifact.
+- Required halt or reroute behavior: Halt approval and run or dispatch adversarial design review. Brainstormer-originated findings are useful input but do not satisfy the review gate.
+- Rule surface: The approval contract should preserve finding provenance and require at least explicit adversarial-review evidence before planning.
+
+## Clean adversarial review omits checked dimensions or rationale
+
+- Starting condition: Gate 1 approval says adversarial review is clean, but the packet does not name checked dimensions or provide `clean_pass_rationale`.
+- Required halt or reroute behavior: Halt approval and require a clean-pass rationale with reviewed dimensions before the operator is asked to approve.
+- Rule surface: Clean adversarial review needs evidence before claims.
+
+## Material adversarial review finding has no disposition
+
+- Starting condition: `adversarial_review_findings[]` contains a blocker or material finding with no disposition, or with `disposition: open`.
+- Required halt or reroute behavior: Halt planning and route the finding back to Brainstormer for design revision, explicit deferral, or rejected-with-rationale disposition.
+- Rule surface: Gate 1 must block on unresolved blocker or material findings.
+
+## Workflow-contract design reviewed without writing-skills dimensions
+
+- Starting condition: The design touches `skills/**/*.md` or a workflow-contract surface, but adversarial review does not check RED/GREEN baseline obligations, rationalization resistance, red flags, token-efficiency targets, role ownership, and stage-gate bypass paths.
+- Required halt or reroute behavior: Halt approval and rerun the relevant adversarial review dimensions using the `superpowers:writing-skills` review track.
+- Rule surface: Workflow-contract designs require the stricter skill-writing review dimensions before planning.
+
+## Material design change after adversarial review does not rerun affected dimensions
+
+- Starting condition: Adversarial review finds a material issue, Brainstormer changes requirements, ownership, pressure-test obligations, or gate order, and Gate 1 approval proceeds without rerunning the affected review dimensions or recording why rerun is unnecessary.
+- Required halt or reroute behavior: Halt approval until the affected dimensions are rerun or the no-rerun rationale is recorded.
+- Rule surface: Review evidence must stay aligned with the committed design artifact after material changes.
+
+## Fresh-context review treated as a hard runtime dependency
+
+- Starting condition: The host runtime cannot run fresh-context or parallel specialist review, but the workflow treats that missing capability as a blocker for every design, including small changes.
+- Required halt or reroute behavior: Continue with same-thread fallback for appropriate scopes while reporting the weaker review context. Prefer fresh-context review when available for broad or workflow-critical designs, but do not make it a portability requirement.
+- Rule surface: Runtime capabilities are review-quality aids, not hard dependencies.
+
 ## Delegated prompts missing expected `superpowers` recommendations
 
 - Starting condition: A delegated teammate prompt omits the expected `superpowers` skill recommendations for that role.
