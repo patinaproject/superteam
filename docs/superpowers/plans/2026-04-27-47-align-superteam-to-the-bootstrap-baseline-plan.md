@@ -178,7 +178,7 @@ Expected: no output and exit code 1.
 Run:
 
 ```bash
-gh label edit "autorelease: pending" --description "Reserved for Release Please automation while the release PR is pending; do not apply or remove manually."
+gh label edit "autorelease: pending" --description "Reserved for Release Please while release PR is pending; do not apply or remove manually."
 ```
 
 Expected: exit code 0.
@@ -188,7 +188,7 @@ Expected: exit code 0.
 Run:
 
 ```bash
-gh label edit "autorelease: tagged" --description "Reserved for Release Please automation after a release PR has been tagged; do not apply or remove manually."
+gh label edit "autorelease: tagged" --description "Reserved for Release Please after release PR is tagged; do not apply or remove manually."
 ```
 
 Expected: exit code 0.

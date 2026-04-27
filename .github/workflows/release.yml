@@ -1,11 +1,13 @@
 name: Release
 
-# release-please requires a run on push to main to cut the tag after
-# the release PR merges. workflow_dispatch is kept as a manual escape hatch.
+# Triggered on every push to `main`. release-please is idempotent: on regular
+# feature/fix merges it opens or refreshes the standing release PR; on the
+# release-PR merge it sees the merged PR (label `autorelease: pending`) and
+# cuts the tag, publishes the release, and dispatches the marketplace bump on
+# patinaproject/skills. A single trigger covers both flows. See RELEASING.md.
 on:
   push:
     branches: [main]
-  workflow_dispatch:
 
 permissions:
   contents: write

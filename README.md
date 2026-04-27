@@ -149,10 +149,10 @@ Agent Teams is optional. If you do not enable it, Superteam still works with the
    codex plugin marketplace add patinaproject/skills
    ```
 
-2. Install the plugin (pin to a tag for reproducible installs):
+2. Install the plugin:
 
    ```bash
-   codex plugin marketplace add patinaproject/superteam@v0.1.0
+   codex plugin marketplace add patinaproject/superteam
    ```
 
 3. Invoke from the target repository:
