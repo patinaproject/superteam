@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/patinaproject/superteam/compare/v1.1.0...v1.2.0) (2026-04-27)
+
+
+### Features
+
+* [#47](https://github.com/patinaproject/superteam/issues/47) align bootstrap 1.3 release guidance ([#55](https://github.com/patinaproject/superteam/issues/55)) ([f33753b](https://github.com/patinaproject/superteam/commit/f33753b7b96cc2978d529d48b41ffd0b78dc1926))
+
 ## [1.1.0](https://github.com/patinaproject/superteam/compare/v1.0.0...v1.1.0) (2026-04-27)
 
 
