@@ -109,7 +109,7 @@ A run is only complete when the published branch state is stable enough to hand 
 
 ### Claude Code
 
-1. Register the Patina marketplace:
+1. Register the Patina Project marketplace:
 
    ```text
    /plugin marketplace add patinaproject/skills
@@ -143,7 +143,7 @@ Agent Teams is optional. If you do not enable it, Superteam still works with the
 
 ### OpenAI Codex CLI
 
-1. Register the Patina marketplace:
+1. Register the Patina Project marketplace:
 
    ```bash
    codex plugin marketplace add patinaproject/skills
@@ -231,5 +231,5 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md) and [`AGENTS.md`](./AGENTS.md).
 ## Related
 
 - [`skills/superteam/SKILL.md`](./skills/superteam/SKILL.md) — skill contract.
-- [`patinaproject/skills`](https://github.com/patinaproject/skills) — marketplace distributing Patina plugins.
+- [`patinaproject/skills`](https://github.com/patinaproject/skills) — marketplace distributing Patina Project plugins.
 - [`patinaproject/bootstrap`](https://github.com/patinaproject/bootstrap) — scaffolding skill that emitted this repo's baseline.
