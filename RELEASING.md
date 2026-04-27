@@ -79,7 +79,7 @@ Wire it into `.github/workflows/release.yml` by replacing the `token:` input on 
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 ```
 
-The default code path stays `secrets.GITHUB_TOKEN` in the emitted template so forks outside Patina don't need to provision a Patina-specific secret.
+The default code path stays `secrets.GITHUB_TOKEN` in the emitted template so forks outside Patina Project don't need to provision a Patina Project-specific secret.
 
 ### Tag ruleset caution
 
@@ -126,7 +126,7 @@ Determined from commit types — no human choice:
 
 ## Distribution via `patinaproject/skills`
 
-When a release is published **and the repository owner is `patinaproject`**, the release workflow automatically dispatches `plugin-release-bump.yml` on `patinaproject/skills`. That marketplace repo opens (or updates) a PR bumping this plugin's pinned `ref` across every Patina marketplace manifest.
+When a release is published **and the repository owner is `patinaproject`**, the release workflow automatically dispatches `plugin-release-bump.yml` on `patinaproject/skills`. That marketplace repo opens (or updates) a PR bumping this plugin's pinned `ref` across every Patina Project marketplace manifest.
 
 No per-repo opt-in is required — the `github.repository_owner == 'patinaproject'` check on the `notify-patinaproject-skills` job gates this behavior. Forks in other orgs skip the job entirely and don't need any of the setup below.
 
