@@ -52,8 +52,10 @@ Each approval packet must include:
 - `adversarial_review_findings[]`, including Brainstormer-originated concerns and adversarial-review findings
 - `source: brainstormer | adversarial-review` on each finding
 - `adversarial_review_status`: `clean`, `findings dispositioned`, or `blocked`
-- `clean_pass_rationale` when no blocker or material findings remain
+- `reviewer_context`: `fresh subagent`, `parallel specialists`, or `same-thread fallback`
+- `clean_pass_rationale` with checked dimensions when no blocker or material findings remain
 Before Gate 1 approval can advance, run or dispatch adversarial design review against the committed artifact. Brainstormer-originated findings alone do not satisfy this gate.
+For designs that touch `skills/**/*.md` or workflow-contract surfaces, the adversarial review must check the `superpowers:writing-skills` dimensions: RED/GREEN baseline obligations, rationalization resistance, red flags, token-efficiency targets, role ownership, and stage-gate bypass paths.
 If the approval packet is too large, split it instead of collapsing it.
 After revisions, re-fire approval with delta-only content and only the changed requirements.
 ```
@@ -78,8 +80,9 @@ Done-report contract:
 - `intent_summary`: concise summary of what the artifact changes or decides
 - `requirements[]`: full requirement set currently under review
 - `adversarial_review_status`: `clean` | `findings dispositioned` | `blocked`
+- `reviewer_context`: `fresh subagent` | `parallel specialists` | `same-thread fallback`
 - `adversarial_review_findings[]`: findings relevant to approval, with `source`, `severity`, `location`, `finding`, and `disposition`
-- `clean_pass_rationale`: required when no blocker or material findings remain
+- `clean_pass_rationale`: required with checked dimensions when no blocker or material findings remain
 - Do not treat Brainstormer-originated findings as satisfying the adversarial-review pass. If adversarial review changes the design, commit the revised artifact before handoff.
 - `handoff_commit_sha`: commit containing the design artifact used for approval and planning
 ```

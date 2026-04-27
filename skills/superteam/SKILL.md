@@ -191,10 +191,13 @@ Before asking for approval:
 5. Include `adversarial_review_findings[]` as the single approval-finding surface, including Brainstormer-originated concerns and adversarial-review findings.
 6. Preserve finding provenance with `source: brainstormer | adversarial-review`.
 7. Require an explicit adversarial-review result before approval can advance: `clean`, `findings dispositioned`, or `blocked`.
-8. Include `clean_pass_rationale` when no blocker or material findings remain.
-9. Halt approval when any blocker or material finding is still open.
+8. Include `reviewer_context`: `fresh subagent`, `parallel specialists`, or `same-thread fallback`.
+9. Include `clean_pass_rationale` with checked dimensions when no blocker or material findings remain.
+10. Halt approval when any blocker or material finding is still open.
 
 Before Gate 1 approval is presented, `Team Lead` must run or dispatch an adversarial design review against the committed design artifact. Fresh-context or parallel specialist review is preferred for workflow-critical or broad designs when the runtime supports it; same-thread review is the portable fallback. Brainstormer-originated findings alone do not satisfy this gate.
+
+For designs that touch `skills/**/*.md` or any workflow-contract surface, the adversarial review must check the `superpowers:writing-skills` dimensions: RED/GREEN baseline obligations, rationalization resistance, red flags, token-efficiency targets, role ownership, and stage-gate bypass paths.
 
 If adversarial review changes the design, `Brainstormer` must commit the revised artifact before approval. Material requirement, ownership, pressure-test, or gate-order changes require rerunning the affected review dimensions or recording why rerun is unnecessary.
 
@@ -227,7 +230,7 @@ Headline behaviors:
 - Enforce gates and halt on unsatisfied contracts.
 - Route requirement-changing deltas back through `Brainstormer`.
 - Before Gate 1 approval can advance, enforce adversarial design review against the committed design artifact.
-- Include `adversarial_review_status`, `adversarial_review_findings[]`, and `clean_pass_rationale` when applicable in Gate 1 approval packets.
+- Include `adversarial_review_status`, `reviewer_context`, `adversarial_review_findings[]`, and `clean_pass_rationale` when applicable in Gate 1 approval packets.
 - Treat Brainstormer-originated findings as useful input but not proof that adversarial review occurred.
 - Recommend `superpowers:using-superpowers`.
 - Also recommend `superpowers:dispatching-parallel-agents` when splitting bounded, independent work, and keep tightly coupled or interactive steps in the foreground.
@@ -245,7 +248,7 @@ Headline behaviors:
 - Report `adversarial_review_findings[]` when requesting approval, including Brainstormer-originated concerns and adversarial-review findings.
 - Preserve `source: brainstormer | adversarial-review` on every finding.
 - Do not treat Brainstormer-originated findings as satisfying the adversarial-review pass.
-- Include the clean-pass rationale when the adversarial-review result is clean.
+- Include reviewer context and checked dimensions in the clean-pass rationale when the adversarial-review result is clean.
 - Commit any design changes caused by self-review or adversarial findings before reporting done or handing off to `Planner`.
 - Include the handoff commit SHA for the committed design artifact in the done report.
 - Determine the intended surface from the issue before authoring requirements. When the design under brainstorming will touch `skills/**/*.md` or any workflow-contract surface (the `superteam` skill itself, agent-spawn templates, PR-body templates, or other repository-owned workflow contracts), invoke `superpowers:writing-skills` BEFORE authoring requirements. If the issue plausibly targets those surfaces and the exact files are uncertain, invoke `superpowers:writing-skills` first or halt for clarification. This is unconditional on the trigger, not "consider"; once the design touches or plausibly targets a skill or workflow-contract surface, writing-skills is the load-bearing reference for what the design must contain (loophole-closure language, rationalization-table rows, red-flags bullets, token-efficiency targets, RED-phase baseline obligation). A `Brainstormer` who skips writing-skills at design time forces every downstream teammate to re-derive it. Not even when an authority claim is cited. Not even under deadline pressure.
@@ -337,8 +340,9 @@ Artifact-producing teammate done reports must anchor on committed handoff state 
 - `intent_summary`: concise summary of what the artifact changes or decides
 - `requirements[]`: full requirement set currently under review
 - `adversarial_review_status`: `clean` | `findings dispositioned` | `blocked`
+- `reviewer_context`: `fresh subagent` | `parallel specialists` | `same-thread fallback`
 - `adversarial_review_findings[]`: findings relevant to approval, with `source`, `severity`, `location`, `finding`, and `disposition`
-- `clean_pass_rationale`: required when no blocker or material findings remain
+- `clean_pass_rationale`: required with checked dimensions when no blocker or material findings remain
 - `handoff_commit_sha`: commit containing the design artifact used for approval and planning
 
 ### Planner done report
@@ -433,7 +437,8 @@ Before resolving or replying to comments tied to a prior branch state:
 | "Rebase conflict on the existing issue branch is fine; I'll abort and try again." | The canonical algorithm forbids `git rebase --abort` on the operator's behalf. `superteam` halts and surfaces the conflict. |
 | "We can re-implement the kebab + checkout + rebase logic inside `superteam` so we don't depend on `github-flows`." | `/github-flows:new-branch` is the authoritative algorithm. `superteam` references it; it does not fork it. Divergence between the two is a contract bug. |
 | "`adversarial_review_findings[]` already has Brainstormer entries, so review happened." | Brainstormer-originated findings are useful but not sufficient. Gate 1 requires an explicit adversarial-review pass against the committed artifact. |
-| "No findings means no review evidence is needed." | A clean adversarial-review result must include checked dimensions and `clean_pass_rationale`; silence is not evidence. |
+| "No findings means no review evidence is needed." | A clean adversarial-review result must include `reviewer_context`, checked dimensions, and `clean_pass_rationale`; silence is not evidence. |
+| "This is a workflow-contract design, but a generic review is enough." | Designs touching `skills/**/*.md` or workflow-contract surfaces require the `superpowers:writing-skills` review dimensions: RED/GREEN baseline obligations, rationalization resistance, red flags, token-efficiency targets, role ownership, and stage-gate bypass paths. |
 | "A finding changed the design, but the earlier review still applies." | Material requirement, ownership, pressure-test, or gate-order changes require rerunning affected review dimensions or recording why rerun is unnecessary. |
 
 ## Red flags
@@ -442,9 +447,10 @@ Before resolving or replying to comments tied to a prior branch state:
 - Asking for design approval before verifying the cited artifact exists.
 - Approval requests that omit the artifact path, concise intent summary, or full requirement set.
 - Gate 1 approval packet has `adversarial_review_findings[]` entries but no evidence that an adversarial-review pass occurred.
-- Adversarial review reports `clean` without checked dimensions or `clean_pass_rationale`.
+- Adversarial review reports `clean` without `reviewer_context`, checked dimensions, or `clean_pass_rationale`.
 - `Planner` starts while a blocker or material `adversarial_review_findings[]` item remains open.
 - Brainstormer-originated findings are treated as a replacement for adversarial review.
+- Workflow-contract design approval proceeds without the `superpowers:writing-skills` adversarial-review dimensions.
 - Oversized approval requests collapsed into a vague summary instead of split into clean sections.
 - Approval requests that hide real approval-relevant findings.
 - Replaying already-approved content instead of sending delta-only approval after revisions.
