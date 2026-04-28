@@ -172,6 +172,20 @@ Before any teammate touches governed files, discover the canonical repository ru
 
 If canonical guidance cannot be found, halt and surface the blocker instead of guessing.
 
+## Skill-quality review loop
+
+When a run changes `skills/superteam/SKILL.md`, adjacent `skills/superteam/*.md` workflow-contract files, or repo-owned pressure tests for this workflow, use `skill-quality-review.md` as the local adaptation of Trail of Bits workflow-skill review and skill-improver discipline.
+
+This loop feeds Superteam's normal teammate workflow. It does not replace `Brainstormer`, `Planner`, `Executor`, `Reviewer`, or `Finisher`.
+
+Required outcomes:
+
+- Record each finding with severity, affected surface, disposition, and verification evidence.
+- Fix or explicitly disposition every critical and major finding before publish.
+- Evaluate minor findings for usefulness before applying them.
+- Preserve local contracts when external skill-review guidance conflicts with Superteam.
+- Keep review evidence in durable artifacts, PR acceptance criteria, or other inspectable records rather than volatile chat context.
+
 ## Artifact handoff authority
 
 Handoffs that depend on uncommitted durable artifact changes are incomplete unless the run halts explicitly with a blocker.
@@ -296,6 +310,7 @@ Headline behaviors:
 - Recommend `superpowers:test-driven-development` as the ATDD execution skill.
 - Recommend `superpowers:systematic-debugging` when debugging or failures appear.
 - Recommend `superpowers:writing-skills` when touching `skills/**/*.md`.
+- When implementing a workflow-contract change, produce or update the issue-specific review evidence required by `skill-quality-review.md`.
 - Recommend `superpowers:verification-before-completion` before claiming completion.
 
 ### Reviewer
@@ -307,6 +322,9 @@ Headline behaviors:
 - Recommend `superpowers:requesting-code-review` for first-pass local review.
 - Also recommend `superpowers:receiving-code-review` when analyzing existing or disputed findings before publish.
 - When reviewing changes to `skills/**/*.md` or workflow-contract docs, invoke `superpowers:writing-skills` and run the relevant pressure-test walkthrough before publish.
+- For Superteam workflow-contract changes, apply `skill-quality-review.md` before publish and verify critical/major findings are fixed or dispositioned.
+- Evaluate minor findings for usefulness instead of applying them blindly.
+- Treat the Trail of Bits-inspired review loop as evidence for local review, not as a replacement for local review ownership.
 - If later fixes change those same workflow-contract surfaces again after an earlier review pass, rerun the relevant pressure-test walkthrough before handing the run back to `Finisher`.
 - Report pressure-test pass/fail results and any loopholes found for skill or workflow-contract changes.
 - Report local findings with `feedback_classification` (`implementation-level` | `plan-level` | `spec-level`) and an owner before routing.
@@ -453,6 +471,9 @@ Before resolving or replying to comments tied to a prior branch state:
 | "No findings means no review evidence is needed." | A clean adversarial-review result must include `reviewer_context`, checked dimensions, and `clean_pass_rationale`; silence is not evidence. |
 | "This is a workflow-contract design, but a generic review is enough." | Designs touching `skills/**/*.md` or workflow-contract surfaces require the `superpowers:writing-skills` review dimensions: RED/GREEN baseline obligations, rationalization resistance, red flags, token-efficiency targets, role ownership, and stage-gate bypass paths. |
 | "A finding changed the design, but the earlier review still applies." | Material requirement, ownership, pressure-test, or gate-order changes require rerunning affected review dimensions or recording why rerun is unnecessary. |
+| "The Trail of Bits loop ran, so Reviewer and Finisher can be skipped." | The loop is evidence for Superteam's local stages, not a replacement for Reviewer or latest-head Finisher follow-through. |
+| "A minor skill-review finding came from a reviewer, so we should apply it automatically." | Minor findings can be false positives or style preferences. Evaluate usefulness before applying. |
+| "The upstream plugin is unavailable, so we can omit the evidence." | `skill-quality-review.md` is the repo-owned adaptation. Use it and record any upstream-tool limitation. |
 | "Natural prose means we can omit required Gate 1 evidence." | Natural prose changes rendering, not evidence. Required review status, reviewer context, checked dimensions, and clean-pass rationale must still exist before planning. |
 | "The operator might want audit history, so replay every closed finding." | Audit history stays available in durable artifacts or handoff data. Normal operator-facing output should show actionable findings and current decisions. |
 | "Done-report contracts are status templates, so we can delete them." | Done reports are durable handoff data. The change separates internal data contracts from chat rendering. |
@@ -506,6 +527,10 @@ Before resolving or replying to comments tied to a prior branch state:
 - `pre-flight.md` documenting kebab-casing, default-branch resolution, fetch, checkout, or rebase steps inline instead of referencing `/github-flows:new-branch`.
 - `Team Lead` silently continuing on the default branch after `gh repo view` fails to resolve the default branch.
 - A `superteam` run authoring `docs/superpowers/specs/...` on the default branch.
+- Superteam workflow-contract changes publish without `skill-quality-review.md` evidence.
+- Critical or major skill-review findings remain open without a blocker or explicit disposition.
+- Minor skill-review findings are applied automatically without usefulness evaluation.
+- Trail of Bits guidance overrides a local Superteam contract without a recorded conflict disposition.
 - Operator-facing output repeats closed or dispositioned findings when no operator action is required.
 - Natural prose omits the artifact, decision, active finding, blocker, or next action the operator needs.
 - A change deletes durable done-report or review evidence instead of separating it from chat rendering.
@@ -562,3 +587,4 @@ Do not silently continue past failed checks, missing artifacts, ambiguous reposi
 - [pr-body-template.md](./pr-body-template.md): PR checklist template used by `Finisher`
 - [pre-flight.md](./pre-flight.md): phase-detection sequence, execution-mode capability detection, halt conditions
 - [routing-table.md](./routing-table.md): phase x prompt-class routing, classification heuristic, resume vs restart, Gate 1 durability
+- [skill-quality-review.md](./skill-quality-review.md): local Trail of Bits-inspired skill review and improvement loop

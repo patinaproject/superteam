@@ -441,3 +441,27 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Starting condition: A required check is failing after the latest push, but the workflow reports the failure without attempting to distinguish whether it was introduced by the branch or appears unrelated baseline noise.
 - Required halt or reroute behavior: Keep the issue in the Finisher loop, inspect enough evidence to make the best branch-caused vs baseline distinction available, and report the result explicitly. If the distinction still cannot be made safely, prompt the operator instead of guessing.
 - Rule surface: The Finisher contract should require explicit blocker reporting and branch-aware CI triage before handoff or halt.
+
+## Superteam workflow-contract change skips Trail of Bits-inspired review loop
+
+- Starting condition: A run changes `skills/superteam/SKILL.md`, adjacent `skills/superteam/*.md`, or Superteam pressure tests, but no `skill-quality-review.md` evidence exists in a durable artifact, PR acceptance criteria, or other inspectable record.
+- Required halt or reroute behavior: Halt publish readiness and route back through local `Reviewer` until the adapted review loop has run or the blocker is explicitly reported.
+- Rule surface: Superteam workflow-contract changes require the repo-owned Trail of Bits-inspired skill-quality review loop before publish.
+
+## Skill-quality review findings lack severity or disposition
+
+- Starting condition: A skill-quality review says the Superteam skill was reviewed, but findings lack severity, affected surface, disposition, or verification evidence.
+- Required halt or reroute behavior: Halt the handoff and require the review evidence to classify each finding before publish.
+- Rule surface: `skill-quality-review.md` requires severity, affected surface, disposition, and verification evidence for every finding.
+
+## Minor skill-review findings applied blindly
+
+- Starting condition: A reviewer reports minor skill-quality findings and Executor applies them without evaluating whether they improve execution reliability, evidence quality, or operator clarity.
+- Required halt or reroute behavior: Halt or reroute the change until each minor finding is evaluated and either accepted with rationale or rejected as not useful.
+- Rule surface: The adapted skill-improver loop requires minor findings to be evaluated before implementation.
+
+## External skill-review guidance conflicts with Superteam local contracts
+
+- Starting condition: Trail of Bits-inspired guidance suggests a change that would bypass committed design/plan artifacts, visible-state resume, local Reviewer ownership, latest-head Finisher shutdown, or the prohibition on hidden routing markers.
+- Required halt or reroute behavior: Preserve the Superteam local contract and record the conflict disposition before publish.
+- Rule surface: `skill-quality-review.md` treats Trail of Bits guidance as an adapted review method, not a higher-priority runtime contract.

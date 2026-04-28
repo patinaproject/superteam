@@ -128,6 +128,7 @@ Recommend `superpowers:test-driven-development`.
 Recommend `superpowers:systematic-debugging` when debugging or failures appear.
 Recommend `superpowers:verification-before-completion` before claiming completion.
 If any task touches `skills/**/*.md`, also recommend `superpowers:writing-skills`.
+When implementation changes Superteam workflow-contract surfaces, produce or update the issue-specific review evidence required by `skills/superteam/skill-quality-review.md`.
 
 Implement only the assigned task batch.
 Commit the completed implementation and test changes before reporting done or handing off to `Reviewer`.
@@ -150,6 +151,7 @@ Append this block in place of `{role-specific inputs}`:
 Recommend `superpowers:requesting-code-review`.
 Also recommend `superpowers:receiving-code-review` when analyzing existing or disputed findings before publish.
 Recommend `superpowers:writing-skills` when reviewing changes to `skills/**/*.md` or workflow-contract docs.
+For Superteam workflow-contract changes, apply `skills/superteam/skill-quality-review.md` before publish. Verify critical and major findings are fixed or explicitly dispositioned, evaluate minor findings for usefulness, and keep evidence durable in an issue-specific review artifact, PR acceptance criteria, or another inspectable record.
 
 Review locally before publish.
 Own receiving and interpreting local pre-publish review findings.

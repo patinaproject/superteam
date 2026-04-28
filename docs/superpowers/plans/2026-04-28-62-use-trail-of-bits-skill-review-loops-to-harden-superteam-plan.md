@@ -380,7 +380,7 @@ Expected: matches for all four new scenarios.
 Run:
 
 ```bash
-rg -n "Loopback: spec-level|Loopback: plan-level|Loopback: implementation-level" docs/superpowers/reviews/2026-04-28-62-trail-of-bits-skill-review.md skills/superteam docs/superpowers/pressure-tests/superteam-orchestration-contract.md
+git diff -- docs/superpowers/reviews/2026-04-28-62-trail-of-bits-skill-review.md skills/superteam/skill-quality-review.md skills/superteam/SKILL.md skills/superteam/agent-spawn-template.md docs/superpowers/pressure-tests/superteam-orchestration-contract.md | rg "Loopback: spec-level|Loopback: plan-level|Loopback: implementation-level"
 ```
 
 Expected: no output and exit code 1.
@@ -436,4 +436,5 @@ Reviewer must use `superpowers:requesting-code-review`, `superpowers:receiving-c
 - Spec coverage: Requirements 1-9 map to Tasks 1-5. AC-62-1 through AC-62-5 map to the review artifact, skill-quality guide, contract wiring, pressure tests, and PR evidence requirements.
 - Placeholder scan: Task 1 includes concrete RED observations from the pre-implementation state.
 - Type and naming consistency: The new guide is consistently named `skills/superteam/skill-quality-review.md`; the durable review artifact is consistently named `docs/superpowers/reviews/2026-04-28-62-trail-of-bits-skill-review.md`.
+- Plan adjustment: Task 5 checks the current diff for forbidden `Loopback:` trailer revival so existing historical pressure-test text does not create a false failure.
 - Blockers: none known.
