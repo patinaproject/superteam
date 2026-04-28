@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.0](https://github.com/patinaproject/superteam/compare/v1.3.0...v1.4.0) (2026-04-28)
+
+
+### Features
+
+* [#62](https://github.com/patinaproject/superteam/issues/62) harden superteam workflow routing ([#64](https://github.com/patinaproject/superteam/issues/64)) ([c8cc425](https://github.com/patinaproject/superteam/commit/c8cc425307902d5f47a71f3b243505035c044995))
+* [#65](https://github.com/patinaproject/superteam/issues/65) document skill-improver quality gate for superteam ([#66](https://github.com/patinaproject/superteam/issues/66)) ([db876e3](https://github.com/patinaproject/superteam/commit/db876e3dc67c1185c03a86cb668fc1c6a055f2b9))
+* [#67](https://github.com/patinaproject/superteam/issues/67) enforce smarter teammate model selection in Team Lead delegation ([#69](https://github.com/patinaproject/superteam/issues/69)) ([f8aba80](https://github.com/patinaproject/superteam/commit/f8aba804f6c8bb5aa687a043db3509de942146fd))
+
 ## [1.3.0](https://github.com/patinaproject/superteam/compare/v1.2.0...v1.3.0) (2026-04-28)
 
 
