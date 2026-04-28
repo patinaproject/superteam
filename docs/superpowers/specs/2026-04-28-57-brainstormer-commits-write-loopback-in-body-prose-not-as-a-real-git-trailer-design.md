@@ -66,6 +66,11 @@ rerouting.
 6. If a run is interrupted after feedback is classified but before remediation
    is committed, the next run should inspect visible artifacts and PR feedback
    rather than infer hidden state from commit footers.
+7. Local pre-publish Reviewer findings are same-run state unless captured in a
+   visible artifact, plan update, commit, or PR comment. If a later run resumes
+   after implementation but before PR publication and cannot verify that local
+   review findings were resolved from visible state, it must rerun the relevant
+   Reviewer pass before Finisher can publish.
 
 The workflow should not add a replacement marker, sidecar file, branch label, or
 new commit footer. The goal is less state, not different state.
@@ -132,6 +137,9 @@ Normal phase routing should decide from:
 
 Execute and finish rows can still route requirement changes to Brainstormer,
 task adjustments to Planner, and implementation questions to Executor.
+When there is implementation state on the branch but no PR, routing must not
+skip Reviewer solely because no loopback marker exists. Reviewer remains the
+visible-state reconstruction point for local pre-publish findings.
 
 ### `skills/superteam/pre-flight.md`
 
@@ -139,6 +147,12 @@ Remove loopback-class recovery from the detection sequence, output record, and
 halt/red-flag guidance. Pre-flight should not scan git trailers to recover
 workflow state. It should continue to inspect issue, branch, artifacts, PR state,
 phase, prompt class, and execution capability.
+
+For cross-session safety, pre-flight or routing must preserve the existing
+post-implementation requirement: if committed implementation changes exist and
+no PR exists yet, the run resumes through Reviewer before Finisher publication.
+This reruns or reconstructs local pre-publish review from visible state instead
+of relying on hidden loopback state.
 
 ### `skills/superteam/loopback-trailers.md`
 
@@ -173,6 +187,11 @@ replacement scenarios:
   does not scan branch-only commits for `Loopback:`.
 - A commit body contains `Loopback: spec-level`; workflow ignores it as obsolete
   text and does not derive routing from it.
+- Reviewer finds a spec-level issue after implementation, the session ends
+  before remediation is committed, and a later run resumes with implementation
+  commits but no PR. Required behavior: rerun or reconstruct Reviewer before
+  Finisher can publish; do not proceed directly to PR creation because no
+  `Loopback:` marker exists.
 
 ### RED-phase baseline artifact
 
@@ -238,12 +257,30 @@ opportunities are documented as follow-ups, not implemented opportunistically.
       unrelated edits to execution-mode probing, Finisher shutdown, or Gate 1
       approval ceremony.
 
+### AC-57-6
+
+Given Reviewer classified a local pre-publish finding after implementation, and
+the session ended before remediation was committed or a PR existed, when a later
+run resumes, then the workflow reruns or reconstructs Reviewer from visible
+state before Finisher can publish.
+
+- [ ] Verify routing/pre-flight guidance requires Reviewer before PR publication
+      when implementation state exists without a PR and prior local findings
+      cannot be proven resolved from visible state.
+- [ ] Verify pressure tests cover the interrupted local-review case without
+      reintroducing any hidden loopback marker.
+
 ## Requirements
 
 - Remove durable `Loopback:` trailer workflow state.
 - Preserve feedback classification and correct teammate routing.
 - Resume across sessions from visible committed artifacts, PR state, and
   operator prompts.
+- Treat local pre-publish Reviewer findings as same-run state unless captured in
+  visible durable state.
+- Rerun or reconstruct Reviewer before publication when a later run resumes from
+  implementation state without a PR and cannot prove local findings were
+  resolved.
 - Do not add replacement hidden state.
 - Remove obsolete trailer pressure tests instead of adding more trailer
   hardening.
@@ -280,5 +317,5 @@ opportunities are documented as follow-ups, not implemented opportunistically.
 ## Open Questions
 
 Should `loopback-trailers.md` be deleted outright or replaced by a short
-deprecation note for one release? Deletion is cleaner, but a deprecation note may
-make the transition easier to review if many docs link to it.
+deprecation note for one release? Deletion is cleaner, but Planner may choose the
+lowest-churn option that leaves no active workflow contract requiring trailers.
