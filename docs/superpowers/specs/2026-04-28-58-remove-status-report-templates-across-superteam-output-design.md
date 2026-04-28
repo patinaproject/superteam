@@ -45,9 +45,13 @@ they help. They should stop being the default voice of the system.
 - Surface only actionable findings or blockers in normal operator-facing
   output.
 - Keep closed, resolved, or dispositioned findings available in artifacts,
-  internal context, or done-report evidence without replaying them by default.
+  explicit handoff data, or done-report evidence without replaying them by
+  default.
 - Preserve explicit evidence requirements for Gate 1, Reviewer pressure tests,
   and Finisher shutdown; do not let natural prose hide missing evidence.
+- Keep required evidence durable whenever future teammates, future sessions, PR
+  reviewers, or audit/debugging workflows depend on it. Volatile agent context
+  may supplement that evidence, but must not be its only home.
 - Update delegated teammate prompts so subagents are encouraged to write like
   collaborators while still satisfying role-specific contracts.
 - Add pressure tests that catch robotic status-template output and the opposite
@@ -102,8 +106,10 @@ external PR feedback once they are no longer relevant to the current decision.
 If findings require operator feedback, they must be visible and specific enough
 to act on. If findings are closed or dispositioned, the response may summarize
 the result briefly, such as "no approval-blocking findings remain." The detailed
-history can stay in the design artifact, plan, review report, PR discussion, or
-agent context.
+history should stay in a durable surface when later teammates or reviewers may
+need it: the design artifact, plan, review report, PR discussion, explicit
+handoff data, or Finisher state. Volatile agent context can help during the
+current run, but it is not enough for required evidence.
 
 This should not remove required evidence. Gate 1 still needs adversarial review
 status, reviewer context, checked dimensions, and clean-pass rationale before
@@ -155,8 +161,20 @@ The baseline should show at least:
    not catch robotic status-report output or natural prose that hides required
    actions.
 
-GREEN verification should then show the same surfaces distinguish required
-workflow data from natural operator-facing rendering.
+The baseline cannot be inspection-only. Before changing the workflow contract,
+the plan should include behavioral pressure scenarios that demonstrate current
+failure. At minimum, capture RED behavior for:
+
+1. a Gate 1 approval prompt that replays dispositioned findings into
+   operator-facing output when no operator feedback is needed
+2. a teammate handoff or Finisher update that is forced into report shape even
+   though a concise natural handoff would satisfy the operator need
+3. a counter-pressure case where natural prose sounds pleasant but omits an
+   actionable blocker, requested decision, or required next step
+
+GREEN verification should rerun those same scenario classes after the contract
+edits and show that Superteam distinguishes required workflow data from natural
+operator-facing rendering without hiding blockers.
 
 ### Loophole-Closure Language
 
@@ -170,6 +188,7 @@ The workflow must close these rationalizations:
 | "Done-report contracts are templates, so we can delete them." | Done reports are durable handoff data. The change separates internal data contracts from chat rendering. |
 | "A friendly paragraph is enough even if it hides a blocker." | Operator-facing prose must clearly state blockers, required decisions, and next steps. Vague warmth is still a contract failure. |
 | "Finisher can avoid status details because status reports are discouraged." | Finisher still owns latest-head readiness, monitoring, blockers, and shutdown evidence; only unnecessary report boilerplate is discouraged. |
+| "The evidence is in agent context, so it is traceable enough." | Required evidence must live in durable artifacts, explicit handoff data, PR state, or other inspectable surfaces when future teammates or reviewers depend on it. |
 
 ## Red Flags
 
@@ -231,8 +250,9 @@ to respond.
 **Given** Superteam needs traceability for audit, future teammates, or
 debugging,
 **When** structured workflow state exists internally,
-**Then** that state remains available in artifacts, done-report data, PR
-surfaces, or agent context without forcing chat output into a status report.
+**Then** required evidence remains available in durable artifacts, done-report
+data, explicit handoff state, PR surfaces, or other inspectable records without
+forcing chat output into a status report.
 
 ### AC-58-6
 
@@ -257,8 +277,36 @@ blockers.
   prose hiding required decisions; resolved findings replayed by default;
   durable evidence removed under the banner of natural output; and Finisher
   status updates hiding latest-head blockers.
+- Capture RED behavior with realistic pressure scenarios before editing the
+  workflow surfaces, then rerun matching GREEN scenarios after edits.
 - Run `rg` checks for status-report-template terms and new invariant language.
 - Run `pnpm lint:md`.
+
+## Adversarial Review
+
+Reviewer context: fresh subagent.
+
+Dimensions checked: requirement completeness, AC clarity, RED/GREEN baseline
+obligations, rationalization resistance, red flags, token-efficiency targets,
+role ownership, stage-gate bypass paths, plan readiness, and the risk that
+natural prose could either lose evidence or hide actionable blockers.
+
+Findings:
+
+- `source: adversarial-review`, material finding: the first draft allowed an
+  inspection-only RED/GREEN baseline. Disposition: fixed in design by requiring
+  behavioral pressure-test baselines for Gate 1 replaying closed findings,
+  report-shaped handoffs, and natural prose hiding blockers, plus matching
+  GREEN reruns.
+- `source: adversarial-review`, material finding: the first draft allowed
+  required traceability to live in ephemeral agent context. Disposition: fixed
+  in design by tightening the requirements, findings presentation, AC-58-5, and
+  rationalization table so required evidence remains in durable or explicit
+  handoff surfaces when future teammates or reviewers depend on it.
+
+Rerun note: these findings changed baseline obligations and traceability
+requirements. The affected review dimensions must be rerun against the revised
+committed artifact before Gate 1 approval.
 
 ## Out Of Scope
 
