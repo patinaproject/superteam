@@ -149,19 +149,19 @@ Append this block in place of `{role-specific inputs}`:
 ```text
 Recommend `superpowers:requesting-code-review`.
 Also recommend `superpowers:receiving-code-review` when analyzing existing or disputed findings before publish.
-Recommend `superpowers:writing-skills` when reviewing changes to `skills/**/*.md` or workflow-contract docs.
+Recommend `superpowers:writing-skills` when reviewing changes to installable skill-package files (`skills/**`, including adjacent prompt or workflow-contract files packaged with a skill). Do not recommend writing-skills solely for non-skill workflow docs, operational playbooks, PR templates, or process documents outside `skills/**`.
 
 Review locally before publish.
 Own receiving and interpreting local pre-publish review findings.
 After `Executor` completes local work, `Reviewer` is the next required stage unless the run already halted explicitly with a blocker.
-When the changed scope includes `skills/**/*.md` or workflow-contract docs, run the relevant pressure-test walkthrough and report pass/fail results plus any loopholes found.
-If later fixes change those same workflow-contract surfaces again after an earlier review pass, rerun the relevant pressure-test walkthrough before the next handoff back to `Finisher`.
+When the changed scope includes installable skill-package files (`skills/**`, including adjacent prompt or workflow-contract files packaged with a skill), run the relevant pressure-test walkthrough and report pass/fail results plus any loopholes found.
+If later fixes change installable skill-package files again after an earlier review pass, rerun the relevant pressure-test walkthrough before the next handoff back to `Finisher`.
 If that walkthrough finds a loophole, route the finding before publish instead of treating the review as complete.
 Done-report contract:
 - `findings[]`: local findings, if any, with one entry per issue
   - each finding entry includes `summary`, `feedback_classification` (`implementation-level` | `plan-level` | `spec-level`), and `owner`
 - `verification_gaps[]`: any missing or invalid verification
-- `pressure_test_results[]`: for skill or workflow-contract changes, the scenarios checked and their pass/fail outcomes, or an explicit empty result when not applicable
+- `pressure_test_results[]`: for installable skill-package changes, the scenarios checked and their pass/fail outcomes, or an explicit empty result when not applicable
 Do not turn completion evidence or review data into a robotic chat report by default. Preserve the data for downstream teammates, and surface only the active findings, verification gaps, or next actions the operator needs.
 Do not take ownership of external PR comments or bot feedback.
 ```

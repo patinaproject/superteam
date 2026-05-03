@@ -107,7 +107,7 @@ An explicit `inline` (or equivalent: `run inline`, `execute in this session`) in
 | `Brainstormer` | `opus` | Design reasoning, requirement framing, adversarial review, loophole-closure synthesis. |
 | `Planner` | `opus` | Plan structuring, workstream decomposition, dependency reasoning. |
 | `Executor` | `sonnet` | Bounded ATDD / implementation grunt work; cost and speed win without sacrificing correctness on tasks that already have explicit AC IDs and a committed plan. |
-| `Reviewer` | `opus` | Owns adversarial pressure-tests for `skills/**/*.md` and workflow-contract changes (per `### Reviewer`, which requires invoking `superpowers:writing-skills` and running the relevant pressure-test walkthrough before publish). That is deep adversarial reasoning, not bounded pattern matching — the same justification that puts `Brainstormer` on Opus. Operators can downshift via `model: sonnet for reviewer` for trivial repo-rule reviews. |
+| `Reviewer` | `opus` | Owns adversarial pressure-tests for installable skill-package changes (per `### Reviewer`, which requires invoking `superpowers:writing-skills` and running the relevant pressure-test walkthrough before publish when `skills/**` or packaged skill behavior changes). That is deep adversarial reasoning, not bounded pattern matching — the same justification that puts `Brainstormer` on Opus. Operators can downshift via `model: sonnet for reviewer` for trivial repo-rule reviews. |
 | `Finisher` | `sonnet` | CI triage, PR ops, status sweeps, mechanical follow-through. |
 
 Notes:
@@ -320,10 +320,10 @@ Headline behaviors:
 - Own receiving and interpreting local pre-publish review findings.
 - Recommend `superpowers:requesting-code-review` for first-pass local review.
 - Also recommend `superpowers:receiving-code-review` when analyzing existing or disputed findings before publish.
-- When reviewing changes to `skills/**/*.md` or workflow-contract docs, invoke `superpowers:writing-skills` and run the relevant pressure-test walkthrough before publish.
+- When reviewing changes to installable skill-package files (`skills/**`, including adjacent prompt or workflow-contract files packaged with a skill), invoke `superpowers:writing-skills` and run the relevant pressure-test walkthrough before publish. Do not invoke writing-skills solely because non-skill docs, operational playbooks, PR templates, or process documents outside `skills/**` describe a workflow.
 - When the change touches `skills/superteam/**` or any Superteam workflow-contract surface, run the skill-improver quality gate documented in `docs/skill-improver-quality-gate.md` (primary mode when the `skill-improver` and `plugin-dev` plugins are available, fallback mode otherwise) and capture the required completion evidence in the PR body.
-- If later fixes change those same workflow-contract surfaces again after an earlier review pass, rerun the relevant pressure-test walkthrough before handing the run back to `Finisher`.
-- Report pressure-test pass/fail results and any loopholes found for skill or workflow-contract changes.
+- If later fixes change installable skill-package files again after an earlier review pass, rerun the relevant pressure-test walkthrough before handing the run back to `Finisher`.
+- Report pressure-test pass/fail results and any loopholes found for installable skill-package changes.
 - Report local findings with `feedback_classification` (`implementation-level` | `plan-level` | `spec-level`) and an owner before routing.
 - Separate durable done-report or review data from operator-facing prose; the data must remain inspectable, but the chat handoff should be as natural and decision-focused as the situation allows.
 - Keep findings local; do not take ownership of external review feedback.
@@ -455,6 +455,7 @@ Before resolving or replying to comments tied to a prior branch state:
 | "It's simpler to just route through `superpowers:executing-plans` and let it ask the developer." | Execute-phase delegations bind directly to the chosen execution-mode skill per R14. Routing through `superpowers:executing-plans` on default paths surfaces a redundant prompt to the developer and is forbidden when the resolved mode is `team mode` or `subagent-driven`. |
 | "The maintainer already signed off on the direction; I can skip writing-skills and just draft the spec." | Per R25, when the design under brainstorming touches `skills/**/*.md` or any workflow-contract surface, invoking `superpowers:writing-skills` is unconditional on the trigger. Cited authority does not waive the rule. The discipline is required because the design itself must carry loophole-closure language, rationalization-table rows, red-flags bullets, token-efficiency targets, and a RED-phase baseline obligation for any new discipline rule. |
 | "The issue only says workflow contract; I don't know the file yet, so I can draft first and decide later." | Plausible skill or workflow-contract scope is enough to load `superpowers:writing-skills` before authoring requirements. If the intended surface is uncertain, load writing-skills first or halt for clarification. |
+| "It is a workflow contract, so Reviewer should invoke writing-skills." | `superpowers:writing-skills` is mandatory for installable skill-package changes, not for every non-skill workflow, playbook, PR template, or process document. Reviewer still performs local pre-publish review and any explicit repo-specific gate for non-skill workflow docs, but the workflow label alone is not a writing-skills trigger. |
 | "The parent model is fine, just inherit." | Per-role defaults are binding (R26). Silent inheritance is forbidden for every role except `Team Lead`. The operator's silence on which model to use is NOT permission to inherit — it means "use the per-role default". The only path to inheritance is the host runtime lacking a model-override mechanism, in which case `Team Lead` inherits-and-warns once per run. |
 | "The operator said 'go faster' — that's basically asking for Sonnet." | Ambiguous framing is NOT an operator override (R26, parallel to R14). Only canonical tokens (`model: opus`, `model: sonnet`, `model: haiku`, or `use <model>` / `with <model>`) override the per-role default. "Go faster" routes to the per-role default; for `Executor` that is already Sonnet. |
 | "Brainstormer's default is Opus, but the operator typed `model: sonnet`, so I'll keep Opus because the design needs reasoning." | Operator override always wins for the delegation it targets. `Team Lead` does not second-guess the operator's explicit token. Override scope is the next delegation only. |
@@ -491,7 +492,8 @@ Before resolving or replying to comments tied to a prior branch state:
 - `Executor` claiming completion without explicit task IDs, SHAs, or verification evidence.
 - `Reviewer` failing to classify findings as `implementation-level`, `plan-level`, or `spec-level`.
 - Local pre-publish review findings routed through `Finisher` instead of `Team Lead`.
-- Skill or workflow-contract changes reviewed without `superpowers:writing-skills` or a pressure-test walkthrough.
+- Installable skill-package changes under `skills/**` reviewed without `superpowers:writing-skills` or a pressure-test walkthrough.
+- Reviewer invokes `superpowers:writing-skills` for changes that touch only non-skill workflow docs, operational playbooks, PR templates, or process documents outside `skills/**`.
 - Local review findings taking ownership of external PR feedback away from `Finisher`.
 - `Finisher` resolving prior-state comments without checking current branch state first.
 - `Finisher` treating missing runtime wakeups as permission to stop early or present a completion-style handoff.
