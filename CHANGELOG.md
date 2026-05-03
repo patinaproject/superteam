@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/patinaproject/superteam/compare/v1.4.0...v1.4.1) (2026-05-03)
+
+
+### Bug Fixes
+
+* [#70](https://github.com/patinaproject/superteam/issues/70) restrict writing-skills review trigger ([#71](https://github.com/patinaproject/superteam/issues/71)) ([4f89e7c](https://github.com/patinaproject/superteam/commit/4f89e7ca2516f00832f6a68ba5e425634b916219))
+
 ## [1.4.0](https://github.com/patinaproject/superteam/compare/v1.3.0...v1.4.0) (2026-04-28)
 
 
