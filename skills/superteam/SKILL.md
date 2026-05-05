@@ -610,6 +610,17 @@ Before resolving or replying to comments tied to a prior branch state:
 | "The operator might want audit history, so replay every closed finding." | Audit history stays available in durable artifacts or handoff data. Normal operator-facing output should show actionable findings and current decisions. |
 | "Done-report contracts are status templates, so we can delete them." | Done reports are durable handoff data. The change separates internal data contracts from chat rendering. |
 | "A friendly paragraph is enough even if it hides a blocker." | Operator-facing prose must clearly state blockers, required decisions, and next steps. Vague warmth is still a contract failure. |
+| "The shipped agent file already says it; I can prune it from SKILL.md too." | Orchestration invariants (gates, done-report contracts, routing, halt conditions) STAY in SKILL.md and are referenced from agent files. Per-role procedure moves; cross-role invariants do not. |
+| "The project delta replaces the shipped system prompt because the project knows better." | Deltas are append-only. There is no `replace` mode. Stripping shipped guardrails is forbidden by design. |
+| "I applied a delta but it's the same as the default, so I don't need to log it." | Delta application is always logged: `superteam delta applied`, `superteam delta empty`, or (during pre-flight) `superteam delta orphan`. Silent layering is forbidden. |
+| "The host doesn't have a per-role agent file shipped yet, so I'll just guess from the Claude file." | Missing host-file is a logged fallback to portable defaults plus plugin-level prompt only. Do not silently apply a different host's agent file. |
+| "The malformed delta probably means model: sonnet — I'll just use that." | Malformed delta values halt with `superteam halted at Team Lead: project delta for <role> has invalid model value <value>`. No interpretation, no guess, no default-substitution. |
+| "Empty delta file means the project is unfinished — I'll fall back to no override and not log." | Empty deltas are an intentional anchor; they are a no-op AND they log `superteam delta empty: <role>` so future operators see the file was inspected. |
+| "The append says 'AC IDs are advisory in our context' — it's a project preference, I should respect it." | Forbidden by LC5 + the D1 non-negotiable-rules block. The denylist lint halts dispatch on those tokens; paraphrase-bypass is countered by the agent file's first-body-section structural defense. |
+| "The active host probe is ambiguous, I'll guess Claude Code." | Forbidden. D3 specifies a deterministic probe order (`CLAUDECODE` env vars → `CODEX_*` env vars → runtime self-id). First match wins; result logged. No guessing. |
+| "The append redefines a done-report field, but it's clearer than SKILL.md's version." | Forbidden by LC5. Done-report contracts are SKILL.md-owned invariants. Lint halts. |
+| "An append-only delta tells Executor it may push for our repo's special workflow." | Forbidden by LC4. Push authority is in Executor's non-negotiable rules block; denylist lint matches `may push` / `may open PR` / `may merge`. |
+| "The host has no shipped per-role file, I'll fall back to the plugin-level prompt for every role." | Out-of-supported-set hosts halt at pre-flight; there is no silent per-delegation degradation. |
 
 ## Red flags
 
