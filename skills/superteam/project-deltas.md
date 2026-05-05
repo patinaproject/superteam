@@ -1,9 +1,10 @@
 # Project deltas (Team Lead supporting reference)
 
 This file is referenced from `SKILL.md` `## Project deltas (Team Lead lookup)` and
-carries the literal bodies that section names. `SKILL.md` remains the orchestration
-spec; this file is normative for the literal token list, halt strings, audit-log
-format strings, and the `resolve_role_config` pseudocode body.
+`## Model selection` and carries the literal bodies those sections name. `SKILL.md`
+remains the orchestration spec; this file is normative for the literal token list,
+halt strings, audit-log format strings, the `resolve_role_config` pseudocode body,
+and the model-override grammar examples and loophole-closure enumeration.
 
 ---
 
@@ -122,3 +123,49 @@ Probe order — first match wins; result logged once at pre-flight as
 
 Supported host set: `{ claude-code, codex }`. Out-of-supported-set hosts halt at
 pre-flight (see halt strings above).
+
+---
+
+## Model-override grammar examples
+
+Canonical override tokens (case-insensitive; whitespace around the colon is permitted):
+
+- `model: opus` and aliases `use opus`, `with opus`
+- `model: sonnet` and aliases `use sonnet`, `with sonnet`
+- `model: haiku` and aliases `use haiku`, `with haiku`
+
+Targeted form: `model: <model> for <role>`, e.g. `model: opus for executor`.
+
+Phrases that do NOT count as an override — `Team Lead` MUST resolve to the per-role
+default and MUST NOT route these through the override path:
+
+- "use the better model"
+- "go cheap" / "go fast" / "go faster"
+- "use the fast model" / "fast model"
+- "use the smart model" / "smart model"
+- "save tokens" / "be efficient"
+- "this is taking too long"
+- Any phrasing that names a model family informally without the canonical token
+  (e.g. "use Claude opus please" without `model:` or `use opus`)
+
+---
+
+## Model-override loophole closure
+
+1. **Model selection is binding.** Per-role defaults are not advisory; they are the
+   contract. The only legitimate departures are an explicit operator override (per the
+   grammar above) or the inherit-and-warn capability fallback.
+2. **Ambiguous framing is NOT an override.** "Go faster", "use the smart model",
+   "save tokens", "this is taking too long" — none of these reach the override path.
+   Only canonical tokens do. The matching rule is substring on canonical token forms;
+   no fuzzy interpretation; no LLM-based intent inference.
+3. **Operator silence is NOT permission to inherit.** "The operator didn't say which
+   model" means "use the per-role default", not "inherit from the parent session".
+   Inheritance is the explicit `inherit` value for `Team Lead` only, plus the
+   inherit-and-warn capability fallback.
+4. **Operator override always wins for its targeted delegation.** `Team Lead` does not
+   override the operator with a per-role default reasoning ("but Brainstormer needs
+   Opus"). The override scope is one delegation; defaults reassert on the next.
+5. **No persistent override memory.** An override targets one delegation. There is no
+   "the operator said opus once so use opus forever" behavior. Each delegation
+   re-resolves from prompt + per-role default.

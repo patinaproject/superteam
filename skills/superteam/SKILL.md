@@ -58,7 +58,7 @@ Summary of the sequence:
 - Derive the detected phase per the rules below.
 - Classify the operator prompt per `routing-table.md`.
 - Resolve execution mode per `pre-flight.md` `## Execution-mode capability detection`, then route per `routing-table.md`.
-- Probe active host deterministically: `CLAUDECODE`/`CLAUDE_CODE_*` env-var family present → `claude-code`; `CODEX_*` env-var family present → `codex`; otherwise runtime self-id via capability probe. Log `superteam active host: <name> (probe=<source>)`. Out-of-supported-set hosts halt with `superteam halted at pre-flight: host <host> has no shipped per-role agent files; supported hosts: claude-code, codex`.
+- Probe active host deterministically (env-var families → runtime self-id; first match wins); log `superteam active host: <name> (probe=<source>)`. Out-of-set hosts halt. Probe order in [`project-deltas.md` `## Active-host probe order`](./project-deltas.md#active-host-probe-order).
 - Scan `docs/superpowers/*.md` once: any filename whose role-slug does not match a shipped role emits a single `superteam delta orphan: docs/superpowers/<file> does not match any shipped role` warning. Run continues.
 
 Phase derivation rules:
@@ -69,33 +69,19 @@ Phase derivation rules:
 - PR open or merged -> `finish`, with `Finisher` substate derived from PR / CI / review state
 - artifacts and PR state cannot be reconciled -> halt per `pre-flight.md` `## Halt conditions`
 
-When observable state is ambiguous or contradictory per `pre-flight.md` halt conditions, halt with `superteam halted at Team Lead: <reason>` per `## Failure handling`.
-
-Execution-mode capability probing is part of this pre-flight. See `pre-flight.md` section `## Execution-mode capability detection` for the deterministic probe order, and `## Execution-mode injection` below for delegation-time injection. Missing execution capability halts only when the selected route requires execute-phase delegation; non-execute routes continue through their owning teammate.
-
-Runtime capabilities are execution aids for the existing teammate and `Finisher` loops, not separate workflows or replacement contracts. Keep runtime-specific checks lightweight, prefer available team-mode or durable follow-up features only when they fit the current work, and continue through the portable teammate contracts when a preferred capability is unavailable.
+Ambiguous or contradictory state halts with `superteam halted at Team Lead: <reason>` per `## Failure handling`. Missing execution capability halts only routes that require execute-phase delegation; non-execute routes continue. Runtime capabilities are execution aids, not replacement contracts.
 
 ## Execution-mode injection
 
-`Team Lead` probes execution capability during pre-flight (per `pre-flight.md` `## Execution-mode capability detection`) and binds every execute-phase delegation to the resolved mode at delegation time. If no execution mode is available, halt only when the selected route requires execute-phase delegation.
+`Team Lead` probes execution capability in pre-flight and binds every execute-phase delegation to the resolved mode (R14):
 
-Rule (R14):
+- Prefer **team mode** (R17 detection); fall back to **subagent-driven** (`superpowers:subagent-driven-development`). NEVER route through `superpowers:executing-plans` on default paths.
+- **Never auto-select inline.** Only an explicit `inline` / `run inline` / `execute in this session` token in the operator prompt may route through `superpowers:executing-plans`.
+- Missing capability blocks only execute-phase routes; approval, review, and Finisher status work continue.
 
-- Prefer **team mode** when `Team Lead` recorded that capability as available during pre-flight (per R17). In team mode, `Team Lead` invokes the host's native team-mode capability directly.
-- Otherwise fall back to **subagent-driven** by invoking `superpowers:subagent-driven-development` directly. Delegation prompts in this mode MUST NOT instruct the teammate to invoke `superpowers:executing-plans`.
-- **Never auto-select inline.** Inline is only reachable when the operator explicitly overrides the default with an unambiguous token (`inline`, `run inline`, `execute in this session`); only an explicit override may route through `superpowers:executing-plans`.
-- Missing team-mode or subagent-driven capability does not block non-execute routes such as approval, review, or `Finisher` status checks. It blocks only routes that need execute-phase delegation.
+Team Lead duties: detect team-mode in pre-flight; bind directly; inject resolved mode into delegation prompt; carry suppression into nested delegations; do not prompt the developer to choose.
 
-Team Lead duties (R14):
-
-- Detect host-runtime team-mode capability up front in pre-flight, alongside phase detection (extending `## Pre-flight` capability checks per `pre-flight.md`), using the deterministic detection rule in R17.
-- Bind every execution-phase delegation to the chosen execution-mode skill **directly** (`superpowers:subagent-driven-development` for the subagent path, or the host's native team-mode capability for the team path). The delegation MUST NOT name `superpowers:executing-plans` as the entry skill when the resolved mode is `team mode` or `subagent-driven`.
-- Inject the pre-selected execution mode into every execution-phase delegation prompt so the developer is not prompted to choose.
-- State the resolved mode in the delegation prompt and instruct the teammate not to ask the operator to choose between subagent-driven and inline execution. Carry the same suppression wording into any nested delegation the teammate performs for the same execution batch.
-
-Operator override:
-
-An explicit `inline` (or equivalent: `run inline`, `execute in this session`) instruction in the prompt switches the resolved mode to inline for that delegation only, and is the only path that may route through `superpowers:executing-plans`. Ambiguous "inline-ish" / "faster" / "forever" framing is NOT an override.
+Operator override: explicit `inline` (or equivalent) switches mode for that delegation only. Ambiguous framing is NOT an override.
 
 ## Model selection
 
@@ -103,70 +89,27 @@ An explicit `inline` (or equivalent: `run inline`, `execute in this session`) in
 
 ### Per-teammate model defaults
 
-Per-role default model values live in the shipped agent file frontmatter (`skills/superteam/.claude/agents/<role>.md` and `skills/superteam/agents/<role>.openai.yaml`) as the single home. The `model:` frontmatter field is authoritative. This section retains only the override grammar, binding mechanism, capability fallback, and loophole closure.
-
-- `inherit` for `Team Lead` is a literal value, not a synonym for "no contract". `Team Lead` is the only role for which inheritance is the default; every other delegation MUST resolve to one of `opus`, `sonnet`, or `haiku`.
-- Defaults are deliberately static. Dynamic per-task complexity scoring is out of scope.
+Per-role defaults live in the shipped agent file frontmatter (`model:` field is authoritative). `inherit` for `Team Lead` is a literal value; every other delegation MUST resolve to `opus`, `sonnet`, or `haiku`. Defaults are deliberately static.
 
 ### Operator override grammar
 
 The override grammar mirrors R14's discipline: only unambiguous tokens count. The matching rule is the same as R14 inline override — substring match on the canonical token forms only, no fuzzy interpretation.
 
-Canonical override tokens: the following tokens, when present in the operator prompt, override the per-role default for the next delegation only:
+Canonical override tokens (`model: opus`, `model: sonnet`, `model: haiku`, or `use <model>` / `with <model>`) override the per-role default for the next delegation only. Targeted form: `model: <model> for <role>`. Matching is case-insensitive; token applies to the next teammate delegation only; does NOT persist. The full grammar examples and the non-override phrase list live in [`project-deltas.md` `## Model-override grammar examples`](./project-deltas.md#model-override-grammar-examples).
 
-- `model: opus` (canonical) and aliases `use opus`, `with opus`
-- `model: sonnet` (canonical) and aliases `use sonnet`, `with sonnet`
-- `model: haiku` (canonical) and aliases `use haiku`, `with haiku`
-
-Token matching is case-insensitive. Whitespace around the colon is permitted (`model:opus`, `model :opus`). The token applies to the next teammate delegation `Team Lead` performs in response to the prompt; it does NOT persist across `/superteam` invocations and does NOT change the per-role default.
-
-Targeted override: when the operator wants to override a specific teammate role rather than the next delegation, the targeted form is `model: <model> for <role>`, e.g. `model: opus for executor`.
-
-What does NOT count as an override — `Team Lead` MUST resolve to the per-role default and MUST NOT route these through the override path:
-
-- "use the better model"
-- "go cheap" / "go fast" / "go faster"
-- "use the fast model" / "fast model"
-- "use the smart model" / "smart model"
-- "save tokens" / "be efficient"
-- "this is taking too long"
-- Any phrasing that names a model family informally without the canonical token (e.g. "use Claude opus please" without `model:` or `use opus`)
-
-This list mirrors the R14 inline-override discipline: ambiguous "inline-ish" framing is not an override, and ambiguous "model-ish" framing is not an override either.
-
-Override scope: operator override always wins over the per-role default for the delegation it targets. After that delegation completes, subsequent delegations revert to the per-role default. There is no implicit "remember the last override" behavior.
+Override scope: operator override always wins for its targeted delegation; subsequent delegations revert to the per-role default. There is no implicit "remember the last override" behavior.
 
 ### Binding mechanism
 
-For each teammate delegation, `Team Lead` resolves `{model}` in this order:
-
-1. If the operator prompt contains a canonical override token (per `### Operator override grammar`) targeting this delegation, use the override.
-2. Otherwise, use the per-role default from `### Per-teammate model defaults`.
-3. If the per-role default is `inherit`, do not pass a `model` parameter; inherit from the parent session.
-
-Binding surfaces:
-
-- **Claude Code (`Agent` tool)**: bind by setting the `model` parameter on the `Agent` tool call to one of `sonnet`, `opus`, `haiku`. This is the canonical surface.
-- **Other host runtimes**: when the host's subagent-dispatch surface accepts an analogous model parameter, bind to that surface.
+Resolution order per delegation: (1) canonical operator override token targeting this delegation; (2) per-role default from agent file frontmatter; (3) `inherit` → no model parameter passed. Binding surface for Claude Code: `model` parameter on the `Agent` tool call. Other host runtimes use the analogous dispatch parameter.
 
 ### Capability fallback
 
-Some host runtimes do not expose a model-override mechanism. The fallback rule is inherit-and-warn, not halt:
-
-1. During pre-flight, `Team Lead` probes whether the active subagent-dispatch surface accepts a model-override parameter (per `pre-flight.md` `## Model-override capability detection`).
-2. If model-override capability is unavailable, `Team Lead` records `model_override_capability=unavailable` in the pre-flight output.
-3. For each subsequent delegation, `Team Lead` proceeds without binding a model and surfaces a single warning per run: "host runtime lacks model-override capability; per-role model defaults could not be applied; all delegations will inherit the parent session model."
-4. The run does NOT halt. Model selection is an optimization (cost, speed, fit), not a correctness gate.
-
-This deliberately differs from R14's execution-mode capability rule, which halts execute-phase routes when no execution mode is available. Execution mode is a correctness-of-dispatch gate; model selection is a cost/fit gate.
+When the host lacks a model-override mechanism, `Team Lead` records `model_override_capability=unavailable` in pre-flight output, proceeds without binding a model, and surfaces a single warning per run (inherit-and-warn, not halt). Model selection is a cost/fit gate; execution mode is a correctness gate — these behave differently when the capability is unavailable.
 
 ### Loophole closure
 
-1. **Model selection is binding.** Per-role defaults are not advisory; they are the contract. The only legitimate departures are an explicit operator override (per `### Operator override grammar`) or the inherit-and-warn capability fallback.
-2. **Ambiguous framing is NOT an override.** This mirrors R14. "Go faster", "use the smart model", "save tokens", "this is taking too long" — none of these reach the override path. Only canonical tokens do. The matching rule is substring on canonical token forms; no fuzzy interpretation; no LLM-based intent inference.
-3. **Operator silence is NOT permission to inherit.** "The operator didn't say which model" means "use the per-role default", not "inherit from the parent session". Inheritance is the explicit `inherit` value for `Team Lead` only, plus the inherit-and-warn capability fallback.
-4. **Operator override always wins for its targeted delegation.** `Team Lead` does not override the operator with a per-role default reasoning ("but Brainstormer needs Opus"). The override scope is one delegation; defaults reassert on the next.
-5. **No persistent override memory.** An override targets one delegation. There is no "the operator said opus once so use opus forever" behavior. Each delegation re-resolves from prompt + per-role default.
+Model selection is binding; per-role defaults are not advisory. Ambiguous framing is NOT an override. Operator silence is NOT permission to inherit. Override always wins for its targeted delegation only; no persistent override memory. The enumerated loophole-closure rules live in [`project-deltas.md` `## Model-override loophole closure`](./project-deltas.md#model-override-loophole-closure).
 
 ## Project deltas (Team Lead lookup)
 
@@ -210,102 +153,23 @@ System-prompt deltas are append-only by design. There is no `replace` mode. A pr
 
 ### Closed denylist (LC5)
 
-Team Lead scans every `## System prompt append` block before merging. A match on any of the following tokens halts dispatch:
-
-```text
-["AC IDs are advisory", "AC-<issue>- is advisory", "may push", "may open PR",
- "may merge", "skip writing-skills", "redefine done-report", "override halt"]
-```
+Team Lead lints every system-prompt-append against a closed denylist of forbidden-intent tokens; matches halt dispatch. The literal token list lives in [`project-deltas.md` `## Forbidden-append denylist (LC5)`](./project-deltas.md#forbidden-append-denylist-lc5).
 
 ### `resolve_role_config` algorithm (D5)
 
-Team Lead runs this once per delegation:
+Team Lead executes the `resolve_role_config` algorithm at delegation time to merge shipped + delta + operator-prompt config, lint LC5, compute the non-negotiable-rules SHA-256 prefix (LC4), and emit the audit line. The algorithm body lives in [`project-deltas.md` `## resolve_role_config algorithm`](./project-deltas.md#resolve_role_config-algorithm).
 
-```python
-def resolve_role_config(role, host, host_tool_capabilities):
-    shipped = load_shipped_agent_file(role, host)      # D1, host-aware (D3)
-    rules_sha = sha256_8(shipped.non_negotiable_rules_block)
-    delta_path = repo_root / "docs/superpowers" / f"{role}.md"
-    if not delta_path.exists():
-        return shipped                                 # missing -> shipped unchanged
-    raw = read_text(delta_path)
-    if raw.strip() == "":                              # zero-byte / whitespace
-        log_audit(f"superteam delta empty: {role}")
-        return shipped
-    parsed = parse_delta_file(raw)
-    if not parsed.has_frontmatter and parsed.has_body_sections:
-        halt(f"superteam halted at Team Lead: project delta for "
-             f"{role} is missing required frontmatter agent field")
-    if parsed.has_frontmatter and not parsed.has_body_sections:
-        log_audit(f"superteam delta empty: {role}")
-        return shipped
-    if parsed.frontmatter_agent != role:
-        halt("superteam halted at Team Lead: project delta for "
-             f"{role} declares agent {parsed.frontmatter_agent}")
-    # Forbidden-append lint (LC5) — runs before any merge.
-    matched = match_invariant_denylist(parsed.append)
-    if matched:
-        halt(f"superteam halted at Team Lead: project delta for "
-             f"{role} attempts to weaken non-negotiable rules (matched: {matched})")
-    config = shipped.copy()
-    if parsed.model is not None:
-        if parsed.model not in {"opus", "sonnet", "haiku", "inherit"}:
-            halt("superteam halted at Team Lead: project delta for "
-                 f"{role} has invalid model value {parsed.model}")
-        if parsed.model == "inherit" and shipped.model != "inherit":
-            log_audit(f"superteam delta inherit-redundant: {role}")
-            # resolves to shipped.model; no override applied
-        else:
-            config.model = parsed.model
-    # Tool merge with host-capability filter (N4).
-    proposed_allow = parsed.tools_allow
-    unavailable = proposed_allow - host_tool_capabilities
-    for tool in unavailable:
-        log_audit(f"superteam delta tool unavailable: {role} {tool}@{host}")
-    proposed_allow = proposed_allow & host_tool_capabilities
-    config.tools = (config.tools | proposed_allow) - parsed.tools_deny
-    if parsed.append:
-        config.system_prompt = config.system_prompt + "\n\n" + parsed.append
-    log_audit(
-        f"superteam delta applied: {role} ({applied_fields(parsed)}); "
-        f"non-negotiable-rules-sha={rules_sha}"
-    )
-    # Operator R26 model override (model layer only) applied AFTER this,
-    # before binding the dispatch parameter.
-    return config
-```
+### Audit-log strings (N9, LC3)
 
-### Audit-log emission rules (N9, LC3)
-
-- **Default destination:** operator-facing chat surface.
-- **Fallback:** stderr only when no chat surface is available (e.g. headless CI). On fallback, re-emit at the start of Team Lead's next chat-bearing message so the operator never permanently loses the audit trail.
-
-### Audit log strings
-
-- `superteam delta applied: <role> (<applied-fields>); non-negotiable-rules-sha=<8-char-prefix>`
-- `superteam delta empty: <role>`
-- `superteam delta orphan: docs/superpowers/<file> does not match any shipped role`
-- `superteam delta inherit-redundant: <role>`
-- `superteam delta tool unavailable: <role> <tool>@<host>`
-- `superteam active host: <name> (probe=<source>)`
+Team Lead emits one of the documented audit lines for every delegation (chat-first, stderr fallback per N9). The literal format strings live in [`project-deltas.md` `## Audit-log strings`](./project-deltas.md#audit-log-strings-team-lead-emits-these-verbatim). Every applied-line carries `non-negotiable-rules-sha=<8-char-prefix>` (LC4).
 
 ### Halt strings
 
-- `superteam halted at Team Lead: project delta for <role> has invalid model value <value>`
-- `superteam halted at Team Lead: project delta for <role> declares agent <other>`
-- `superteam halted at Team Lead: project delta for <role> is missing required frontmatter agent field`
-- `superteam halted at Team Lead: project delta for <role> attempts to weaken non-negotiable rules (matched: <pattern>)`
-- `superteam halted at pre-flight: host <host> has no shipped per-role agent files; supported hosts: claude-code, codex`
+On any of the documented failure modes (invalid model value, agent-disagreement, missing frontmatter, denylist match, unsupported host) Team Lead emits a verbatim halt string; the literal strings live in [`project-deltas.md` `## Halt strings`](./project-deltas.md#halt-strings-team-lead-emits-these-verbatim).
 
 ### Deterministic active-host probe (D3)
 
-Probe order — first match wins; result logged once at pre-flight as `superteam active host: <name> (probe=<source>)`:
-
-1. `CLAUDECODE` / `CLAUDE_CODE_*` env-var family present → `claude-code`
-2. `CODEX_*` env-var family present → `codex`
-3. Runtime self-id via capability probe (same surface used by R26 model-override detection)
-
-Supported host set: `{ claude-code, codex }`. Out-of-supported-set hosts halt at pre-flight (see halt strings above).
+Pre-flight probes the active host deterministically (env-var families first, runtime self-id last; first match wins). The literal probe order lives in [`project-deltas.md` `## Active-host probe order`](./project-deltas.md#active-host-probe-order).
 
 ### Empty / frontmatter-only / body-only cases (N6)
 
@@ -315,19 +179,11 @@ Supported host set: `{ claude-code, codex }`. Out-of-supported-set hosts halt at
 
 ## Canonical rule discovery
 
-Before any teammate touches governed files, discover the canonical repository rules from repo guidance instead of relying on hard-coded literals:
-
-1. Read root contributor guidance such as `AGENTS.md` when present.
-2. Read any local docs that govern the files you will touch.
-3. Treat repository guidance as authoritative over remembered workflow shortcuts.
-
-If canonical guidance cannot be found, halt and surface the blocker instead of guessing.
+Before touching governed files, read root contributor guidance (`AGENTS.md` when present) and any local docs that govern the files; treat repository guidance as authoritative over remembered shortcuts. If canonical guidance cannot be found, halt and surface the blocker instead of guessing.
 
 ## Artifact handoff authority
 
-Handoffs that depend on uncommitted durable artifact changes are incomplete unless the run halts explicitly with a blocker.
-
-For artifact-producing handoffs, the workflow should trust committed branch state rather than dirty workspace state. Downstream teammates should be able to rely on inspectable commits instead of inferring intent from uncommitted local changes.
+Handoffs depending on uncommitted artifact changes are incomplete unless the run halts explicitly with a blocker. Trust committed branch state; downstream teammates rely on inspectable commits, not uncommitted local changes.
 
 ## Operator-facing output
 
@@ -335,13 +191,7 @@ Superteam chat output should satisfy workflow invariants rather than render a fi
 
 Structured bullets and headings are allowed when they help the operator act. They are not mandatory report shells.
 
-Separate durable workflow data from chat rendering:
-
-- Keep required evidence, done-report fields, review findings, AC verification, loopback state, PR state, and shutdown evidence in durable artifacts, explicit handoff data, PR surfaces, or other inspectable records when downstream teammates or future sessions depend on them.
-- Do not rely on volatile agent context as the only home for required evidence.
-- Do not dump every durable field into the operator-facing response unless those fields affect the current decision.
-- Surface active blockers, active findings, requested approvals, requested feedback, and next steps clearly.
-- Do not enumerate closed, resolved, or dispositioned findings in normal operator-facing output unless they affect the current operator decision.
+Separate durable workflow data from chat rendering: keep required evidence in durable artifacts and PR surfaces, not volatile agent context; surface active blockers, findings, and next steps clearly; do not dump every durable field or enumerate closed findings unless they affect the current operator decision.
 
 ## Gate 1: Brainstormer approval
 
@@ -370,11 +220,7 @@ If adversarial review changes the design, `Brainstormer` must commit the revised
 
 If the approval packet is too large to present cleanly, split it into multiple approval requests or sections. Do not collapse it into a vague fallback summary.
 
-If revisions are requested after an approval pass, re-fire approval with delta-only content:
-
-1. Include only the changed sections or decisions.
-2. Include only the requirements changed by those deltas.
-3. Keep already-approved content authoritative unless it changed.
+If revisions are requested after an approval pass, re-fire approval with delta-only content: include only changed sections or decisions, only requirements changed by those deltas; keep already-approved content authoritative unless it changed.
 
 ## Routing table
 
@@ -449,21 +295,13 @@ Feedback routing is same-run state unless the finding is captured in visible dur
 
 When a later run resumes with committed implementation work and no PR, and prior local pre-publish findings cannot be proven resolved from visible state, route through `Reviewer` before `Finisher` can publish. `Reviewer` reruns or reconstructs the local pre-publish review from visible artifacts and classifies any remaining findings before routing.
 
-Review interpretation happens at the intake point for that feedback:
-
-- `Reviewer` receives and classifies local pre-publish findings
-- `Finisher` receives and classifies external post-publish PR feedback
-- `Brainstormer`, `Planner`, and `Executor` own remediation after routing rather than primary review intake
+Review interpretation happens at the intake point: `Reviewer` classifies local pre-publish findings; `Finisher` classifies external post-publish PR feedback; `Brainstormer`, `Planner`, and `Executor` own remediation after routing, not primary review intake.
 
 ## External feedback ownership
 
 External PR comments, review threads, bot findings, and other repository feedback remain owned by `Finisher`, even when local `Reviewer` findings already exist.
 
-Before resolving or replying to comments tied to a prior branch state:
-
-1. Verify the current branch state against the state the comment referred to.
-2. Do not respond as if nothing changed when the comment no longer matches the current branch.
-3. Re-route requirement-bearing feedback through the spec-first path.
+Before resolving comments tied to a prior branch state: verify current state matches the state the comment referred to; do not respond as if nothing changed; re-route requirement-bearing feedback through the spec-first path.
 
 ## Rationalization table
 
@@ -501,7 +339,7 @@ Before resolving or replying to comments tied to a prior branch state:
 | "The host doesn't have a per-role agent file shipped yet, so I'll just guess from the Claude file." | Missing host-file is a logged fallback to portable defaults plus plugin-level prompt only. Do not silently apply a different host's agent file. |
 | "The malformed delta probably means model: sonnet — I'll just use that." | Malformed delta values halt with `superteam halted at Team Lead: project delta for <role> has invalid model value <value>`. No interpretation, no guess, no default-substitution. |
 | "Empty delta file means the project is unfinished — I'll fall back to no override and not log." | Empty deltas are an intentional anchor; they are a no-op AND they log `superteam delta empty: <role>` so future operators see the file was inspected. |
-| "The append says 'AC IDs are advisory in our context' — it's a project preference, I should respect it." | Forbidden by LC5 + the D1 non-negotiable-rules block. The denylist lint halts dispatch on those tokens; paraphrase-bypass is countered by the agent file's first-body-section structural defense. |
+| "A project delta append treats acceptance-criteria IDs as advisory — it's a project preference, I should respect it." | Forbidden by LC5 + the D1 non-negotiable-rules block. The denylist lint halts dispatch on any forbidden-intent token (see [`project-deltas.md`](./project-deltas.md#forbidden-append-denylist-lc5)); paraphrase-bypass is countered by the agent file's first-body-section structural defense. |
 | "The active host probe is ambiguous, I'll guess Claude Code." | Forbidden. D3 specifies a deterministic probe order (`CLAUDECODE` env vars → `CODEX_*` env vars → runtime self-id). First match wins; result logged. No guessing. |
 | "The append redefines a done-report field, but it's clearer than SKILL.md's version." | Forbidden by LC5. Done-report contracts are SKILL.md-owned invariants. Lint halts. |
 | "An append-only delta tells Executor it may push for our repo's special workflow." | Forbidden by LC4. Push authority is in Executor's non-negotiable rules block; denylist lint matches `may push` / `may open PR` / `may merge`. |
@@ -575,6 +413,7 @@ A successful run routes from observable state, preserves committed handoffs, pub
 - [.claude/agents/](./.claude/agents/): shipped per-role Claude Code subagent files.
 - [agents/](./agents/): plugin metadata (`openai.yaml`) and per-role Codex parity files (`<role>.openai.yaml`).
 - `docs/superpowers/<role>.md` in the consuming repo: project override surface (see `## Project deltas (Team Lead lookup)`).
+- [project-deltas.md](./project-deltas.md): Team Lead supporting reference — literal denylist tokens, halt/audit-log format strings, active-host probe order, and the `resolve_role_config` algorithm body. SKILL.md names every rule; this file carries the literal bodies.
 - [pre-flight.md](./pre-flight.md): phase-detection sequence, execution-mode capability detection, halt conditions
 - [routing-table.md](./routing-table.md): phase x prompt-class routing, classification heuristic, resume vs restart, Gate 1 durability
 - [workflow-diagrams.md](./workflow-diagrams.md): canonical chronological and orchestration diagrams
