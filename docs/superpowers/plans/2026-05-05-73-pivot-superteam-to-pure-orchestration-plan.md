@@ -4,7 +4,41 @@
 
 **Goal:** Refactor `skills/superteam` into a pure orchestrator: ship per-role host-native agent files for Claude Code and Codex, allow project-level deltas at `docs/superpowers/<role>.md`, and strip per-stage procedural prose from `SKILL.md` while preserving every gate and orchestration invariant.
 
-**Architecture:** Two-layer config: shipped agent files (`skills/superteam/.claude/agents/<role>.md` + `skills/superteam/agents/<role>.openai.yaml`, twelve files) carry per-role defaults; consuming projects add deltas at `docs/superpowers/<role>.md` (append-only system prompt + Model + Tools). Team Lead's `resolve_role_config` algorithm (D5) merges them at delegation time with audit logging, denylist lint (LC5), non-negotiable-rules SHA prefix (LC4), and host-capability tool filter (N4). `SKILL.md` shrinks from ~589 lines to ≤280 lines, retaining ONLY orchestration: pre-flight, routing, gates, model selection grammar (without per-role default values), done-report contracts, halt conditions.
+**Architecture:** Two-layer config: shipped agent files (`skills/superteam/.claude/agents/<role>.md` + `skills/superteam/agents/<role>.openai.yaml`, twelve files) carry per-role defaults; consuming projects add deltas at `docs/superpowers/<role>.md` (append-only system prompt + Model + Tools). Team Lead's `resolve_role_config` algorithm (D5) merges them at delegation time with audit logging, denylist lint (LC5), non-negotiable-rules SHA prefix (LC4), and host-capability tool filter (N4). `SKILL.md` shrinks from ~589 lines to ≤420 lines (revised from the WS5 target of 280; see Amendment 2026-05-05a below), retaining ONLY orchestration: pre-flight, routing, gates, model selection grammar (without per-role default values), done-report contracts, halt conditions. Load-bearing literals that bloat SKILL.md without aiding orchestration discoverability (the `resolve_role_config` pseudocode body, the closed denylist token list, audit-log/halt format strings) live in a referenced supporting file `skills/superteam/project-deltas.md` per design D5's "SKILL.md or a referenced supporting file" allowance; SKILL.md still names every rule as a one-line invariant.
+
+---
+
+## Amendment 2026-05-05a — Split load-bearing prose to supporting file; revise AC-73-8 size target
+
+**Trigger.** After all authorized WS5 strips (commit `46ba32d`), `wc -l skills/superteam/SKILL.md` measured **580**, against AC-73-8's original target of ≤280. The remaining content is all orchestration — there is no per-role procedural prose left to strip. The design's D5 explicitly authorizes the `resolve_role_config` algorithm to live in "SKILL.md or a referenced supporting file"; the original 280 number was a late-stage greppable heuristic from the fresh-adversarial-review (N11) that did not price in the WS4 additions (project-delta section + denylist + audit-log + halt strings + host probe).
+
+**Decision.** Insert workstream **WS5.5** to split load-bearing literals into `skills/superteam/project-deltas.md` (filename authorized by D5). Revise **AC-73-8** to `wc -l skills/superteam/SKILL.md ≤ 420` (with each agent body still ≤ 80). The intent of AC-73-8 ("SKILL.md is small enough to be orchestration-only") is preserved: SKILL.md continues to NAME every orchestration rule as a one-line invariant; the supporting file carries only the literal token list, format strings, and pseudocode body. AC-73-5 (no per-role procedure reintroduced) is unchanged and re-verified after WS5.5.
+
+**Scope of decision.** Plan-level only. The design doc is unchanged. D5's "SKILL.md or a referenced supporting file" already permits this split; AC-73-8's specific number was an in-plan heuristic, not a stakeholder-facing contract.
+
+**Rough size budget after WS5.5 (sketch of what remains in SKILL.md):**
+
+| Section | Approx. lines retained |
+|---|---|
+| Front matter + When to Use / When NOT / Canonical roster | ~45 |
+| `## Pre-flight` (incl. host probe + orphan scan invariants) | ~35 |
+| `## Execution-mode injection` | ~22 |
+| `## Model selection` (grammar only; per-role defaults removed in T4.2) | ~70 |
+| `## Project deltas (Team Lead lookup)` (one-line invariants + pointer to `project-deltas.md`) | ~30 |
+| `## Project overrides (docs/superpowers/<role>.md)` (T6.1) | ~30 |
+| `## Canonical rule discovery` / `## Artifact handoff authority` / `## Operator-facing output` | ~30 |
+| `## Gate 1: Brainstormer approval` | ~33 |
+| `## Routing table` | ~10 |
+| `## Teammate contracts` (collapsed pointer block; T5.1) | ~12 |
+| `## Missing skill warnings` / `## Done-report contracts` | ~35 |
+| `## Review and feedback routing` / `## External feedback ownership` | ~30 |
+| `## Rationalization table` (orchestration rows only) | ~30 |
+| `## Red flags` (orchestration rows only) | ~30 |
+| `## Shutdown` (one-line orchestration invariant; T5.2) | ~6 |
+| `## Failure handling` / `## Success criteria` / `## Supporting files` | ~25 |
+| **Estimated total** | **~470 → trimmed to ≤ 420** |
+
+The 420 ceiling leaves ~50 lines of headroom for any minor wording cleanup discovered during AC verification. If the post-WS5.5 measure overshoots 420, repeat extraction targeting the next-fattest literal block (most likely candidates: model-selection grammar examples, redundant audit-log restatements).
 
 **Tech Stack:** Markdown (skill + agent files), YAML frontmatter, ripgrep (`rg`) for greppable verifications, `wc -l` for size budgets, `git` + `pnpm exec markdownlint-cli2` for staged hygiene.
 
@@ -31,7 +65,7 @@
 
 ## Workstreams
 
-The plan decomposes into seven workstreams, executed roughly in order. Several inner tasks are parallelizable; that is called out per workstream.
+The plan decomposes into eight workstreams, executed roughly in order. Several inner tasks are parallelizable; that is called out per workstream.
 
 | WS | Title | Depends on | Parallelizable inside? |
 |---|---|---|---|
@@ -40,7 +74,8 @@ The plan decomposes into seven workstreams, executed roughly in order. Several i
 | **WS3** | Author Codex parity agent files (six) + repurpose `openai.yaml` | WS2 (bodies are ports) | T3.1–T3.6 parallelizable; T3.7 last |
 | **WS4** | Wire `resolve_role_config` + audit log into SKILL.md (orchestrator) | WS2 | T4.1–T4.6 sequential (single file) |
 | **WS5** | Strip moved sections from SKILL.md + delete superseded files | WS4 | T5.1–T5.4 sequential; T5.5 deletes |
-| **WS6** | Project override surface documentation | WS5 | sequential |
+| **WS5.5** | Split load-bearing literals into `project-deltas.md` (Amendment 2026-05-05a) | WS5 | T5.6 → T5.7 sequential (single SKILL.md edit chain) |
+| **WS6** | Project override surface documentation | WS5.5 | sequential |
 | **WS7** | AC verification matrix + skill-improver gate evidence + smoke runs (AC-73-3, AC-73-4, AC-73-6) | WS6 | T7.1–T7.8 mostly sequential (smoke runs depend on prior cuts) |
 
 ---
@@ -393,7 +428,7 @@ The new orchestration logic lives in `SKILL.md`. The algorithm is documented as 
 
 ### WS5 — Strip moved sections from SKILL.md + delete superseded files
 
-This is the cut where SKILL.md drops below 280 lines.
+This is the cut where SKILL.md sheds all per-role procedural prose. The size target was originally ≤ 280 lines here; per Amendment 2026-05-05a the size budget moves to WS5.5 (revised AC-73-8 ≤ 420), and WS5 is responsible only for AC-73-5 (no per-role procedure remains).
 
 #### T5.1: Delete `## Teammate contracts` per-role bodies
 
@@ -446,7 +481,7 @@ Cross-reference the design's D4 disposition: keep cross-role/orchestration rows;
 - [ ] **Step 2: Same pruning for `## Red flags`.** Per-role red flags move to the role's agent file body; orchestration red flags stay.
 - [ ] **Step 3: Verify size.**
   Run: `wc -l skills/superteam/SKILL.md`
-  Expected: ≤ 280 (AC-73-8). If over, repeat pruning targeting per-role rows.
+  Expected: per-role procedural prose fully removed (AC-73-5). The original AC-73-8 ≤ 280 target was revised by Amendment 2026-05-05a; the residual orchestration content drops below the revised ≤ 420 ceiling via WS5.5, not WS5. If WS5 leaves SKILL.md materially over ~580 lines, re-run pruning targeting any remaining per-role rows; otherwise proceed to WS5.5.
 
 - [ ] **Step 4: Commit.** `git commit -m "feat: #73 prune per-role rows from SKILL.md rationalization + red-flags"`
 
@@ -490,6 +525,85 @@ Cross-reference the design's D4 disposition: keep cross-role/orchestration rows;
 
 ---
 
+### WS5.5 — Split load-bearing literals into `project-deltas.md` (Amendment 2026-05-05a)
+
+After WS5 completes, `wc -l skills/superteam/SKILL.md` is ~580 — all orchestration. WS5.5 extracts the load-bearing literals (pseudocode, denylist tokens, halt/audit format strings) to a referenced supporting file per design D5's "SKILL.md or a referenced supporting file" allowance. SKILL.md must continue to NAME each rule as a one-line invariant; only the literal bodies move.
+
+**Files (whole workstream):**
+
+- Create: `skills/superteam/project-deltas.md`
+- Edit: `skills/superteam/SKILL.md` (sections `## Project deltas (Team Lead lookup)`, `## Supporting files`)
+
+#### T5.6: Author `skills/superteam/project-deltas.md`
+
+- [ ] **Step 1: Create the file** with H1 `# Project deltas (Team Lead supporting reference)` and a one-paragraph header noting this file is referenced from `SKILL.md` `## Project deltas (Team Lead lookup)` and carries the literal bodies that section names. State explicitly: SKILL.md remains the orchestration spec; this file is normative for the literal token list, halt strings, audit-log format strings, and the `resolve_role_config` pseudocode body.
+
+- [ ] **Step 2: Move content out of SKILL.md** into `project-deltas.md` under these sections (copying verbatim, then deleting from SKILL.md in T5.7):
+
+  - `## resolve_role_config algorithm` — the full pseudocode block currently in SKILL.md (sourced verbatim from design D5).
+  - `## Forbidden-append denylist (LC5)` — the closed token list verbatim:
+    `["AC IDs are advisory", "AC-<issue>- is advisory", "may push", "may open PR", "may merge", "skip writing-skills", "redefine done-report", "override halt"]`
+  - `## Halt strings (Team Lead emits these verbatim)` — the five-string halt table from T4.1 step 1.
+  - `## Audit-log strings (Team Lead emits these verbatim)` — the six-string audit table from T4.1 step 1.
+  - `## Active-host probe order` — the deterministic probe order from T4.1 step 2 (env-var families → runtime self-id; first match wins).
+
+- [ ] **Step 3: Verify the file.**
+  Run: `pnpm exec markdownlint-cli2 skills/superteam/project-deltas.md`
+  Expected: pass.
+  Run: `rg -F 'AC IDs are advisory' skills/superteam/project-deltas.md`
+  Expected: ≥1 match.
+  Run: `rg -F 'superteam halted at Team Lead: project delta for' skills/superteam/project-deltas.md`
+  Expected: ≥1 match.
+  Run: `rg -F 'superteam delta applied:' skills/superteam/project-deltas.md`
+  Expected: ≥1 match.
+
+- [ ] **Step 4: Commit.** `git commit -m "feat: #73 add project-deltas supporting file with delta literals"`
+
+#### T5.7: Trim `SKILL.md` `## Project deltas (Team Lead lookup)` to one-line invariants + add reference
+
+- [ ] **Step 1: Edit `## Project deltas (Team Lead lookup)`** in SKILL.md. Replace the literal bodies (pseudocode block, denylist token list, halt-strings table, audit-log strings table, host-probe-order block) with one-line invariants:
+
+  - Schema: `<repo-root>/docs/superpowers/<role>.md`, frontmatter `agent: <role>`, optional sections `## Model`, `## Tools`, `## System prompt append`. (Keep this in SKILL.md — it is the surface contract operators see.)
+  - Closed model enum `{ opus, sonnet, haiku, inherit }` (D2 / N3). (Keep — model layer is operator-facing.)
+  - Precedence: shipped → delta → operator-prompt (model layer only per N2). (Keep.)
+  - Append-only system-prompt rule (LC2). (Keep — one line.)
+  - **Replace the denylist token list** with a one-line invariant: "Team Lead lints every system-prompt-append against a closed denylist of forbidden-intent tokens; matches halt dispatch. The literal token list lives in [`project-deltas.md` `## Forbidden-append denylist (LC5)`](./project-deltas.md#forbidden-append-denylist-lc5)."
+  - **Replace the pseudocode block** with: "Team Lead executes the `resolve_role_config` algorithm at delegation time to merge shipped + delta + operator-prompt config, lint LC5, compute the non-negotiable-rules SHA-256 prefix (LC4), and emit the audit line. The algorithm body lives in [`project-deltas.md` `## resolve_role_config algorithm`](./project-deltas.md#resolve_role_config-algorithm)."
+  - **Replace the halt-strings table** with: "On any of the documented failure modes (invalid model value, agent-disagreement, missing frontmatter, denylist match, unsupported host) Team Lead emits a verbatim halt string; the literal strings live in [`project-deltas.md` `## Halt strings`](./project-deltas.md#halt-strings-team-lead-emits-these-verbatim)."
+  - **Replace the audit-log-strings table** with: "Team Lead emits one of the documented audit lines for every delegation (chat-first, stderr fallback per N9). The literal format strings live in [`project-deltas.md` `## Audit-log strings`](./project-deltas.md#audit-log-strings-team-lead-emits-these-verbatim). Every applied-line carries `non-negotiable-rules-sha=<8-char-prefix>` (LC4)."
+  - **Replace the host-probe-order block** with: "Pre-flight probes the active host deterministically (env-var families first, runtime self-id last; first match wins). The literal probe order lives in [`project-deltas.md` `## Active-host probe order`](./project-deltas.md#active-host-probe-order)."
+
+- [ ] **Step 2: Update `## Supporting files`** in SKILL.md to add an entry for `project-deltas.md`:
+  - Add: `[project-deltas.md](./project-deltas.md): Team Lead supporting reference — literal denylist tokens, halt/audit-log format strings, active-host probe order, and the \`resolve_role_config\` algorithm body. SKILL.md names every rule; this file carries the literal bodies.`
+  - Keep the existing entries added in T4.6 (`.claude/agents/`, `agents/`, `pre-flight.md`, `routing-table.md`, `workflow-diagrams.md`).
+
+- [ ] **Step 3: Verify the SKILL.md trims preserve all rule names.** Each invariant above must still appear once in SKILL.md as a named one-liner.
+  Run: `rg -n 'denylist' skills/superteam/SKILL.md` — expect ≥1 match (the invariant line).
+  Run: `rg -n 'resolve_role_config' skills/superteam/SKILL.md` — expect ≥1 match (the invariant line).
+  Run: `rg -n 'non-negotiable-rules-sha' skills/superteam/SKILL.md` — expect ≥1 match (LC4 invariant line).
+  Run: `rg -n 'active host' skills/superteam/SKILL.md` — expect ≥1 match (probe invariant line).
+
+- [ ] **Step 4: Verify no duplication.** Each literal token list / format string lives in ONE file only.
+  Run: `rg -F 'AC IDs are advisory' skills/superteam/SKILL.md` — expect zero matches (lives only in `project-deltas.md`).
+  Run: `rg -F '"may push"' skills/superteam/SKILL.md` — expect zero matches.
+  Run: `rg -nU 'def resolve_role_config' skills/superteam/SKILL.md` — expect zero matches (pseudocode lives only in `project-deltas.md`).
+
+- [ ] **Step 5: Verify AC-73-5 still holds (no per-role procedural prose reintroduced).**
+  Run: `rg -F 'shutdown is success-only' skills/superteam/SKILL.md` — expect zero.
+  Run: `rg -F 'must invoke superpowers:writing-skills when reviewing' skills/superteam/SKILL.md` — expect zero.
+
+- [ ] **Step 6: Verify size budget.**
+  Run: `wc -l skills/superteam/SKILL.md`
+  Expected: ≤ 420 (revised AC-73-8). If over, repeat extraction on the next-fattest literal block (model-selection grammar examples are the next candidate; capture as a follow-up T5.8 if needed).
+
+- [ ] **Step 7: Lint.**
+  Run: `pnpm exec markdownlint-cli2 skills/superteam/SKILL.md skills/superteam/project-deltas.md`
+  Expected: pass.
+
+- [ ] **Step 8: Commit.** `git commit -m "feat: #73 split delta literals out of SKILL.md to project-deltas.md"`
+
+---
+
 ### WS6 — Project override surface documentation
 
 #### T6.1: Add `## Project overrides (docs/superpowers/<role>.md)` section to SKILL.md
@@ -525,7 +639,7 @@ Each AC has a concrete verification command or grep recipe. WS7 produces evidenc
 | **AC-73-5** | `git log --diff-filter=D --name-only -- skills/superteam/agent-spawn-template.md skills/superteam/loopback-trailers.md skills/superteam/pr-body-template.md` AND grep recipes from T5.4 | Three files deleted in branch history; greps return zero matches in `SKILL.md`; matching content present in agent files / superpowers skills only. |
 | **AC-73-6** | Real `/superteam` invocation against a small reference issue (created during executor work) → published PR | Each delegation prompt is short and points at the underlying superpowers skill rather than embedding per-stage procedure. Gate 1 still gates planning behind explicit approval; adversarial-review evidence appears; writing-skills trigger fires for skill changes. |
 | **AC-73-7** | For each Claude agent file, run heading-presence + heading-order greps; verify `non-negotiable-rules-sha=` field present in audit log during AC-73-4 fixture run | All four headings present once each; line-number sort matches `Required skill` → `Non-negotiable rules` → `Done-report contract reference` → `Operator-facing output`; audit log carries the SHA prefix. |
-| **AC-73-8** | `wc -l skills/superteam/SKILL.md` AND `for f in skills/superteam/.claude/agents/*.md; do awk '/^---$/{c++; next} c==2' "$f" \| wc -l; done` | SKILL.md ≤ 280; each agent body ≤ 80. |
+| **AC-73-8** (revised by Amendment 2026-05-05a) | `wc -l skills/superteam/SKILL.md` AND `for f in skills/superteam/.claude/agents/*.md; do awk '/^---$/{c++; next} c==2' "$f" \| wc -l; done` AND `rg -F 'AC IDs are advisory' skills/superteam/SKILL.md skills/superteam/project-deltas.md` AND `rg -nU 'def resolve_role_config' skills/superteam/SKILL.md skills/superteam/project-deltas.md` | SKILL.md ≤ 420 (revised from 280; orchestration-only intent preserved by SKILL.md naming every rule as a one-liner per WS5.5); each agent body ≤ 80; denylist tokens appear in `project-deltas.md` ONLY (zero matches in SKILL.md); `resolve_role_config` pseudocode body appears in `project-deltas.md` ONLY. |
 
 #### T7.1: AC-73-1 verification
 
@@ -573,7 +687,7 @@ Each AC has a concrete verification command or grep recipe. WS7 produces evidenc
 
 #### T7.7: AC-73-8 size verification
 
-- [ ] **Step 1: Run `wc -l` on SKILL.md and per-agent bodies.** If SKILL.md > 280, route back through T5.3 pruning. If any agent body > 80, trim it (likely candidates: finisher.md given the shutdown content; consider moving the shutdown checklist to a `finisher-shutdown-checklist.md` adjunct under `.claude/agents/` if needed — but PREFER inline trim first to keep the agent file self-contained).
+- [ ] **Step 1: Run `wc -l` on SKILL.md and per-agent bodies, plus the no-duplication greps from the revised AC-73-8 row.** If SKILL.md > 420 (revised target per Amendment 2026-05-05a), route back through T5.7 step 6 to extract additional literal blocks into `project-deltas.md`. If any agent body > 80, trim it (likely candidates: finisher.md given the shutdown content; consider moving the shutdown checklist to a `finisher-shutdown-checklist.md` adjunct under `.claude/agents/` if needed — but PREFER inline trim first to keep the agent file self-contained). Verify denylist tokens and `resolve_role_config` pseudocode body appear in `project-deltas.md` only.
 - [ ] **Step 2: Append to evidence file. Commit.**
 
 #### T7.8: Skill-improver quality gate evidence (Reviewer obligation per superteam Reviewer contract)
