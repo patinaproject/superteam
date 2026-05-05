@@ -174,7 +174,7 @@ Canonical override tokens (case-insensitive; whitespace around the colon is perm
 
 Targeted form: `model: <model> for <role>`, e.g. `model: gpt-5.4 for planner`.
 
-Spark exception: `model: gpt-5.3-codex-spark for executor` or `model: gpt-5.3-codex-spark for finisher` is valid for one delegation only. Spark targeting other roles or untargeted Spark is invalid.
+Spark exception: for trivial Executor/Finisher work, `model: gpt-5.3-codex-spark for executor` or `model: gpt-5.3-codex-spark for finisher` is an optional one-delegation downshift when Spark is available. Spark targeting other roles, untargeted Spark, defaults, or project-delta values is invalid.
 
 Phrases that do NOT count as an override — `Team Lead` MUST resolve to the per-role
 default and MUST NOT route these through the override path:

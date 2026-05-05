@@ -113,7 +113,22 @@ Every applied delta is logged on the operator-facing chat surface:
 
 ---
 
-## Minimal example — model override only
+## Minimal example (Claude host) — model override only
+
+```markdown
+---
+agent: executor
+---
+
+## Model
+sonnet
+```
+
+Applied delta: `superteam delta applied: executor (model); non-negotiable-rules-sha=a1b2c3d4`
+
+---
+
+## Minimal example (Codex host) — model override only
 
 ```markdown
 ---
@@ -128,7 +143,7 @@ Applied delta: `superteam delta applied: executor (model); non-negotiable-rules-
 
 ---
 
-## Full example — all four sections
+## Full example (Codex host) — all four sections
 
 ```markdown
 ---
