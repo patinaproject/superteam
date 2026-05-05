@@ -388,115 +388,14 @@ Headline behaviors:
 
 ## Teammate contracts
 
-### Team Lead
+Per-role contracts ship in host-native agent files. SKILL.md owns the orchestration contracts (gates, routing, halt conditions, done-report fields, model-selection grammar) that cross all roles.
 
-- Run the phase-detection and execution-mode pre-flight (see `pre-flight.md` in this skill directory) before any routing decision.
-- Treat committed artifacts plus PR state as authoritative when classifying phase and prompt; do not infer phase from in-session memory.
-- Halt with `superteam halted at Team Lead: <reason>` when observable state is ambiguous or contradictory; do not "pick the most likely interpretation".
-- Route work to the correct teammate.
-- Enforce gates and halt on unsatisfied contracts.
-- Route requirement-changing deltas back through `Brainstormer`.
-- Before Gate 1 approval can advance, enforce adversarial design review against the committed design artifact.
-- Include `adversarial_review_status`, `reviewer_context`, `adversarial_review_findings[]`, and `clean_pass_rationale` when applicable in Gate 1 approval packets.
-- Treat Brainstormer-originated findings as useful input but not proof that adversarial review occurred.
-- Render operator-facing handoffs as natural prose that satisfies the current workflow invariants instead of dumping every internal field as a status report.
-- Keep required gate and handoff evidence durable even when the chat response is concise.
-- Surface only findings that require current operator feedback; keep resolved finding history in artifacts or explicit handoff data.
-- Recommend `superpowers:using-superpowers`.
-- Also recommend `superpowers:dispatching-parallel-agents` when splitting bounded, independent work, and keep tightly coupled or interactive steps in the foreground.
-- During execute-phase delegation, bind directly to the chosen execution-mode skill (`superpowers:subagent-driven-development` for subagent-driven, or the host's native team-mode capability for team mode). Do NOT route execute-phase delegations through `superpowers:executing-plans` on default paths.
-- Inject the pre-selected execution mode (resolved per R17 in pre-flight) into every execute-phase delegation prompt and instruct the teammate not to ask the operator to choose between subagent-driven and inline execution. Carry the same suppression wording into any nested delegation.
-- Treat ambiguous "inline-ish" / "faster" / "forever" framing as NOT an explicit operator override. Inline is reachable only via unambiguous tokens (`inline`, `run inline`, `execute in this session`).
-- Resolve the model per teammate role at delegation time per `## Model selection`. Bind the resolved model via the host's model-override mechanism (e.g. the `Agent` tool's `model` parameter). Do NOT silently inherit the parent session model. The rule is binding, not advisory; the only paths to inheritance are the literal `inherit` default for `Team Lead` itself and the inherit-and-warn capability fallback per `## Model selection` `### Capability fallback`.
-
-### Brainstormer
-
-- Own the design doc in `docs/superpowers/specs/`.
-- Commit the design artifact change before reporting done or handing off to `Planner`.
-- Return the exact design doc path.
-- Return the ordered active AC list.
-- Report the concise intent summary and the full requirement set used for approval.
-- Report `adversarial_review_findings[]` when requesting approval, including Brainstormer-originated concerns and adversarial-review findings.
-- Preserve `source: brainstormer | adversarial-review` on every finding.
-- Do not treat Brainstormer-originated findings as satisfying the adversarial-review pass.
-- Include reviewer context and checked dimensions in the clean-pass rationale when the adversarial-review result is clean.
-- Commit any design changes caused by self-review or adversarial findings before reporting done or handing off to `Planner`.
-- Include the handoff commit SHA for the committed design artifact in the done report.
-- Separate durable done-report or review data from operator-facing prose; the data must remain inspectable, but the chat handoff should be as natural and decision-focused as the situation allows.
-- Determine the intended surface from the issue before authoring requirements. When the design under brainstorming will touch `skills/**/*.md` or any workflow-contract surface (the `superteam` skill itself, agent-spawn templates, PR-body templates, or other repository-owned workflow contracts), invoke `superpowers:writing-skills` BEFORE authoring requirements. If the issue plausibly targets those surfaces and the exact files are uncertain, invoke `superpowers:writing-skills` first or halt for clarification. This is unconditional on the trigger, not "consider"; once the design touches or plausibly targets a skill or workflow-contract surface, writing-skills is the load-bearing reference for what the design must contain (loophole-closure language, rationalization-table rows, red-flags bullets, token-efficiency targets, RED-phase baseline obligation). A `Brainstormer` who skips writing-skills at design time forces every downstream teammate to re-derive it. Not even when an authority claim is cited. Not even under deadline pressure.
-- Recommend `superpowers:brainstorming`.
-
-### Planner
-
-- Consume the approved design doc, not ad hoc chat summaries.
-- Commit the implementation plan change before reporting done or handing off to `Executor`.
-- Produce the implementation plan or halt with a blocker.
-- Include the handoff commit SHA for the committed implementation plan in the done report.
-- Separate durable done-report or review data from operator-facing prose; the data must remain inspectable, but the chat handoff should be as natural and decision-focused as the situation allows.
-- Recommend `superpowers:writing-plans`.
-
-### Executor
-
-- Drive implementation from acceptance criteria and approved plan tasks using ATDD, not ad hoc coding first.
-- Implement only the assigned tasks from the approved plan.
-- Commit the completed implementation and test changes before reporting done or handing off to `Reviewer`.
-- Report completion against explicit task IDs.
-- Include concrete completion evidence, SHAs, and verification evidence before claiming completion.
-- Separate durable done-report or review data from operator-facing prose; the data must remain inspectable, but the chat handoff should be as natural and decision-focused as the situation allows.
-- `Executor` completion is not workflow completion. After local implementation work is complete, the run must either continue into `Reviewer` and then `Finisher`, or halt explicitly as `superteam halted at <teammate or gate>: <reason>`.
-- Never push, rebase, or open a PR.
-- Recommend `superpowers:test-driven-development` as the ATDD execution skill.
-- Recommend `superpowers:systematic-debugging` when debugging or failures appear.
-- Recommend `superpowers:writing-skills` when touching `skills/**/*.md`.
-- Recommend `superpowers:verification-before-completion` before claiming completion.
-
-### Reviewer
-
-- Review locally before publish.
-- Validate artifact ownership, required verification, and role-rule compliance.
-- Classify feedback explicitly as `implementation-level`, `plan-level`, or `spec-level`.
-- Own receiving and interpreting local pre-publish review findings.
-- Recommend `superpowers:requesting-code-review` for first-pass local review.
-- Also recommend `superpowers:receiving-code-review` when analyzing existing or disputed findings before publish.
-- When reviewing changes to installable skill-package files (`skills/**`, including adjacent prompt or workflow-contract files packaged with a skill), invoke `superpowers:writing-skills` and run the relevant pressure-test walkthrough before publish. Do not invoke writing-skills solely because non-skill docs, operational playbooks, PR templates, or process documents outside `skills/**` describe a workflow.
-- When the change touches `skills/superteam/**` or any Superteam workflow-contract surface, run the skill-improver quality gate documented in `docs/skill-improver-quality-gate.md` (primary mode when the `skill-improver` and `plugin-dev` plugins are available, fallback mode otherwise) and capture the required completion evidence in the PR body.
-- If later fixes change installable skill-package files again after an earlier review pass, rerun the relevant pressure-test walkthrough before handing the run back to `Finisher`.
-- Report pressure-test pass/fail results and any loopholes found for installable skill-package changes.
-- Report local findings with `feedback_classification` (`implementation-level` | `plan-level` | `spec-level`) and an owner before routing.
-- Separate durable done-report or review data from operator-facing prose; the data must remain inspectable, but the chat handoff should be as natural and decision-focused as the situation allows.
-- Keep findings local; do not take ownership of external review feedback.
-
-### Finisher
-
-- Own push, branch publication, PR updates, PR body rendering, CI triage, and external review/comment handling.
-- Own receiving and interpreting external post-publish PR feedback.
-- Report pushed SHAs, current branch state on origin, PR state, and CI state.
-- Separate durable done-report or review data from operator-facing prose; the data must remain inspectable, but the chat handoff should be as natural and decision-focused as the situation allows.
-- Natural prose must not hide publish-state blockers, pending checks, unresolved review feedback, or shutdown evidence.
-- When a project-owned PR template or PR-body rule exists, satisfy it first and treat the `superteam` PR template as fallback/default guidance rather than as an override.
-- When a real issue number is available for the canonical single-issue workflow and nothing in the current run says the work is partial, follow-up, or otherwise non-closing, render `Closes #<issue-number>` in the PR body.
-- When the issue is related but the run is not issue-completing, render a non-closing issue reference plus a brief explanation.
-- When no issue number is present, omit the issue-reference line entirely.
-- Do not invent a new intent-detection system or infer issue-closing intent from weak heuristics such as commit wording, diff size, or acceptance-criteria count.
-- Every `superteam` run is expected to publish a PR; local-only state is never a valid completion, demo, or handoff state.
-- Push the branch and create or update the PR before treating the run as being in publish-state follow-through.
-- Treat publish-state on the latest pushed head as an explicit `Finisher` state: `triage`, `monitoring`, `ready`, `blocked`, or `merged`.
-- When required checks on the latest pushed head are still pending after immediate branch-side fixes are complete, stay in `monitoring` rather than presenting the run as complete.
-- If later required checks fail while monitoring, re-enter `triage` automatically on the latest pushed head.
-- If later required checks pass while monitoring, allow `ready` only after the rest of the latest-head publish-state sweep is also clear.
-- If pending external systems still block readiness and the workflow cannot safely continue monitoring, report an explicit `blocked` state instead of using a completion-style summary.
-- Any new push invalidates earlier assumptions and restarts evaluation on the new latest head.
-- Stay in the `Finisher` loop after PR publication until publish-state follow-through is stable enough to hand off cleanly or an explicit blocker is reported.
-- Do not treat PR creation, one status snapshot, restored mergeability, or green CI alone as workflow completion.
-- When the runtime offers durable follow-up features such as thread heartbeats, monitors, or equivalent wakeups, prefer using them while required checks or external review state remain pending.
-- In Codex app environments, prefer a thread automation attached to the current thread when the goal is to preserve the same `Finisher` context while waiting on external publish-state.
-- Treat those runtime features as aids for the same latest-head `Finisher` loop rather than as a separate workflow or replacement contract.
-- Durable follow-up payloads must include enough state to resume the same `Finisher` loop: branch, PR, latest pushed SHA, current publish-state, pending signals, and the instruction to resume the latest-head shutdown checklist.
-- If the runtime lacks those features, continue the portable `Finisher` ownership model or report an explicit blocker instead of stopping early.
-- Verify current branch state before resolving or replying to comments tied to prior state.
-- Route requirement-bearing feedback through `Brainstormer` first, then `Planner`, then `Executor`.
-- Recommend `superpowers:finishing-a-development-branch`.
-- Also recommend `superpowers:receiving-code-review` when handling PR comments, review threads, or bot feedback after publish.
+- `Team Lead` — see [.claude/agents/team-lead.md](./.claude/agents/team-lead.md) (Codex: `agents/team-lead.openai.yaml`).
+- `Brainstormer` — see [.claude/agents/brainstormer.md](./.claude/agents/brainstormer.md).
+- `Planner` — see [.claude/agents/planner.md](./.claude/agents/planner.md).
+- `Executor` — see [.claude/agents/executor.md](./.claude/agents/executor.md).
+- `Reviewer` — see [.claude/agents/reviewer.md](./.claude/agents/reviewer.md).
+- `Finisher` — see [.claude/agents/finisher.md](./.claude/agents/finisher.md).
 
 ## Missing skill warnings
 
