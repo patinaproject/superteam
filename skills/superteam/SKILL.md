@@ -166,6 +166,151 @@ This deliberately differs from R14's execution-mode capability rule, which halts
 4. **Operator override always wins for its targeted delegation.** `Team Lead` does not override the operator with a per-role default reasoning ("but Brainstormer needs Opus"). The override scope is one delegation; defaults reassert on the next.
 5. **No persistent override memory.** An override targets one delegation. There is no "the operator said opus once so use opus forever" behavior. Each delegation re-resolves from prompt + per-role default.
 
+## Project deltas (Team Lead lookup)
+
+Project-level behavior modifications live at `docs/superpowers/<role>.md` in the consuming project. The role-name slug matches the kebab-case agent filename. Empty or missing means "use shipped default unchanged."
+
+### Delta file schema
+
+A delta file is a Markdown file with up to four optional sections:
+
+```markdown
+---
+agent: <role>
+---
+
+## Model
+<one of: opus | sonnet | haiku | inherit>
+
+## Tools
+allow:
+  - <Tool>
+deny:
+  - <Tool>
+
+## System prompt append
+<free-form Markdown appended verbatim after the shipped system prompt>
+```
+
+### Closed model enum
+
+The only legal `## Model` values in a delta are `{ opus, sonnet, haiku, inherit }`. `inherit` resolves to "use the shipped default model for this role." For non-`team-lead` roles, a delta of `inherit` is allowed but logs `superteam delta inherit-redundant: <role>`. Invalid values halt (see halt strings below).
+
+### Precedence
+
+1. **Shipped default** (agent file frontmatter).
+2. **Project delta** (`docs/superpowers/<role>.md` in the consuming repo).
+3. **Operator-prompt R26 override** — model layer only. Tool allow/deny and system-prompt-append layers are NOT operator-prompt-overridable.
+
+### Append-only system prompt (LC2)
+
+System-prompt deltas are append-only by design. There is no `replace` mode. A project cannot redact shipped guardrails via a delta.
+
+### Closed denylist (LC5)
+
+Team Lead scans every `## System prompt append` block before merging. A match on any of the following tokens halts dispatch:
+
+```text
+["AC IDs are advisory", "AC-<issue>- is advisory", "may push", "may open PR",
+ "may merge", "skip writing-skills", "redefine done-report", "override halt"]
+```
+
+### `resolve_role_config` algorithm (D5)
+
+Team Lead runs this once per delegation:
+
+```python
+def resolve_role_config(role, host, host_tool_capabilities):
+    shipped = load_shipped_agent_file(role, host)      # D1, host-aware (D3)
+    rules_sha = sha256_8(shipped.non_negotiable_rules_block)
+    delta_path = repo_root / "docs/superpowers" / f"{role}.md"
+    if not delta_path.exists():
+        return shipped                                 # missing -> shipped unchanged
+    raw = read_text(delta_path)
+    if raw.strip() == "":                              # zero-byte / whitespace
+        log_audit(f"superteam delta empty: {role}")
+        return shipped
+    parsed = parse_delta_file(raw)
+    if not parsed.has_frontmatter and parsed.has_body_sections:
+        halt(f"superteam halted at Team Lead: project delta for "
+             f"{role} is missing required frontmatter agent field")
+    if parsed.has_frontmatter and not parsed.has_body_sections:
+        log_audit(f"superteam delta empty: {role}")
+        return shipped
+    if parsed.frontmatter_agent != role:
+        halt("superteam halted at Team Lead: project delta for "
+             f"{role} declares agent {parsed.frontmatter_agent}")
+    # Forbidden-append lint (LC5) — runs before any merge.
+    matched = match_invariant_denylist(parsed.append)
+    if matched:
+        halt(f"superteam halted at Team Lead: project delta for "
+             f"{role} attempts to weaken non-negotiable rules (matched: {matched})")
+    config = shipped.copy()
+    if parsed.model is not None:
+        if parsed.model not in {"opus", "sonnet", "haiku", "inherit"}:
+            halt("superteam halted at Team Lead: project delta for "
+                 f"{role} has invalid model value {parsed.model}")
+        if parsed.model == "inherit" and shipped.model != "inherit":
+            log_audit(f"superteam delta inherit-redundant: {role}")
+            # resolves to shipped.model; no override applied
+        else:
+            config.model = parsed.model
+    # Tool merge with host-capability filter (N4).
+    proposed_allow = parsed.tools_allow
+    unavailable = proposed_allow - host_tool_capabilities
+    for tool in unavailable:
+        log_audit(f"superteam delta tool unavailable: {role} {tool}@{host}")
+    proposed_allow = proposed_allow & host_tool_capabilities
+    config.tools = (config.tools | proposed_allow) - parsed.tools_deny
+    if parsed.append:
+        config.system_prompt = config.system_prompt + "\n\n" + parsed.append
+    log_audit(
+        f"superteam delta applied: {role} ({applied_fields(parsed)}); "
+        f"non-negotiable-rules-sha={rules_sha}"
+    )
+    # Operator R26 model override (model layer only) applied AFTER this,
+    # before binding the dispatch parameter.
+    return config
+```
+
+### Audit-log emission rules (N9, LC3)
+
+- **Default destination:** operator-facing chat surface.
+- **Fallback:** stderr only when no chat surface is available (e.g. headless CI). On fallback, re-emit at the start of Team Lead's next chat-bearing message so the operator never permanently loses the audit trail.
+
+### Audit log strings
+
+- `superteam delta applied: <role> (<applied-fields>); non-negotiable-rules-sha=<8-char-prefix>`
+- `superteam delta empty: <role>`
+- `superteam delta orphan: docs/superpowers/<file> does not match any shipped role`
+- `superteam delta inherit-redundant: <role>`
+- `superteam delta tool unavailable: <role> <tool>@<host>`
+- `superteam active host: <name> (probe=<source>)`
+
+### Halt strings
+
+- `superteam halted at Team Lead: project delta for <role> has invalid model value <value>`
+- `superteam halted at Team Lead: project delta for <role> declares agent <other>`
+- `superteam halted at Team Lead: project delta for <role> is missing required frontmatter agent field`
+- `superteam halted at Team Lead: project delta for <role> attempts to weaken non-negotiable rules (matched: <pattern>)`
+- `superteam halted at pre-flight: host <host> has no shipped per-role agent files; supported hosts: claude-code, codex`
+
+### Deterministic active-host probe (D3)
+
+Probe order — first match wins; result logged once at pre-flight as `superteam active host: <name> (probe=<source>)`:
+
+1. `CLAUDECODE` / `CLAUDE_CODE_*` env-var family present → `claude-code`
+2. `CODEX_*` env-var family present → `codex`
+3. Runtime self-id via capability probe (same surface used by R26 model-override detection)
+
+Supported host set: `{ claude-code, codex }`. Out-of-supported-set hosts halt at pre-flight (see halt strings above).
+
+### Empty / frontmatter-only / body-only cases (N6)
+
+- Zero-byte or all-whitespace → `superteam delta empty: <role>` (no-op; logged).
+- Valid frontmatter `agent: <role>` but no body sections → `superteam delta empty: <role>` (no-op; logged). Frontmatter-only is a legitimate anchor file.
+- Body sections present but no frontmatter (or frontmatter missing required `agent:` field) → halt with missing-frontmatter blocker string above.
+
 ## Canonical rule discovery
 
 Before any teammate touches governed files, discover the canonical repository rules from repo guidance instead of relying on hard-coded literals:
