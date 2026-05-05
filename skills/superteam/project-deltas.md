@@ -34,6 +34,11 @@ def resolve_role_config(role, host, host_tool_capabilities):
         halt("superteam halted at Team Lead: project delta for "
              f"{role} declares agent {parsed.frontmatter_agent}")
     # Forbidden-append lint (LC5) — runs before any merge.
+    # Match is case-insensitive on a whitespace-collapsed copy of parsed.append
+    # (run-of-whitespace normalized to a single space) to defeat trivial
+    # paraphrases like `MAY PUSH` or `may  push` (double space). The denylist
+    # is a literal-token floor, not the primary defense; the agent file's
+    # mandatory non-negotiable-rules block (LC4) is the structural guard.
     matched = match_invariant_denylist(parsed.append)
     if matched:
         halt(f"superteam halted at Team Lead: project delta for "
@@ -77,6 +82,14 @@ before merging. A match halts dispatch:
 ["AC IDs are advisory", "AC-<issue>- is advisory", "may push", "may open PR",
  "may merge", "skip writing-skills", "redefine done-report", "override halt"]
 ```
+
+Match is case-insensitive on a whitespace-collapsed copy of the append (a run
+of whitespace is normalized to a single space) to defeat trivial paraphrases
+like `MAY PUSH` or `may  push`. Non-trivial paraphrases (`feel free to push`,
+`acceptance criteria are guidelines`) are NOT caught by this list and are
+expected to be blocked by the agent file's mandatory non-negotiable-rules
+block (LC4) instead. **The denylist is a literal-token floor, not the
+primary defense.**
 
 ---
 
