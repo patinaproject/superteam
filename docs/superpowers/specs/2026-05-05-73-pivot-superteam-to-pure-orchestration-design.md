@@ -41,7 +41,7 @@ Tool allowances are deliberately the union of what the role's underlying superpo
 Every shipped agent file body MUST be laid out in this fixed order. A delta append cannot reorder it; it can only add content after the final reference section.
 
 1. `# <role-name>` H1.
-2. `## Required skill` — exactly one immediately-following line of the form `superpowers:<name>` (greppable as `^## Required skill\n.*superpowers:`). This is the role's underlying superpowers skill.
+2. `## Required skill` — exactly one `superpowers:<name>` line after the MD022-required blank line (greppable as `^## Required skill\n\nsuperpowers:`). This is the role's underlying superpowers skill.
 3. `## Non-negotiable rules (cannot be overridden by project delta)` — a numbered list of the rules that no project delta may weaken. The shipped block always includes:
    - "AC-<issue>-<n>" IDs are binding, not advisory.
    - The role does not push, force-push, rebase shared branches, or open / merge PRs unless the role is `finisher`.
@@ -269,7 +269,7 @@ Each shipped role exists as a host-native agent file at the canonical path with 
 
 - [ ] Verification: `ls skills/superteam/.claude/agents/` returns exactly six files: `team-lead.md`, `brainstormer.md`, `planner.md`, `executor.md`, `reviewer.md`, `finisher.md`.
 - [ ] Verification: each file's frontmatter has `name`, `description`, `model`, `tools` per D1.
-- [ ] Verification (strengthened per N7): each file body contains a section heading exactly `## Required skill` immediately followed by exactly one `superpowers:<name>` line — greppable as `rg -U '^## Required skill\n.*superpowers:' skills/superteam/.claude/agents/<file>.md` matches once.
+- [ ] Verification (strengthened per N7): each file body contains a section heading exactly `## Required skill` followed by the MD022-required blank line and exactly one `superpowers:<name>` line — greppable as `rg -U '^## Required skill\n\nsuperpowers:' skills/superteam/.claude/agents/<file>.md` matches once.
 - [ ] Verification: each file body references `SKILL.md`'s done-report contract anchor (e.g. `[done-report fields](../../SKILL.md#done-report-contracts)`) and does NOT restate the field list.
 - [ ] Verification (Codex parity, narrowed per N12): for each role, the Codex parity file `skills/superteam/agents/<role>.openai.yaml` is validated against the Codex per-role agent schema. Fields the Codex schema honors (`model`, system-prompt body) are validated for parity with the Claude file. Fields the Codex schema does NOT honor (e.g. fine-grained `tools:` allow/deny, if absent from the schema) are scoped to plugin-level prompt parity only and explicitly noted in the file as "Codex-host scope: <fields>". The verification command runs the Codex schema validator and reports which fields are honored.
 
@@ -298,7 +298,7 @@ For each prior prescriptive contract, the refactor either deletes it (because su
 
 Every shipped agent file contains the mandatory body structure from D1 — including the `## Non-negotiable rules (cannot be overridden by project delta)` section — in the prescribed order.
 
-- [ ] Verification: for each of the six Claude agent files, `rg -U '^## Required skill\n.*superpowers:' <file>` matches once AND `rg '^## Non-negotiable rules \(cannot be overridden by project delta\)$' <file>` matches once AND `rg '^## Done-report contract reference$' <file>` matches once AND `rg '^## Operator-facing output \(per Team Lead invariant\)$' <file>` matches once.
+- [ ] Verification: for each of the six Claude agent files, `rg -U '^## Required skill\n\nsuperpowers:' <file>` matches once AND `rg '^## Non-negotiable rules \(cannot be overridden by project delta\)$' <file>` matches once AND `rg '^## Done-report contract reference$' <file>` matches once AND `rg '^## Operator-facing output \(per Team Lead invariant\)$' <file>` matches once.
 - [ ] Verification: the relative order of those four headings in every shipped agent file is `Required skill` → `Non-negotiable rules` → `Done-report contract reference` → `Operator-facing output` (verified by line-number sort of `rg -n` output per file).
 - [ ] Verification: Team Lead's dispatch audit log includes a `non-negotiable-rules-sha=<8-char-prefix>` field on every `superteam delta applied` line during the AC-73-4 fixture run.
 
@@ -455,7 +455,7 @@ Dimensions re-checked from `superpowers:writing-skills`:
 | N4 | medium | D5 | `allow:` granted tools even when host doesn't expose them. | Closed: D5 algorithm filters proposed allow against `host_tool_capabilities` and emits `superteam delta tool unavailable: <role> <tool>@<host>` for each dropped tool. |
 | N5 | medium | D2 (delta legality) | Missing forbidden-append rule for invariants. | Closed: "What is NOT legal in a delta" extended; LC5 ships the closed denylist lint that halts dispatch on match. |
 | N6 | medium | D5 / D2 | Empty-file vs frontmatter-only-no-body vs body-only-no-frontmatter underspecified. | Closed: D2 malformed-delta handling and D5 algorithm distinguish (a) zero-byte/whitespace → `superteam delta empty`, (b) frontmatter-only-no-body → `superteam delta empty`, (c) body-only-no-frontmatter → halt with the missing-frontmatter blocker. |
-| N7 | medium | AC-73-2 / AC-73-5 | Skill-recommendation grep too weak — names appear elsewhere. | Closed: AC-73-2 strengthened to require `## Required skill` heading + immediately-following `superpowers:<name>` line, greppable as `^## Required skill\n.*superpowers:`. AC-73-7 verifies presence + ordering of the four mandatory headings. |
+| N7 | medium | AC-73-2 / AC-73-5 | Skill-recommendation grep too weak — names appear elsewhere. | Closed: AC-73-2 strengthened to require `## Required skill` heading + MD022-required blank line + `superpowers:<name>` line, greppable as `^## Required skill\n\nsuperpowers:`. AC-73-7 verifies presence + ordering of the four mandatory headings. |
 | N8 | medium | D1 / Model selection split | Team Lead `inherit` lived in two places. | Closed: agent-file frontmatter is the single home for per-role default model values. D4's "Model selection" disposition row deletes the per-role default-value table from SKILL.md and references the agent files instead. |
 | N9 | low | D2 / D5 audit logging | Stderr / chat destination conflated. | Closed: "operator-facing chat surface is the default; stderr is a fallback only when chat is unavailable; on fallback, Team Lead also emits the audit line at the start of its next chat-bearing message." |
 | N10 | medium | D3 / multi-host parity | Silent degradation on hosts without per-role files. | Closed: D1 / D3 enumerate the supported host set as `{ claude-code, codex }` and require shipped per-role files for both. Out-of-set hosts halt at pre-flight. The previous silent per-delegation fallback is removed. |
