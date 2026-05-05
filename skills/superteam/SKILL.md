@@ -58,6 +58,8 @@ Summary of the sequence:
 - Derive the detected phase per the rules below.
 - Classify the operator prompt per `routing-table.md`.
 - Resolve execution mode per `pre-flight.md` `## Execution-mode capability detection`, then route per `routing-table.md`.
+- Probe active host deterministically: `CLAUDECODE`/`CLAUDE_CODE_*` env-var family present → `claude-code`; `CODEX_*` env-var family present → `codex`; otherwise runtime self-id via capability probe. Log `superteam active host: <name> (probe=<source>)`. Out-of-supported-set hosts halt with `superteam halted at pre-flight: host <host> has no shipped per-role agent files; supported hosts: claude-code, codex`.
+- Scan `docs/superpowers/*.md` once: any filename whose role-slug does not match a shipped role emits a single `superteam delta orphan: docs/superpowers/<file> does not match any shipped role` warning. Run continues.
 
 Phase derivation rules:
 
