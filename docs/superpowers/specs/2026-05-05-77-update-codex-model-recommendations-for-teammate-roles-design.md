@@ -24,11 +24,12 @@ The design separates host vocabularies instead of replacing `opus` / `sonnet` / 
   - `Executor`: `gpt-5.3-codex`
   - `Reviewer`: `gpt-5.5`
   - `Finisher`: `gpt-5.4-mini`
-- Document `gpt-5.3-codex-spark` only as an optional explicit downshift for trivial `Executor` or `Finisher` delegations. It must not become a shipped teammate role, a default, or an automatic inference path.
+- Document `gpt-5.3-codex-spark` only as an optional explicit, transient operator downshift for trivial `Executor` or `Finisher` delegations. It must not become a shipped teammate role, a default, a host-wide allowed value, a project-delta value, or an automatic inference path.
 - Split model vocabularies by active host:
   - Claude Code allowed model tokens: `opus`, `sonnet`, `haiku`, plus `inherit` where the current contract allows it.
-  - Codex allowed model tokens: `gpt-5.5`, `gpt-5.4`, `gpt-5.3-codex`, `gpt-5.4-mini`, `gpt-5.3-codex-spark`, plus `inherit` where the current contract allows it.
-- Update project-delta model validation so the legal `## Model` values are host-aware rather than Claude-only. A Codex project delta may name a supported Codex token; a Claude project delta may still name `opus`, `sonnet`, or `haiku`.
+  - Codex role and project-delta model tokens: `gpt-5.5`, `gpt-5.4`, `gpt-5.3-codex`, `gpt-5.4-mini`, plus `inherit` where the current contract allows it.
+- Treat `gpt-5.3-codex-spark` as a Codex override-only token, accepted only when an exact operator override targets the next `Executor` or `Finisher` delegation. It is not part of the host-wide role/default token set and must be rejected in project deltas.
+- Update project-delta model validation so the legal `## Model` values are host-aware rather than Claude-only. A Codex project delta may name a supported Codex role token; a Claude project delta may still name `opus`, `sonnet`, or `haiku`; neither host may use the transient Spark downshift in a project delta.
 - Update operator-override grammar examples so Codex examples name exact supported Codex model tokens. Ambiguous phrases such as "use the cheap model", "go faster", or "use the smart model" remain non-overrides on both hosts.
 - Keep `.claude/agents/*.md` model metadata unchanged unless implementation finds an actual Claude-specific inconsistency. The Codex work belongs in `agents/*.openai.yaml` and cross-host orchestration docs.
 - Update rationalization and red-flag language that currently hard-codes `opus`, `sonnet`, and `haiku` as the only non-inherit possibilities so it covers host-specific model tokens without weakening the binding requirement.
@@ -43,7 +44,7 @@ Keep the current "per-role defaults live in the shipped agent file" rule, but cl
 | Host | Authoritative role files | Default vocabulary |
 |---|---|---|
 | Claude Code | `skills/superteam/.claude/agents/<role>.md` | `inherit`, `opus`, `sonnet`, `haiku` |
-| Codex | `skills/superteam/agents/<role>.openai.yaml` | `inherit`, `gpt-5.5`, `gpt-5.4`, `gpt-5.3-codex`, `gpt-5.4-mini`, `gpt-5.3-codex-spark` |
+| Codex | `skills/superteam/agents/<role>.openai.yaml` | `inherit`, `gpt-5.5`, `gpt-5.4`, `gpt-5.3-codex`, `gpt-5.4-mini` |
 
 `skills/superteam/agents/openai.yaml` remains plugin-level metadata, not a per-role config surface.
 
@@ -60,11 +61,12 @@ Keep the current "per-role defaults live in the shipped agent file" rule, but cl
 
 ### Override grammar
 
-Keep the #67 grammar shape and make the canonical token set host-aware:
+Keep the #67 grammar shape and make the canonical token set host-aware. Spark is the one Codex exception: it is an override-only token, not a role/default/project-delta token.
 
 - Claude examples remain `model: opus`, `model: sonnet`, `model: haiku`, plus `use <model>` and `with <model>`.
 - Codex examples add exact tokens such as `model: gpt-5.3-codex`, `use gpt-5.4-mini`, and `with gpt-5.5`.
 - Targeted form remains `model: <model> for <role>`, for example `model: gpt-5.3-codex-spark for finisher`.
+- `gpt-5.3-codex-spark` is valid only when the exact override token targets `Executor` or `Finisher` for the next delegation. `model: gpt-5.3-codex-spark for reviewer`, untargeted Spark overrides, role defaults, and project deltas using Spark are invalid.
 - Matching remains case-insensitive on canonical token forms. No fuzzy intent inference is added.
 - Override scope remains one targeted delegation only. Later delegations re-resolve from host-specific role defaults.
 
@@ -75,8 +77,10 @@ Revise `resolve_role_config` and the surrounding prose so the closed enum is a h
 ```text
 allowed_model_values(host):
   claude-code -> {inherit, opus, sonnet, haiku}
-  codex -> {inherit, gpt-5.5, gpt-5.4, gpt-5.3-codex, gpt-5.4-mini, gpt-5.3-codex-spark}
+  codex -> {inherit, gpt-5.5, gpt-5.4, gpt-5.3-codex, gpt-5.4-mini}
 ```
+
+`gpt-5.3-codex-spark` deliberately stays outside `allowed_model_values(host)`. It is handled only by the operator-override parser after the target role is known, and only for `Executor` or `Finisher` one-delegation overrides.
 
 The existing invalid-model halt string can stay stable:
 
@@ -118,7 +122,7 @@ If implementation needs better diagnostics, it may add explanatory prose near th
 |---|---|
 | Codex IDs accidentally replace Claude aliases globally. | Treat `.claude/agents/*.md` as Claude-owned and keep a host-specific token table in shared docs. Verify with targeted `rg` checks. |
 | Host-aware enum becomes an open enum and accepts typos. | Keep the enum closed per host and preserve invalid-value halt behavior. |
-| `gpt-5.3-codex-spark` becomes an inferred default for "small" work. | Document it only as an explicit operator downshift token for trivial `Executor` or `Finisher` delegations. |
+| `gpt-5.3-codex-spark` becomes an inferred default, project-delta value, or wrong-role override for "small" work. | Keep Spark outside the Codex role/default/project-delta enum and accept it only as an exact, targeted, one-delegation operator override for `Executor` or `Finisher`. |
 | Ambiguous budget language becomes a model override. | Preserve the #67 non-override phrase list and add Codex examples without adding fuzzy matching. |
 | Planner over-edits unrelated orchestration contracts. | Scope implementation to model-selection prose, Codex role metadata, and project-delta model validation. |
 | Reviewer cannot prove skill readiness from prose alone. | Require pressure tests and writing-skills review dimensions before any production-readiness claim for `skills/**/*.md` changes. |
@@ -143,7 +147,11 @@ Given operator text "this is just a tiny Executor task, go cheap", `Team Lead` d
 
 ### PT-77-5: Project delta validation
 
-Given active host `codex` and a project delta with `## Model` set to `gpt-5.4-mini`, `resolve_role_config` accepts it for supported roles. Given active host `codex` and `## Model` set to `sonnet`, it halts as an invalid model value for Codex. Given active host `claude-code` and `## Model` set to `sonnet`, it remains valid.
+Given active host `codex` and a project delta with `## Model` set to `gpt-5.4-mini`, `resolve_role_config` accepts it for supported roles. Given active host `codex` and `## Model` set to `sonnet` or `gpt-5.3-codex-spark`, it halts as an invalid model value for Codex. Given active host `claude-code` and `## Model` set to `sonnet`, it remains valid.
+
+### PT-77-5A: Spark wrong-role override rejection
+
+Given operator text `model: gpt-5.3-codex-spark for reviewer`, `Team Lead` rejects the override as invalid for the targeted role and does not silently apply Spark, infer another cheap model, or persist the requested value. A Reviewer delegation must use `gpt-5.5` unless an exact supported Reviewer override is present.
 
 ### PT-77-6: Writing-skills review dimensions
 
@@ -155,7 +163,7 @@ This Brainstormer pass did not run an independent adversarial review. The later 
 
 - RED/GREEN baseline: before state is Claude-only Codex metadata and a closed Claude-only enum; after state is host-aware default resolution and host-aware override validation.
 - Rationalization resistance: no "parent model is fine", "go cheap means spark", or "Codex can reuse Claude aliases" shortcuts.
-- Red flags: Codex YAMLs with `model: opus|sonnet|haiku`, shared docs saying all non-`Team Lead` roles must resolve only to Claude aliases, or project deltas accepting Codex model strings on Claude hosts without a host check.
+- Red flags: Codex YAMLs with `model: opus|sonnet|haiku`, shared docs saying all non-`Team Lead` roles must resolve only to Claude aliases, project deltas accepting Codex model strings on Claude hosts without a host check, or Spark appearing in role defaults, host-wide enums, project-delta values, or non-`Executor` / non-`Finisher` overrides.
 - Token efficiency: `SKILL.md` should stay concise and push literal token catalogs into `project-deltas.md`.
 - Role ownership: `Team Lead` owns model resolution; role files own shipped defaults; operator owns explicit overrides; Reviewer owns pressure-test verification.
 - Stage-gate bypass paths: no model change should bypass Gate 1, execution-mode routing, Reviewer, Finisher, or committed handoff requirements.
@@ -167,6 +175,7 @@ This Brainstormer pass did not run an independent adversarial review. The later 
 | brainstormer | material | `skills/superteam/SKILL.md` and `skills/superteam/project-deltas.md` | Current shared contract states every non-`Team Lead` role must resolve only to `opus`, `sonnet`, or `haiku`, which conflicts with Codex-native defaults. | Addressed by requirement to make the enum host-aware rather than globally replacing Claude guidance. |
 | brainstormer | material | `skills/superteam/agents/*.openai.yaml` | Current Codex role metadata uses Claude aliases for all non-`Team Lead` roles. | Addressed by AC-77-2 requirements and affected-file mapping. |
 | brainstormer | minor | Spark downshift path | Without explicit wording, `gpt-5.3-codex-spark` could become an inferred default for any "small" task. | Addressed by non-goal, override grammar, and pressure tests requiring exact operator token use. |
+| adversarial-review | material | `docs/superpowers/specs/2026-05-05-77-update-codex-model-recommendations-for-teammate-roles-design.md:27` | Design scoped `gpt-5.3-codex-spark` to optional explicit downshift for trivial `Executor` or `Finisher` delegations, but later included Spark in the host-wide Codex token set and project-delta enum. That admitted persistent project-delta use and wrong-role use, weakening AC-77-4. | Resolved by removing Spark from Codex role/default/project-delta `allowed_model_values(host)`, defining Spark as override-only after target role resolution, limiting it to one-delegation `Executor` or `Finisher` overrides, and adding pressure tests for project-delta and wrong-role rejection. |
 
 ## Handoff guidance
 
