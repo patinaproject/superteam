@@ -590,40 +590,7 @@ Before resolving or replying to comments tied to a prior branch state:
 
 ## Shutdown
 
-Shutdown is a success-only action. Do not shut down or present the run as complete unless every required shutdown check passes on the latest pushed PR state.
-
-Every `superteam` run is expected to publish a PR. Local-only state is never a valid complete, demoable, or handoffable result.
-
-PR publication is a milestone, not the end of the workflow. `Finisher` remains active after the PR exists and after any individual status snapshot until the publish-state follow-through is stable or an explicit blocker is reported.
-
-Shutdown readiness is head-relative. After every push, `Finisher` must re-evaluate completion against the latest PR head instead of relying on a prior green or previously-cleared state.
-
-Before shutdown:
-
-1. Verify the current branch has been pushed and the active PR exists.
-2. Verify the active PR and the current branch state after the latest push.
-3. Verify current publish-state blockers for the latest pushed state, including mergeability, required checks, and PR metadata requirements discovered from repository rules.
-4. Check unresolved inline review threads on the latest PR head.
-5. Check recent blocking external PR feedback on the latest pushed state.
-6. Treat the following as blocking:
-   - an unpushed branch or missing PR
-   - broken mergeability or required publish-state follow-through that `Finisher` still owns
-   - required checks that are pending or failing without a clear handoff-ready blocker report
-   - PR metadata or title failures that violate repository rules and still require `Finisher` action
-   - unresolved inline review threads on the latest PR head
-   - unresolved reviewer or bot feedback posted after the latest push that requests a code change, verification rerun, follow-up response, or other concrete corrective action before the PR is ready
-7. Record the final unresolved blocking-feedback counts for the latest pushed state, including:
-   - unresolved inline review threads
-   - unresolved top-level reviewer or bot comments with still-applicable findings or requested corrective action
-8. Treat any nonzero unresolved blocking-feedback count as a blocker.
-9. Only dedupe a top-level comment from the final unresolved count when it is explicitly a summary of specific inline findings already audited on the latest pushed state.
-10. Treat every new push as invalidating prior completeness assumptions. Re-check review state, checks, mergeability, and PR metadata against the latest pushed head before reporting success.
-11. If blocking work remains, continue the `Finisher` loop, dispatch `Finisher`-owned handling, and re-check instead of stopping at a status snapshot.
-12. If the state cannot be determined safely, distinguish branch-caused blockers from likely baseline or unrelated failures when possible, and prompt the operator instead of guessing.
-13. Report the remaining blocking state explicitly, including the final unresolved blocking-feedback counts, before any handoff or halt.
-14. Only request shutdown when every required shutdown check passes on the latest pushed head. Otherwise halt with an explicit blocker.
-
-Use repository placeholders such as `<owner>`, `<repo>`, `<pr>`, and `<branch>` in commands so the workflow stays portable across repositories.
+Finisher owns shutdown; no run is complete until the shutdown contract returns success on the latest pushed head. The shutdown checklist lives in [.claude/agents/finisher.md](./.claude/agents/finisher.md). Team Lead enforces shutdown as an orchestration gate: a run that has not produced a Finisher success-only shutdown is not complete, regardless of in-session signals.
 
 ## Failure handling
 
