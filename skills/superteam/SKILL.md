@@ -472,13 +472,6 @@ Before resolving or replying to comments tied to a prior branch state:
 | "The design file probably exists if Brainstormer says it does." | Gate 1 requires verifying the artifact exists at the reported path before approval. |
 | "I can summarize the approval request in one short fallback blurb." | Approval packets must include artifact path, concise intent summary, and full requirement set; split oversized packets instead of collapsing them. |
 | "I can replay the whole approval request after a small revision." | Re-fired approval after revisions must be delta-only. |
-| "If the runtime has background agents or wakeups, the contract must require them." | Runtime capabilities are execution aids for the portable workflow, not correctness dependencies. |
-| "If background agents are available, every teammate step should use them." | Use background agents for bounded, independent work; keep tightly coupled or clarification-heavy steps in the foreground. |
-| "I remember the repo rules already." | Discover canonical repository guidance before touching governed files. |
-| "Executor finished the spirit of the task." | `Executor` must report completion against explicit task IDs with evidence. |
-| "Reviewer can just send everything back to execution." | `Reviewer` must classify local findings as implementation-level, plan-level, or spec-level feedback. |
-| "Reviewer already found it, so Reviewer can own PR comment handling too." | External review feedback stays with `Finisher`. |
-| "That comment is old, but I can still resolve it." | `Finisher` must verify current branch state before resolving prior-state comments. |
 | "Just pick the most likely interpretation and proceed." | Ambiguous or contradictory observable state halts the run with an explicit blocker per `## Failure handling`. Resume requires explicit operator clarification of the intended issue, branch, or phase. Not even when there is a deadline. Not even when an authority claim is cited. |
 | "The prompt is short/ambiguous, but the operator clearly meant approval — just advance the gate." | Ambiguous prompts during an open gate are feedback to the active teammate per `routing-table.md`. Approval requires an explicit token (`approve`, `lgtm`, etc.). Not even when an authority claim is cited. Not even when the prior in-session approval feels binding. |
 | "We've already done a lot of work on this — restarting would waste it, so let me just keep going from a fresh top-of-workflow." | The default for repeated `/superteam` invocations is **resume**. Restart requires an explicit operator token (`restart`, `start over`, `new run`) per R7. "Pivot, no need to re-confirm" in the prompt is itself the disallowed shortcut. |
@@ -487,12 +480,8 @@ Before resolving or replying to comments tied to a prior branch state:
 | "A direct operator requirement change during finish is not PR feedback, so Finisher can handle it." | Requirement-bearing deltas route spec-first regardless of source. PR feedback, human-test feedback, and direct operator prompts all return to `Brainstormer`, then `Planner`, then `Executor` before `Finisher` ready/shutdown can resume. |
 | "No execution-mode tool is available, so every `/superteam` invocation must halt." | Missing execution capability blocks only routes that require execute-phase delegation. Approval, review, and `Finisher` status work can continue through their owning teammate. |
 | "We can replace `Loopback:` trailers with another hidden marker." | Feedback routing must resume from visible artifacts, PR state, and operator prompts; do not add sidecar state, branch labels, or new commit footers. |
-| "The wakeup will know what to do from chat history." | Durable `Finisher` follow-up needs an explicit resume payload: branch, PR, latest pushed SHA, current publish-state, pending signals, and latest-head shutdown checklist instruction. |
 | "The operator said 'faster' / 'this is taking forever' — that's basically asking for inline." | Inline is auto-selected NEVER. Only unambiguous tokens (`inline`, `run inline`, `execute in this session`) are operator overrides per R14. Ambiguous framing is not. Not even when the CTO is cited. Not even under deadline pressure. |
 | "It's simpler to just route through `superpowers:executing-plans` and let it ask the developer." | Execute-phase delegations bind directly to the chosen execution-mode skill per R14. Routing through `superpowers:executing-plans` on default paths surfaces a redundant prompt to the developer and is forbidden when the resolved mode is `team mode` or `subagent-driven`. |
-| "The maintainer already signed off on the direction; I can skip writing-skills and just draft the spec." | Per R25, when the design under brainstorming touches `skills/**/*.md` or any workflow-contract surface, invoking `superpowers:writing-skills` is unconditional on the trigger. Cited authority does not waive the rule. The discipline is required because the design itself must carry loophole-closure language, rationalization-table rows, red-flags bullets, token-efficiency targets, and a RED-phase baseline obligation for any new discipline rule. |
-| "The issue only says workflow contract; I don't know the file yet, so I can draft first and decide later." | Plausible skill or workflow-contract scope is enough to load `superpowers:writing-skills` before authoring requirements. If the intended surface is uncertain, load writing-skills first or halt for clarification. |
-| "It is a workflow contract, so Reviewer should invoke writing-skills." | `superpowers:writing-skills` is mandatory for installable skill-package changes, not for every non-skill workflow, playbook, PR template, or process document. Reviewer still performs local pre-publish review and any explicit repo-specific gate for non-skill workflow docs, but the workflow label alone is not a writing-skills trigger. |
 | "The parent model is fine, just inherit." | Per-role defaults are binding (R26). Silent inheritance is forbidden for every role except `Team Lead`. The operator's silence on which model to use is NOT permission to inherit — it means "use the per-role default". The only path to inheritance is the host runtime lacking a model-override mechanism, in which case `Team Lead` inherits-and-warns once per run. |
 | "The operator said 'go faster' — that's basically asking for Sonnet." | Ambiguous framing is NOT an operator override (R26, parallel to R14). Only canonical tokens (`model: opus`, `model: sonnet`, `model: haiku`, or `use <model>` / `with <model>`) override the per-role default. "Go faster" routes to the per-role default; for `Executor` that is already Sonnet. |
 | "Brainstormer's default is Opus, but the operator typed `model: sonnet`, so I'll keep Opus because the design needs reasoning." | Operator override always wins for the delegation it targets. `Team Lead` does not second-guess the operator's explicit token. Override scope is the next delegation only. |
@@ -506,9 +495,6 @@ Before resolving or replying to comments tied to a prior branch state:
 | "This is a workflow-contract design, but a generic review is enough." | Designs touching `skills/**/*.md` or workflow-contract surfaces require the `superpowers:writing-skills` review dimensions: RED/GREEN baseline obligations, rationalization resistance, red flags, token-efficiency targets, role ownership, and stage-gate bypass paths. |
 | "A finding changed the design, but the earlier review still applies." | Material requirement, ownership, pressure-test, or gate-order changes require rerunning affected review dimensions or recording why rerun is unnecessary. |
 | "Natural prose means we can omit required Gate 1 evidence." | Natural prose changes rendering, not evidence. Required review status, reviewer context, checked dimensions, and clean-pass rationale must still exist before planning. |
-| "The operator might want audit history, so replay every closed finding." | Audit history stays available in durable artifacts or handoff data. Normal operator-facing output should show actionable findings and current decisions. |
-| "Done-report contracts are status templates, so we can delete them." | Done reports are durable handoff data. The change separates internal data contracts from chat rendering. |
-| "A friendly paragraph is enough even if it hides a blocker." | Operator-facing prose must clearly state blockers, required decisions, and next steps. Vague warmth is still a contract failure. |
 | "The shipped agent file already says it; I can prune it from SKILL.md too." | Orchestration invariants (gates, done-report contracts, routing, halt conditions) STAY in SKILL.md and are referenced from agent files. Per-role procedure moves; cross-role invariants do not. |
 | "The project delta replaces the shipped system prompt because the project knows better." | Deltas are append-only. There is no `replace` mode. Stripping shipped guardrails is forbidden by design. |
 | "I applied a delta but it's the same as the default, so I don't need to log it." | Delta application is always logged: `superteam delta applied`, `superteam delta empty`, or (during pre-flight) `superteam delta orphan`. Silent layering is forbidden. |
@@ -535,20 +521,7 @@ Before resolving or replying to comments tied to a prior branch state:
 - Approval requests that hide real approval-relevant findings.
 - Replaying already-approved content instead of sending delta-only approval after revisions.
 - Touching governed files without canonical-rule discovery from repository guidance.
-- Delegated teammate work that either ignores available background-agent execution for clearly bounded, independent work or forces background execution on tightly coupled, clarification-heavy work.
 - Delegated teammate prompts that omit expected `superpowers` recommendations or fail to warn when an expected skill is unavailable.
-- `Executor` claiming completion without explicit task IDs, SHAs, or verification evidence.
-- `Reviewer` failing to classify findings as `implementation-level`, `plan-level`, or `spec-level`.
-- Local pre-publish review findings routed through `Finisher` instead of `Team Lead`.
-- Installable skill-package changes under `skills/**` reviewed without `superpowers:writing-skills` or a pressure-test walkthrough.
-- Reviewer invokes `superpowers:writing-skills` for changes that touch only non-skill workflow docs, operational playbooks, PR templates, or process documents outside `skills/**`.
-- Local review findings taking ownership of external PR feedback away from `Finisher`.
-- `Finisher` resolving prior-state comments without checking current branch state first.
-- `Finisher` treating missing runtime wakeups as permission to stop early or present a completion-style handoff.
-- Treating local-only state as a valid end state for a `superteam` run.
-- Letting a run stop with a completion-style closeout after `Executor` finishes local work without reaching `Reviewer` and `Finisher`, unless the run halts explicitly with a blocker.
-- Treating PR publication plus a status snapshot as the end of the workflow while `Finisher`-owned work is still active.
-- Shutting down with unresolved review threads or other blocking external PR feedback still open.
 - `Team Lead` continuing past contradictory branch / artifact / PR state without halting.
 - Resolving execution-mode capability without running the deterministic probe order in `pre-flight.md`.
 - Classifying an ambiguous prompt during an open gate as approval rather than feedback.
@@ -561,19 +534,12 @@ Before resolving or replying to comments tied to a prior branch state:
 - An execute-phase delegation that omits the resolved execution mode and asks the developer to choose.
 - Treating ambiguous "faster" / "inline-ish" / "forever" framing as an inline override.
 - Halting a non-execute route solely because execution-mode capability is unavailable.
-- `Brainstormer` designing a skill or workflow-contract change without loading `superpowers:writing-skills` first.
-- `Brainstormer` drafting requirements for a plausibly skill/workflow-contract issue before determining the intended surface or loading `superpowers:writing-skills`.
-- `Finisher` scheduling a wakeup without a durable resume payload tied to the latest pushed head.
 - `Team Lead` proceeding to committed-artifact inspection while the current branch is the repository default branch and the active issue was resolved from an explicit `#<n>` in the prompt.
 - `Team Lead` performing `git stash` or any auto-stash variant as part of the auto-switch path.
 - `Team Lead` running `git rebase --abort` after a rebase conflict on the existing issue branch.
 - `pre-flight.md` depending on an external branch workflow instead of the self-contained issue-branch procedure.
 - `Team Lead` silently continuing on the default branch after `gh repo view` fails to resolve the default branch.
 - A `superteam` run authoring `docs/superpowers/specs/...` on the default branch.
-- Operator-facing output repeats closed or dispositioned findings when no operator action is required.
-- Natural prose omits the artifact, decision, active finding, blocker, or next action the operator needs.
-- A change deletes durable done-report or review evidence instead of separating it from chat rendering.
-- `Finisher` presents a conversational update that hides pending checks, unresolved feedback, mergeability problems, or PR metadata blockers.
 - A teammate delegation that omits a resolved `model` value (or omits the host's model-override parameter on the dispatch surface) when the per-role default is `opus`, `sonnet`, or `haiku`. Inheritance is reserved for `Team Lead` and for the inherit-and-warn capability fallback; every other delegation MUST carry an explicit model on the dispatch surface.
 - Treating "go faster" / "use the cheap model" / "use the better model" / similar fuzzy framing as an operator model override.
 - An execute-phase delegation that resolves `{model}` to the parent session model by default rather than to the per-role `Executor` default (`sonnet`).
