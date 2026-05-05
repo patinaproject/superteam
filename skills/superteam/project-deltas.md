@@ -112,6 +112,20 @@ Every `superteam delta applied` line carries `non-negotiable-rules-sha=<8-char-p
 
 ---
 
+## Host-enforcement asymmetry
+
+The `## Tools` allow/deny layer is enforced natively on Claude Code (per-agent
+`tools:` frontmatter on `.claude/agents/<role>.md`) but is currently a parity
+target on Codex (the host does not enforce per-agent tool allow/deny). The
+`resolve_role_config` algorithm computes the merged tool set on both hosts;
+Team Lead emits the same audit lines on both. Operators on Codex should treat
+the tools layer as advisory until Codex gains native enforcement.
+
+The `## Model` layer and `## System prompt append` layer are enforced on both
+hosts.
+
+---
+
 ## Active-host probe order
 
 Probe order — first match wins; result logged once at pre-flight as
@@ -119,7 +133,7 @@ Probe order — first match wins; result logged once at pre-flight as
 
 1. `CLAUDECODE` / `CLAUDE_CODE_*` env-var family present → `claude-code`
 2. `CODEX_*` env-var family present → `codex`
-3. Runtime self-id via capability probe (same surface used by R26 model-override detection)
+3. Runtime self-id via capability probe (the active subagent-dispatch tool schema introspection used in `pre-flight.md` `## Model-override capability detection`)
 
 Supported host set: `{ claude-code, codex }`. Out-of-supported-set hosts halt at
 pre-flight (see halt strings above).

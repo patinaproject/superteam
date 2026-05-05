@@ -89,7 +89,7 @@ Operator override: explicit `inline` (or equivalent) switches mode for that dele
 
 ### Per-teammate model defaults
 
-Per-role defaults live in the shipped agent file frontmatter (`model:` field is authoritative). `inherit` for `Team Lead` is a literal value; every other delegation MUST resolve to `opus`, `sonnet`, or `haiku`. Defaults are deliberately static.
+Per-role defaults live in the shipped agent file (the `model:` field is authoritative across both host formats — Claude frontmatter and Codex top-level YAML). `inherit` for `Team Lead` is a literal value; every other delegation MUST resolve to `opus`, `sonnet`, or `haiku`. Defaults are deliberately static.
 
 ### Operator override grammar
 
@@ -149,7 +149,7 @@ The only legal `## Model` values in a delta are `{ opus, sonnet, haiku, inherit 
 
 ### Append-only system prompt (LC2)
 
-System-prompt deltas are append-only by design. There is no `replace` mode. A project cannot redact shipped guardrails via a delta.
+System-prompt deltas are append-only by design. There is no `replace` mode. A project cannot redact shipped guardrails via a delta. The `## Model` and `## System prompt append` layers are enforced on both supported hosts; the `## Tools` allow/deny layer is enforced on Claude Code and is currently a parity target on Codex (see [`project-deltas.md` `## Host-enforcement asymmetry`](./project-deltas.md#host-enforcement-asymmetry)).
 
 ### Closed denylist (LC5)
 
@@ -234,9 +234,9 @@ Headline behaviors:
 
 ## Teammate contracts
 
-Per-role contracts ship in host-native agent files. SKILL.md owns the orchestration contracts (gates, routing, halt conditions, done-report fields, model-selection grammar) that cross all roles.
+Per-role contracts ship in host-native agent files. SKILL.md owns the orchestration contracts (gates, routing, halt conditions, done-report fields, model-selection grammar) that cross all roles. Each role ships parity files at `agents/<role>.openai.yaml` for Codex; the canonical Claude paths are linked below.
 
-- `Team Lead` — see [.claude/agents/team-lead.md](./.claude/agents/team-lead.md) (Codex: `agents/team-lead.openai.yaml`).
+- `Team Lead` — see [.claude/agents/team-lead.md](./.claude/agents/team-lead.md).
 - `Brainstormer` — see [.claude/agents/brainstormer.md](./.claude/agents/brainstormer.md).
 - `Planner` — see [.claude/agents/planner.md](./.claude/agents/planner.md).
 - `Executor` — see [.claude/agents/executor.md](./.claude/agents/executor.md).
@@ -381,7 +381,7 @@ Before resolving comments tied to a prior branch state: verify current state mat
 - A teammate delegation that omits a resolved `model` value (or omits the host's model-override parameter on the dispatch surface) when the per-role default is `opus`, `sonnet`, or `haiku`. Inheritance is reserved for `Team Lead` and for the inherit-and-warn capability fallback; every other delegation MUST carry an explicit model on the dispatch surface.
 - Treating "go faster" / "use the cheap model" / "use the better model" / similar fuzzy framing as an operator model override.
 - An execute-phase delegation that resolves `{model}` to the parent session model by default rather than to the per-role `Executor` default (`sonnet`).
-- A per-role procedural rule appears in `SKILL.md` after the refactor (it should be in the role's agent file).
+- A per-role procedural rule appears in `SKILL.md` after the refactor (it should be in the role's agent file under [`## Teammate contracts`](#teammate-contracts)).
 - A delta applied silently (no `superteam delta applied: <role> (...); non-negotiable-rules-sha=<prefix>` audit line on the operator-facing chat surface, with stderr fallback only when chat is unavailable).
 - A project delta uses a section heading outside the closed documented set `{ ## Model, ## Tools, ## System prompt append }`. Any other top-level heading is "undocumented" and is ignored with a warn — the determination is mechanical, not judgmental.
 - A malformed delta is interpreted ("looks like sonnet") instead of halting.
@@ -413,6 +413,7 @@ A successful run routes from observable state, preserves committed handoffs, pub
 - [.claude/agents/](./.claude/agents/): shipped per-role Claude Code subagent files.
 - [agents/](./agents/): plugin metadata (`openai.yaml`) and per-role Codex parity files (`<role>.openai.yaml`).
 - `docs/superpowers/<role>.md` in the consuming repo: project override surface (see `## Project deltas (Team Lead lookup)`).
+- `docs/project-overrides.md` in this repo: operator-facing authoring guide for project delta files (schema, examples, edge-case table).
 - [project-deltas.md](./project-deltas.md): Team Lead supporting reference — literal denylist tokens, halt/audit-log format strings, active-host probe order, and the `resolve_role_config` algorithm body. SKILL.md names every rule; this file carries the literal bodies.
 - [pre-flight.md](./pre-flight.md): phase-detection sequence, execution-mode capability detection, halt conditions
 - [routing-table.md](./routing-table.md): phase x prompt-class routing, classification heuristic, resume vs restart, Gate 1 durability
