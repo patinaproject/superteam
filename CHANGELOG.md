@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/patinaproject/superteam/compare/v1.5.0...v1.6.0) (2026-05-05)
+
+
+### Features
+
+* [#77](https://github.com/patinaproject/superteam/issues/77) use Codex model defaults ([#78](https://github.com/patinaproject/superteam/issues/78)) ([635f474](https://github.com/patinaproject/superteam/commit/635f474727abd025424f51dfb4037b42a7dd1ce3))
+
 ## [1.5.0](https://github.com/patinaproject/superteam/compare/v1.4.1...v1.5.0) (2026-05-05)
 
 
