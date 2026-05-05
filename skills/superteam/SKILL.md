@@ -740,9 +740,9 @@ A successful run routes from observable state, preserves committed handoffs, pub
 
 ## Supporting files
 
-- [agent-spawn-template.md](./agent-spawn-template.md): teammate-specific spawn guidance
-- [pr-body-template.md](./pr-body-template.md): PR checklist template used by `Finisher`
+- [.claude/agents/](./.claude/agents/): shipped per-role Claude Code subagent files.
+- [agents/](./agents/): plugin metadata (`openai.yaml`) and per-role Codex parity files (`<role>.openai.yaml`).
+- `docs/superpowers/<role>.md` in the consuming repo: project override surface (see `## Project deltas (Team Lead lookup)`).
 - [pre-flight.md](./pre-flight.md): phase-detection sequence, execution-mode capability detection, halt conditions
 - [routing-table.md](./routing-table.md): phase x prompt-class routing, classification heuristic, resume vs restart, Gate 1 durability
-- [loopback-trailers.md](./loopback-trailers.md): deprecation note for legacy `Loopback:` commit trailers
 - [workflow-diagrams.md](./workflow-diagrams.md): canonical chronological and orchestration diagrams
