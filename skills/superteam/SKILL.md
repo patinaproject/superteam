@@ -101,16 +101,7 @@ An explicit `inline` (or equivalent: `run inline`, `execute in this session`) in
 
 ### Per-teammate model defaults
 
-| Teammate | Default model | Rationale |
-|---|---|---|
-| `Team Lead` | `inherit` | Routing, gate enforcement, and pre-flight benefit from the main session model; `Team Lead` itself usually IS the main session and does not delegate to itself. |
-| `Brainstormer` | `opus` | Design reasoning, requirement framing, adversarial review, loophole-closure synthesis. |
-| `Planner` | `opus` | Plan structuring, workstream decomposition, dependency reasoning. |
-| `Executor` | `sonnet` | Bounded ATDD / implementation grunt work; cost and speed win without sacrificing correctness on tasks that already have explicit AC IDs and a committed plan. |
-| `Reviewer` | `opus` | Owns adversarial pressure-tests for installable skill-package changes (per `### Reviewer`, which requires invoking `superpowers:writing-skills` and running the relevant pressure-test walkthrough before publish when `skills/**` or packaged skill behavior changes). That is deep adversarial reasoning, not bounded pattern matching — the same justification that puts `Brainstormer` on Opus. Operators can downshift via `model: sonnet for reviewer` for trivial repo-rule reviews. |
-| `Finisher` | `sonnet` | CI triage, PR ops, status sweeps, mechanical follow-through. |
-
-Notes:
+Per-role default model values live in the shipped agent file frontmatter (`skills/superteam/.claude/agents/<role>.md` and `skills/superteam/agents/<role>.openai.yaml`) as the single home. The `model:` frontmatter field is authoritative. This section retains only the override grammar, binding mechanism, capability fallback, and loophole closure.
 
 - `inherit` for `Team Lead` is a literal value, not a synonym for "no contract". `Team Lead` is the only role for which inheritance is the default; every other delegation MUST resolve to one of `opus`, `sonnet`, or `haiku`.
 - Defaults are deliberately static. Dynamic per-task complexity scoring is out of scope.
