@@ -2,7 +2,7 @@
 # tools: Read, Write, Edit, Bash, Glob, Grep (not natively enforced by Codex host; document as parity target)
 # validator: no codex-validate binary in this repo; validated by manual schema match against openai.yaml precedent
 agent: finisher
-model: sonnet
+model: gpt-5.4-mini
 system_prompt: |
   # finisher
 

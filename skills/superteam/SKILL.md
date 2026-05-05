@@ -89,13 +89,24 @@ Operator override: explicit `inline` (or equivalent) switches mode for that dele
 
 ### Per-teammate model defaults
 
-Per-role defaults live in the shipped agent file (the `model:` field is authoritative across both host formats — Claude frontmatter and Codex top-level YAML). `inherit` for `Team Lead` is a literal value; every other delegation MUST resolve to `opus`, `sonnet`, or `haiku`. Defaults are deliberately static.
+Per-role defaults live in the shipped agent file for the active host (Claude frontmatter under `.claude/agents/*.md`; Codex top-level YAML under `agents/*.openai.yaml`). `inherit` for `Team Lead` is a literal value; every other delegation MUST resolve to an explicit host-supported token. Defaults are deliberately static.
+
+Host token sets:
+
+- `claude-code`: `inherit`, `opus`, `sonnet`, `haiku`
+- `codex`: `inherit`, `gpt-5.5`, `gpt-5.4`, `gpt-5.3-codex`, `gpt-5.4-mini`
+
+`gpt-5.3-codex-spark` is not a default token and is not part of either host's role-default set.
 
 ### Operator override grammar
 
 The override grammar mirrors R14's discipline: only unambiguous tokens count. The matching rule is the same as R14 inline override — substring match on the canonical token forms only, no fuzzy interpretation.
 
-Canonical override tokens (`model: opus`, `model: sonnet`, `model: haiku`, or `use <model>` / `with <model>`) override the per-role default for the next delegation only. Targeted form: `model: <model> for <role>`. Matching is case-insensitive; token applies to the next teammate delegation only; does NOT persist. The full grammar examples and the non-override phrase list live in [`project-deltas.md` `## Model-override grammar examples`](./project-deltas.md#model-override-grammar-examples).
+Canonical override tokens are host-aware and exact (`model: opus`, `model: sonnet`, `model: haiku` on Claude; `model: gpt-5.5`, `model: gpt-5.4`, `model: gpt-5.3-codex`, `model: gpt-5.4-mini` on Codex, plus `use <model>` / `with <model>` aliases). Targeted form: `model: <model> for <role>`. Matching is case-insensitive; token applies to the next teammate delegation only; does NOT persist.
+
+`gpt-5.3-codex-spark` is override-only for exact targeted `Executor` or `Finisher` delegations and never a default, host-wide enum member, or project-delta value.
+
+The full grammar examples and the non-override phrase list live in [`project-deltas.md` `## Model-override grammar examples`](./project-deltas.md#model-override-grammar-examples).
 
 Override scope: operator override always wins for its targeted delegation; subsequent delegations revert to the per-role default. There is no implicit "remember the last override" behavior.
 
@@ -125,7 +136,7 @@ agent: <role>
 ---
 
 ## Model
-<one of: opus | sonnet | haiku | inherit>
+<host-aware token; see closed model enum below>
 
 ## Tools
 allow:
@@ -139,7 +150,7 @@ deny:
 
 ### Closed model enum
 
-The only legal `## Model` values in a delta are `{ opus, sonnet, haiku, inherit }`. `inherit` resolves to "use the shipped default model for this role." For non-`team-lead` roles, a delta of `inherit` is allowed but logs `superteam delta inherit-redundant: <role>`. Invalid values halt (see halt strings below).
+`## Model` is a host-aware closed enum: `{inherit, opus, sonnet, haiku}` on `claude-code`; `{inherit, gpt-5.5, gpt-5.4, gpt-5.3-codex, gpt-5.4-mini}` on `codex`. `inherit` resolves to "use the shipped default model for this role." For non-`team-lead` roles, a delta of `inherit` is allowed but logs `superteam delta inherit-redundant: <role>`. Invalid values halt (see halt strings below). `gpt-5.3-codex-spark` is invalid in project deltas.
 
 ### Precedence
 
@@ -321,8 +332,8 @@ Before resolving comments tied to a prior branch state: verify current state mat
 | "The operator said 'faster' / 'this is taking forever' — that's basically asking for inline." | Inline is auto-selected NEVER. Only unambiguous tokens (`inline`, `run inline`, `execute in this session`) are operator overrides per R14. Ambiguous framing is not. Not even when the CTO is cited. Not even under deadline pressure. |
 | "It's simpler to just route through `superpowers:executing-plans` and let it ask the developer." | Execute-phase delegations bind directly to the chosen execution-mode skill per R14. Routing through `superpowers:executing-plans` on default paths surfaces a redundant prompt to the developer and is forbidden when the resolved mode is `team mode` or `subagent-driven`. |
 | "The parent model is fine, just inherit." | Per-role defaults are binding (R26). Silent inheritance is forbidden for every role except `Team Lead`. The operator's silence on which model to use is NOT permission to inherit — it means "use the per-role default". The only path to inheritance is the host runtime lacking a model-override mechanism, in which case `Team Lead` inherits-and-warns once per run. |
-| "The operator said 'go faster' — that's basically asking for Sonnet." | Ambiguous framing is NOT an operator override (R26, parallel to R14). Only canonical tokens (`model: opus`, `model: sonnet`, `model: haiku`, or `use <model>` / `with <model>`) override the per-role default. "Go faster" routes to the per-role default; for `Executor` that is already Sonnet. |
-| "Brainstormer's default is Opus, but the operator typed `model: sonnet`, so I'll keep Opus because the design needs reasoning." | Operator override always wins for the delegation it targets. `Team Lead` does not second-guess the operator's explicit token. Override scope is the next delegation only. |
+| "The operator said 'go faster' — that's basically asking for Sonnet." | Ambiguous framing is NOT an operator override (R26, parallel to R14). Only canonical host tokens override the per-role default. "Go faster" routes to the per-role default; for Codex `Executor` that is `gpt-5.3-codex`. |
+| "Brainstormer's default is `gpt-5.5`, but the operator typed `model: gpt-5.4`, so I'll keep `gpt-5.5` because the design needs reasoning." | Operator override always wins for the delegation it targets. `Team Lead` does not second-guess the operator's explicit token. Override scope is the next delegation only. |
 | "The operator is on the default branch on purpose; they clearly meant to start work here." | When the active issue resolves from the operator prompt and the current branch is the repository default branch, pre-flight MUST auto-switch to the per-issue branch before committed-artifact inspection. Operator intent is captured by the `#<n>` reference, not by the branch they happened to be on. Not even when the operator is the maintainer. Not even under deadline pressure. |
 | "Skipping the auto-switch saves a step; we can branch later." | Skipping authors Gate 1 artifacts on the wrong base and forces `Finisher` to rewrite history or push from the default branch. The rule is not optional. |
 | "Dirty working tree? I can stash and continue." | The `superteam` issue-branch procedure refuses on a dirty working tree. `superteam` halts with `superteam halted at Team Lead: dirty working tree blocks auto-switch to issue branch`. Pre-flight does NOT stash on the operator's behalf. |
@@ -378,13 +389,13 @@ Before resolving comments tied to a prior branch state: verify current state mat
 - `pre-flight.md` depending on an external branch workflow instead of the self-contained issue-branch procedure.
 - `Team Lead` silently continuing on the default branch after `gh repo view` fails to resolve the default branch.
 - A `superteam` run authoring `docs/superpowers/specs/...` on the default branch.
-- A teammate delegation that omits a resolved `model` value (or omits the host's model-override parameter on the dispatch surface) when the per-role default is `opus`, `sonnet`, or `haiku`. Inheritance is reserved for `Team Lead` and for the inherit-and-warn capability fallback; every other delegation MUST carry an explicit model on the dispatch surface.
+- A teammate delegation that omits a resolved `model` value (or omits the host's model-override parameter on the dispatch surface) when the per-role default is not `inherit`. Inheritance is reserved for `Team Lead` and for the inherit-and-warn capability fallback; every other delegation MUST carry an explicit model on the dispatch surface.
 - Treating "go faster" / "use the cheap model" / "use the better model" / similar fuzzy framing as an operator model override.
-- An execute-phase delegation that resolves `{model}` to the parent session model by default rather than to the per-role `Executor` default (`sonnet`).
+- An execute-phase delegation that resolves `{model}` to the parent session model by default rather than to the per-role `Executor` default (`gpt-5.3-codex` on Codex; `sonnet` on Claude).
 - A per-role procedural rule appears in `SKILL.md` after the refactor (it should be in the role's agent file under [`## Teammate contracts`](#teammate-contracts)).
 - A delta applied silently (no `superteam delta applied: <role> (...); non-negotiable-rules-sha=<prefix>` audit line on the operator-facing chat surface, with stderr fallback only when chat is unavailable).
 - A project delta uses a section heading outside the closed documented set `{ ## Model, ## Tools, ## System prompt append }`. Any other top-level heading is "undocumented" and is ignored with a warn — the determination is mechanical, not judgmental.
-- A malformed delta is interpreted ("looks like sonnet") instead of halting.
+- A malformed delta is interpreted ("looks like sonnet" or "looks like gpt-5.4") instead of halting.
 - Team Lead delegates without first probing and logging the active host. "Active host" is determined deterministically by D3's probe order (`CLAUDECODE` env vars → `CODEX_*` env vars → runtime self-id) and the result is logged at pre-flight as `superteam active host: <name> (probe=<source>)`. A delegation with no preceding probe-log line is a red flag.
 - The active host is outside the supported set `{ claude-code, codex }` and Team Lead delegates anyway instead of halting at pre-flight.
 - The plugin-level `agents/openai.yaml` is treated as a per-role config surface (it is plugin-level metadata; per-role files are `agents/<role>.openai.yaml`).

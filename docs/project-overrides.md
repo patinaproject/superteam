@@ -52,7 +52,7 @@ agent: <role>
 ---
 
 ## Model
-<one of: opus | sonnet | haiku | inherit>
+<host-aware token; see closed model enum below>
 
 ## Tools
 allow:
@@ -69,11 +69,13 @@ field is required whenever a body section is present.
 
 ### Closed model enum
 
-Legal `## Model` values: `{ opus, sonnet, haiku, inherit }`.
+Legal `## Model` values are host-aware: `{ inherit, opus, sonnet, haiku }` on `claude-code`; `{ inherit, gpt-5.5, gpt-5.4, gpt-5.3-codex, gpt-5.4-mini }` on `codex`.
 
 `inherit` resolves to "use the shipped default for this role." For non-`team-lead` roles
 a delta of `inherit` is allowed but logs `superteam delta inherit-redundant: <role>`.
 Any other value halts dispatch.
+
+`gpt-5.3-codex-spark` is not a valid `## Model` delta value. It is override-only for exact targeted `Executor` or `Finisher` one-delegation operator overrides.
 
 ### Append-only system prompt
 
@@ -88,9 +90,7 @@ halt with a verbatim blocker. The literal token list lives in
 
 ### Operator-prompt model override (N2)
 
-The operator's R26 model override (canonical tokens: `model: opus`, `model: sonnet`,
-`model: haiku`, or `use <model>` / `with <model>`) applies to the model layer only, after
-the delta is merged. Tool allow/deny and system-prompt-append layers are not
+The operator's R26 model override uses canonical host tokens (Claude: `model: opus|sonnet|haiku`; Codex: `model: gpt-5.5|gpt-5.4|gpt-5.3-codex|gpt-5.4-mini`, plus `use <model>` / `with <model>` aliases) and applies to the model layer only, after the delta is merged. Tool allow/deny and system-prompt-append layers are not
 operator-prompt-overridable.
 
 ---
@@ -121,7 +121,7 @@ agent: executor
 ---
 
 ## Model
-sonnet
+gpt-5.3-codex
 ```
 
 Applied delta: `superteam delta applied: executor (model); non-negotiable-rules-sha=a1b2c3d4`
@@ -136,7 +136,7 @@ agent: brainstormer
 ---
 
 ## Model
-opus
+gpt-5.5
 
 ## Tools
 allow:

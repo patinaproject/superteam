@@ -45,7 +45,7 @@ def resolve_role_config(role, host, host_tool_capabilities):
              f"{role} attempts to weaken non-negotiable rules (matched: {matched})")
     config = shipped.copy()
     if parsed.model is not None:
-        if parsed.model not in {"opus", "sonnet", "haiku", "inherit"}:
+        if parsed.model not in allowed_model_values(host):
             halt("superteam halted at Team Lead: project delta for "
                  f"{role} has invalid model value {parsed.model}")
         if parsed.model == "inherit" and shipped.model != "inherit":
@@ -70,6 +70,18 @@ def resolve_role_config(role, host, host_tool_capabilities):
     # before binding the dispatch parameter.
     return config
 ```
+
+Host-aware enum used by `resolve_role_config`:
+
+```text
+allowed_model_values(host):
+  claude-code -> {inherit, opus, sonnet, haiku}
+  codex -> {inherit, gpt-5.5, gpt-5.4, gpt-5.3-codex, gpt-5.4-mini}
+```
+
+`gpt-5.3-codex-spark` is deliberately excluded from `allowed_model_values(host)`.
+It is accepted only by the operator-override parser for exact targeted `Executor`
+or `Finisher` one-delegation overrides.
 
 ---
 
@@ -157,11 +169,12 @@ pre-flight (see halt strings above).
 
 Canonical override tokens (case-insensitive; whitespace around the colon is permitted):
 
-- `model: opus` and aliases `use opus`, `with opus`
-- `model: sonnet` and aliases `use sonnet`, `with sonnet`
-- `model: haiku` and aliases `use haiku`, `with haiku`
+- Claude tokens: `model: opus`, `model: sonnet`, `model: haiku` and aliases `use <model>`, `with <model>`
+- Codex tokens: `model: gpt-5.5`, `model: gpt-5.4`, `model: gpt-5.3-codex`, `model: gpt-5.4-mini` and aliases `use <model>`, `with <model>`
 
-Targeted form: `model: <model> for <role>`, e.g. `model: opus for executor`.
+Targeted form: `model: <model> for <role>`, e.g. `model: gpt-5.4 for planner`.
+
+Spark exception: `model: gpt-5.3-codex-spark for executor` or `model: gpt-5.3-codex-spark for finisher` is valid for one delegation only. Spark targeting other roles or untargeted Spark is invalid.
 
 Phrases that do NOT count as an override — `Team Lead` MUST resolve to the per-role
 default and MUST NOT route these through the override path:
@@ -173,7 +186,7 @@ default and MUST NOT route these through the override path:
 - "save tokens" / "be efficient"
 - "this is taking too long"
 - Any phrasing that names a model family informally without the canonical token
-  (e.g. "use Claude opus please" without `model:` or `use opus`)
+  (e.g. "use Claude opus please" without `model:` or `use opus`, or "use Codex 5.4" without `model:` / `use gpt-5.4`)
 
 ---
 
@@ -194,5 +207,5 @@ default and MUST NOT route these through the override path:
    override the operator with a per-role default reasoning ("but Brainstormer needs
    Opus"). The override scope is one delegation; defaults reassert on the next.
 5. **No persistent override memory.** An override targets one delegation. There is no
-   "the operator said opus once so use opus forever" behavior. Each delegation
+   "the operator said opus once so use opus forever" or "spark once means spark forever" behavior. Each delegation
    re-resolves from prompt + per-role default.

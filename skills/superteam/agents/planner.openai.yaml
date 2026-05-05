@@ -2,7 +2,7 @@
 # tools: Read, Write, Edit, Bash, Glob, Grep (not natively enforced by Codex host; document as parity target)
 # validator: no codex-validate binary in this repo; validated by manual schema match against openai.yaml precedent
 agent: planner
-model: opus
+model: gpt-5.4
 system_prompt: |
   # planner
 
