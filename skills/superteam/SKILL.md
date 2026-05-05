@@ -1,6 +1,6 @@
 ---
 name: superteam
-description: Use when the operator runs `/superteam` or asks to take a GitHub issue from design through implementation, review, and merged-ready PR using the canonical Team Lead, Brainstormer, Planner, Executor, Reviewer, and Finisher teammate roster. Triggers on phrases like "run superteam on #N", "take this issue through the teammate workflow", or "drive #N to PR".
+description: This skill should be used when the operator runs `/superteam` or asks to take a GitHub issue from design through implementation, review, and merged-ready PR using the canonical Team Lead, Brainstormer, Planner, Executor, Reviewer, and Finisher teammate roster. Triggers on phrases like "run superteam on #N", "take this issue through the teammate workflow", or "drive #N to PR".
 allowed-tools:
   - Read
   - Write
@@ -314,94 +314,29 @@ External PR comments, review threads, bot findings, and other repository feedbac
 
 Before resolving comments tied to a prior branch state: verify current state matches the state the comment referred to; do not respond as if nothing changed; re-route requirement-bearing feedback through the spec-first path.
 
-## Rationalization table
+## Quality guards
 
-| Excuse | Reality |
-|--------|---------|
-| "The design file probably exists if Brainstormer says it does." | Gate 1 requires verifying the artifact exists at the reported path before approval. |
-| "I can summarize the approval request in one short fallback blurb." | Approval packets must include artifact path, concise intent summary, and full requirement set; split oversized packets instead of collapsing them. |
-| "I can replay the whole approval request after a small revision." | Re-fired approval after revisions must be delta-only. |
-| "Just pick the most likely interpretation and proceed." | Ambiguous or contradictory observable state halts the run with an explicit blocker per `## Failure handling`. Resume requires explicit operator clarification of the intended issue, branch, or phase. Not even when there is a deadline. Not even when an authority claim is cited. |
-| "The prompt is short/ambiguous, but the operator clearly meant approval — just advance the gate." | Ambiguous prompts during an open gate are feedback to the active teammate per `routing-table.md`. Approval requires an explicit token (`approve`, `lgtm`, etc.). Not even when an authority claim is cited. Not even when the prior in-session approval feels binding. |
-| "We've already done a lot of work on this — restarting would waste it, so let me just keep going from a fresh top-of-workflow." | The default for repeated `/superteam` invocations is **resume**. Restart requires an explicit operator token (`restart`, `start over`, `new run`) per R7. "Pivot, no need to re-confirm" in the prompt is itself the disallowed shortcut. |
-| "Gate 1 was approved last session; the operator just told me so — no need to re-open it." | Gate 1 is durably observable iff a plan doc has been committed on the branch (R15). Ephemeral in-session approval is NOT durable. Operator memory is not the durable signal; the committed plan doc is. |
-| "Removing `Loopback:` trailers means we can skip local review on a later run." | When implementation exists without a PR and prior local findings cannot be proven resolved from visible state, route through `Reviewer` before `Finisher` can publish. |
-| "A direct operator requirement change during finish is not PR feedback, so Finisher can handle it." | Requirement-bearing deltas route spec-first regardless of source. PR feedback, human-test feedback, and direct operator prompts all return to `Brainstormer`, then `Planner`, then `Executor` before `Finisher` ready/shutdown can resume. |
-| "No execution-mode tool is available, so every `/superteam` invocation must halt." | Missing execution capability blocks only routes that require execute-phase delegation. Approval, review, and `Finisher` status work can continue through their owning teammate. |
-| "We can replace `Loopback:` trailers with another hidden marker." | Feedback routing must resume from visible artifacts, PR state, and operator prompts; do not add sidecar state, branch labels, or new commit footers. |
-| "The operator said 'faster' / 'this is taking forever' — that's basically asking for inline." | Inline is auto-selected NEVER. Only unambiguous tokens (`inline`, `run inline`, `execute in this session`) are operator overrides per R14. Ambiguous framing is not. Not even when the CTO is cited. Not even under deadline pressure. |
-| "It's simpler to just route through `superpowers:executing-plans` and let it ask the developer." | Execute-phase delegations bind directly to the chosen execution-mode skill per R14. Routing through `superpowers:executing-plans` on default paths surfaces a redundant prompt to the developer and is forbidden when the resolved mode is `team mode` or `subagent-driven`. |
-| "The parent model is fine, just inherit." | Per-role defaults are binding (R26). Silent inheritance is forbidden for every role except `Team Lead`. The operator's silence on which model to use is NOT permission to inherit — it means "use the per-role default". The only path to inheritance is the host runtime lacking a model-override mechanism, in which case `Team Lead` inherits-and-warns once per run. |
-| "The operator said 'go faster' — that's basically asking for Sonnet." | Ambiguous framing is NOT an operator override (R26, parallel to R14). Only canonical host tokens override the per-role default. "Go faster" routes to the per-role default; for Codex `Executor` that is `gpt-5.3-codex`. |
-| "Brainstormer's default is `gpt-5.5`, but the operator typed `model: gpt-5.4`, so I'll keep `gpt-5.5` because the design needs reasoning." | Operator override always wins for the delegation it targets. `Team Lead` does not second-guess the operator's explicit token. Override scope is the next delegation only. |
-| "The operator is on the default branch on purpose; they clearly meant to start work here." | When the active issue resolves from the operator prompt and the current branch is the repository default branch, pre-flight MUST auto-switch to the per-issue branch before committed-artifact inspection. Operator intent is captured by the `#<n>` reference, not by the branch they happened to be on. Not even when the operator is the maintainer. Not even under deadline pressure. |
-| "Skipping the auto-switch saves a step; we can branch later." | Skipping authors Gate 1 artifacts on the wrong base and forces `Finisher` to rewrite history or push from the default branch. The rule is not optional. |
-| "Dirty working tree? I can stash and continue." | The `superteam` issue-branch procedure refuses on a dirty working tree. `superteam` halts with `superteam halted at Team Lead: dirty working tree blocks auto-switch to issue branch`. Pre-flight does NOT stash on the operator's behalf. |
-| "Rebase conflict on the existing issue branch is fine; I'll abort and try again." | The `superteam` issue-branch procedure forbids `git rebase --abort` on the operator's behalf. `superteam` halts and surfaces the conflict. |
-| "We can skip the self-contained branch procedure because another plugin probably has it." | `superteam` pre-flight is portable and owns its issue-branch procedure. Do not depend on another workflow skill being installed. |
-| "`adversarial_review_findings[]` already has Brainstormer entries, so review happened." | Brainstormer-originated findings are useful but not sufficient. Gate 1 requires an explicit adversarial-review pass against the committed artifact. |
-| "No findings means no review evidence is needed." | A clean adversarial-review result must include `reviewer_context`, checked dimensions, and `clean_pass_rationale`; silence is not evidence. |
-| "This is a workflow-contract design, but a generic review is enough." | Designs touching `skills/**/*.md` or workflow-contract surfaces require the `superpowers:writing-skills` review dimensions: RED/GREEN baseline obligations, rationalization resistance, red flags, token-efficiency targets, role ownership, and stage-gate bypass paths. |
-| "A finding changed the design, but the earlier review still applies." | Material requirement, ownership, pressure-test, or gate-order changes require rerunning affected review dimensions or recording why rerun is unnecessary. |
-| "Natural prose means we can omit required Gate 1 evidence." | Natural prose changes rendering, not evidence. Required review status, reviewer context, checked dimensions, and clean-pass rationale must still exist before planning. |
-| "The shipped agent file already says it; I can prune it from SKILL.md too." | Orchestration invariants (gates, done-report contracts, routing, halt conditions) STAY in SKILL.md and are referenced from agent files. Per-role procedure moves; cross-role invariants do not. |
-| "The project delta replaces the shipped system prompt because the project knows better." | Deltas are append-only. There is no `replace` mode. Stripping shipped guardrails is forbidden by design. |
-| "I applied a delta but it's the same as the default, so I don't need to log it." | Delta application is always logged: `superteam delta applied`, `superteam delta empty`, or (during pre-flight) `superteam delta orphan`. Silent layering is forbidden. |
-| "The host doesn't have a per-role agent file shipped yet, so I'll just guess from the Claude file." | Missing host-file is a logged fallback to portable defaults plus plugin-level prompt only. Do not silently apply a different host's agent file. |
-| "The malformed delta probably means model: sonnet — I'll just use that." | Malformed delta values halt with `superteam halted at Team Lead: project delta for <role> has invalid model value <value>`. No interpretation, no guess, no default-substitution. |
-| "Empty delta file means the project is unfinished — I'll fall back to no override and not log." | Empty deltas are an intentional anchor; they are a no-op AND they log `superteam delta empty: <role>` so future operators see the file was inspected. |
-| "A project delta append treats acceptance-criteria IDs as advisory — it's a project preference, I should respect it." | Forbidden by LC5 + the D1 non-negotiable-rules block. The denylist lint halts dispatch on any forbidden-intent token (see [`project-deltas.md`](./project-deltas.md#forbidden-append-denylist-lc5)); paraphrase-bypass is countered by the agent file's first-body-section structural defense. |
-| "The active host probe is ambiguous, I'll guess Claude Code." | Forbidden. D3 specifies a deterministic probe order (`CLAUDECODE` env vars → `CODEX_*` env vars → runtime self-id). First match wins; result logged. No guessing. |
-| "The append redefines a done-report field, but it's clearer than SKILL.md's version." | Forbidden by LC5. Done-report contracts are SKILL.md-owned invariants. Lint halts. |
-| "An append-only delta tells Executor it may push for our repo's special workflow." | Forbidden by LC4. Push authority is in Executor's non-negotiable rules block; denylist lint matches `may push` / `may open PR` / `may merge`. |
-| "The host has no shipped per-role file, I'll fall back to the plugin-level prompt for every role." | Out-of-supported-set hosts halt at pre-flight; there is no silent per-delegation degradation. |
+The expanded rationalization table and red-flag catalog live in
+[quality-guards.md](./quality-guards.md). Keep `SKILL.md` focused on the
+orchestration contract; use the reference during review, pressure tests, and
+skill-improver loops.
 
-## Red flags
+High-risk summary:
 
-- Using older stage-only language where the canonical teammate roster should be used.
-- Asking for design approval before verifying the cited artifact exists.
-- Approval requests that omit the artifact path, concise intent summary, or full requirement set.
-- Gate 1 approval packet has `adversarial_review_findings[]` entries but no evidence that an adversarial-review pass occurred.
-- Adversarial review reports `clean` without `reviewer_context`, checked dimensions, or `clean_pass_rationale`.
-- `Planner` starts while a blocker or material `adversarial_review_findings[]` item remains open.
-- Brainstormer-originated findings are treated as a replacement for adversarial review.
-- Workflow-contract design approval proceeds without the `superpowers:writing-skills` adversarial-review dimensions.
-- Oversized approval requests collapsed into a vague summary instead of split into clean sections.
-- Approval requests that hide real approval-relevant findings.
-- Replaying already-approved content instead of sending delta-only approval after revisions.
-- Touching governed files without canonical-rule discovery from repository guidance.
-- Delegated teammate prompts that omit expected `superpowers` recommendations or fail to warn when an expected skill is unavailable.
-- `Team Lead` continuing past contradictory branch / artifact / PR state without halting.
-- Resolving execution-mode capability without running the deterministic probe order in `pre-flight.md`.
-- Classifying an ambiguous prompt during an open gate as approval rather than feedback.
-- Restarting a run on a repeated `/superteam` invocation without an explicit operator restart token or an unambiguous new-issue signal.
-- Treating a prior in-session "approve" as Gate 1 approval when no plan doc has been committed on the branch.
-- Silently switching issues mid-run when the prompt names a different issue without explicit operator confirmation.
-- Reintroducing required `Loopback:` commit trailers or another hidden workflow-state marker.
-- Fresh-session resume from implementation work with no PR skipping `Reviewer` before `Finisher` publication when local review resolution is not visible.
-- An execute-phase delegation prompt that names `superpowers:executing-plans` as the entry skill when the resolved mode is `team mode` or `subagent-driven`.
-- An execute-phase delegation that omits the resolved execution mode and asks the developer to choose.
-- Treating ambiguous "faster" / "inline-ish" / "forever" framing as an inline override.
-- Halting a non-execute route solely because execution-mode capability is unavailable.
-- `Team Lead` proceeding to committed-artifact inspection while the current branch is the repository default branch and the active issue was resolved from an explicit `#<n>` in the prompt.
-- `Team Lead` performing `git stash` or any auto-stash variant as part of the auto-switch path.
-- `Team Lead` running `git rebase --abort` after a rebase conflict on the existing issue branch.
-- `pre-flight.md` depending on an external branch workflow instead of the self-contained issue-branch procedure.
-- `Team Lead` silently continuing on the default branch after `gh repo view` fails to resolve the default branch.
-- A `superteam` run authoring `docs/superpowers/specs/...` on the default branch.
-- A teammate delegation that omits a resolved `model` value (or omits the host's model-override parameter on the dispatch surface) when the per-role default is not `inherit`. Inheritance is reserved for `Team Lead` and for the inherit-and-warn capability fallback; every other delegation MUST carry an explicit model on the dispatch surface.
-- Treating "go faster" / "use the cheap model" / "use the better model" / similar fuzzy framing as an operator model override.
-- An execute-phase delegation that resolves `{model}` to the parent session model by default rather than to the per-role `Executor` default (`gpt-5.3-codex` on Codex; `sonnet` on Claude).
-- A per-role procedural rule appears in `SKILL.md` after the refactor (it should be in the role's agent file under [`## Teammate contracts`](#teammate-contracts)).
-- A delta applied silently (no `superteam delta applied: <role> (...); non-negotiable-rules-sha=<prefix>` audit line on the operator-facing chat surface, with stderr fallback only when chat is unavailable).
-- A project delta uses a section heading outside the closed documented set `{ ## Model, ## Tools, ## System prompt append }`. Any other top-level heading is "undocumented" and is ignored with a warn — the determination is mechanical, not judgmental.
-- A malformed delta is interpreted ("looks like sonnet" or "looks like gpt-5.4") instead of halting.
-- Team Lead delegates without first probing and logging the active host. "Active host" is determined deterministically by D3's probe order (`CLAUDECODE` env vars → `CODEX_*` env vars → runtime self-id) and the result is logged at pre-flight as `superteam active host: <name> (probe=<source>)`. A delegation with no preceding probe-log line is a red flag.
-- The active host is outside the supported set `{ claude-code, codex }` and Team Lead delegates anyway instead of halting at pre-flight.
-- The plugin-level `agents/openai.yaml` is treated as a per-role config surface (it is plugin-level metadata; per-role files are `agents/<role>.openai.yaml`).
-- An orphan `docs/superpowers/<unknown>.md` file is silently used to override an unintended role.
-- A dispatch audit line is missing the `non-negotiable-rules-sha=<prefix>` field.
-- A delta append textually contains a denylist token and dispatch did NOT halt.
+- Do not advance Gate 1 without verified artifact, full requirements, and
+  adversarial-review evidence.
+- Do not treat ambiguous prompts as approval, inline execution, model override,
+  restart, or issue switch.
+- Do not route requirement-bearing feedback straight to implementation.
+- Do not silently inherit teammate models, skip execution-mode binding, or
+  ignore active-host/model-override probes.
+- Do not continue past contradictory branch, artifact, PR, dirty-worktree, or
+  unsupported-host state.
+- Do not replace visible workflow state with hidden trailers, sidecar files,
+  branch labels, or other invisible markers.
+- Do not let project deltas replace shipped guardrails, redefine done reports,
+  bypass AC IDs, or grant push/PR authority.
+- Do not publish without Reviewer and Finisher success on the latest head.
 
 ## Shutdown
 
@@ -426,6 +361,7 @@ A successful run routes from observable state, preserves committed handoffs, pub
 - `docs/superpowers/<role>.md` in the consuming repo: project override surface (see `## Project deltas (Team Lead lookup)`).
 - `docs/project-overrides.md` in this repo: operator-facing authoring guide for project delta files (schema, examples, edge-case table).
 - [project-deltas.md](./project-deltas.md): Team Lead supporting reference — literal denylist tokens, halt/audit-log format strings, active-host probe order, and the `resolve_role_config` algorithm body. SKILL.md names every rule; this file carries the literal bodies.
+- [quality-guards.md](./quality-guards.md): expanded rationalization table and red-flag catalog used for review and pressure tests.
 - [pre-flight.md](./pre-flight.md): phase-detection sequence, execution-mode capability detection, halt conditions
 - [routing-table.md](./routing-table.md): phase x prompt-class routing, classification heuristic, resume vs restart, Gate 1 durability
 - [workflow-diagrams.md](./workflow-diagrams.md): canonical chronological and orchestration diagrams
