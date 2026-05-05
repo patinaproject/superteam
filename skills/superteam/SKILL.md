@@ -667,6 +667,16 @@ Before resolving or replying to comments tied to a prior branch state:
 - A teammate delegation that omits a resolved `model` value (or omits the host's model-override parameter on the dispatch surface) when the per-role default is `opus`, `sonnet`, or `haiku`. Inheritance is reserved for `Team Lead` and for the inherit-and-warn capability fallback; every other delegation MUST carry an explicit model on the dispatch surface.
 - Treating "go faster" / "use the cheap model" / "use the better model" / similar fuzzy framing as an operator model override.
 - An execute-phase delegation that resolves `{model}` to the parent session model by default rather than to the per-role `Executor` default (`sonnet`).
+- A per-role procedural rule appears in `SKILL.md` after the refactor (it should be in the role's agent file).
+- A delta applied silently (no `superteam delta applied: <role> (...); non-negotiable-rules-sha=<prefix>` audit line on the operator-facing chat surface, with stderr fallback only when chat is unavailable).
+- A project delta uses a section heading outside the closed documented set `{ ## Model, ## Tools, ## System prompt append }`. Any other top-level heading is "undocumented" and is ignored with a warn — the determination is mechanical, not judgmental.
+- A malformed delta is interpreted ("looks like sonnet") instead of halting.
+- Team Lead delegates without first probing and logging the active host. "Active host" is determined deterministically by D3's probe order (`CLAUDECODE` env vars → `CODEX_*` env vars → runtime self-id) and the result is logged at pre-flight as `superteam active host: <name> (probe=<source>)`. A delegation with no preceding probe-log line is a red flag.
+- The active host is outside the supported set `{ claude-code, codex }` and Team Lead delegates anyway instead of halting at pre-flight.
+- The plugin-level `agents/openai.yaml` is treated as a per-role config surface (it is plugin-level metadata; per-role files are `agents/<role>.openai.yaml`).
+- An orphan `docs/superpowers/<unknown>.md` file is silently used to override an unintended role.
+- A dispatch audit line is missing the `non-negotiable-rules-sha=<prefix>` field.
+- A delta append textually contains a denylist token and dispatch did NOT halt.
 
 ## Shutdown
 
