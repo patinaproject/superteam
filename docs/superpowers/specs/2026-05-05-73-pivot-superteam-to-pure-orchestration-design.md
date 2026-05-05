@@ -32,18 +32,37 @@ The roster mirrors today's six teammates. Files ship under `skills/superteam/`. 
 | `reviewer` | `skills/superteam/.claude/agents/reviewer.md` | `skills/superteam/agents/reviewer.<host>.yaml` | `opus` | Read, Bash, Glob, Grep |
 | `finisher` | `skills/superteam/.claude/agents/finisher.md` | `skills/superteam/agents/finisher.<host>.yaml` | `sonnet` | Read, Write, Edit, Bash, Glob, Grep |
 
-Models match the table currently in `SKILL.md` `## Model selection`. Tool allowances are deliberately the union of what the role's underlying superpowers skill needs plus what the role does in the workflow (e.g. Reviewer is read-mostly; Executor needs Task for nested dispatch).
+Models match the table currently in `SKILL.md` `## Model selection`. The agent-file frontmatter is the **single home** for the per-role default model value. SKILL.md's `## Model selection` becomes a routing/grammar reference that points at the agent files for actual values, instead of restating them — this resolves N8 (per-role default value lived in two places and would drift).
 
-The shipped Claude agent file's body is a minimal system prompt (target ≤ 60 lines, ≤ 400 words) that:
+Tool allowances are deliberately the union of what the role's underlying superpowers skill needs plus what the role does in the workflow (e.g. Reviewer is read-mostly; Executor needs Task for nested dispatch).
 
-- names the role,
-- recommends the underlying superpowers skill the role MUST invoke,
-- lists the role's done-report contract field names by reference (links to `SKILL.md`'s "Done-report contracts" anchor — the contract lives in SKILL.md, not duplicated here),
-- explicitly defers procedural detail to the cited superpowers skill and to the model's judgment.
+#### Mandatory agent-file body structure (closes N1)
 
-Loophole-closure language, rationalization-table rows, and red-flags bullets that are part of the orchestrator contract STAY in `SKILL.md`. Discipline rules that belong to the underlying superpowers skill (TDD, pressure tests, etc.) are NOT re-stated in the shipped agent file; they are loaded by name when the agent invokes the skill.
+Every shipped agent file body MUST be laid out in this fixed order. A delta append cannot reorder it; it can only add content after the final reference section.
 
-The Claude Code precedent is `CLAUDE.md`: "When you add Claude-specific teammates, prefer project subagents under `.claude/agents/`." We ship those agents from inside the skill so they are available without per-project copying.
+1. `# <role-name>` H1.
+2. `## Required skill` — exactly one immediately-following line of the form `superpowers:<name>` (greppable as `^## Required skill\n.*superpowers:`). This is the role's underlying superpowers skill.
+3. `## Non-negotiable rules (cannot be overridden by project delta)` — a numbered list of the rules that no project delta may weaken. The shipped block always includes:
+   - "AC-<issue>-<n>" IDs are binding, not advisory.
+   - The role does not push, force-push, rebase shared branches, or open / merge PRs unless the role is `finisher`.
+   - The role does not redefine done-report fields owned by SKILL.md.
+   - The role does not change gate logic, routing, or halt conditions.
+   - The role does not weaken the writing-skills RED→GREEN→REFACTOR obligation for skill / workflow-contract changes.
+4. `## Done-report contract reference` — by anchor link to SKILL.md (e.g. `[done-report fields](../../SKILL.md#done-report-contracts)`). No restatement of fields.
+5. `## Operator-facing output (per Team Lead invariant)` — single-line restatement: "Write natural prose handoffs; do not dump status reports."
+6. Body target: ≤ 80 lines / ≤ 400 words.
+
+Team Lead computes a SHA-256 hash of the rendered "Non-negotiable rules" block at agent-file load time and includes it in the dispatch audit log: `superteam delta applied: <role> (...); non-negotiable-rules-sha=<8-char-prefix>`. If a project delta append textually contains any of the closed denylist intent strings (configured: `["AC IDs are advisory", "AC-<issue>- is advisory", "may push", "may open PR", "may merge", "skip writing-skills", "redefine done-report", "override halt"]`), Team Lead halts with `superteam halted at Team Lead: project delta for <role> attempts to weaken non-negotiable rules (matched: <pattern>)`.
+
+Discipline rules that belong to the underlying superpowers skill (TDD, pressure tests, etc.) are NOT re-stated in the shipped agent file; they are loaded by name when the agent invokes the skill.
+
+Loophole-closure language, rationalization-table rows, and red-flags bullets that are part of the orchestrator contract STAY in `SKILL.md`. The Claude Code precedent is `CLAUDE.md`: "When you add Claude-specific teammates, prefer project subagents under `.claude/agents/`." We ship those agents from inside the skill so they are available without per-project copying.
+
+#### Supported hosts (closes N10)
+
+The supported host set for shipped per-role files is **Claude Code** and **Codex** only, for now. Both are required: every shipped role MUST exist as both `skills/superteam/.claude/agents/<role>.md` and `skills/superteam/agents/<role>.openai.yaml` (six × two = twelve files). Adding a new host (Cursor, etc.) is gated by D3's `<role>.<host>.yaml` convention plus an explicit shipping commit; it is not implicit fallback.
+
+If a `/superteam` run is launched on a host outside this supported set, Team Lead halts at pre-flight with `superteam halted at pre-flight: host <host> has no shipped per-role agent files; supported hosts: claude-code, codex`. There is no silent per-delegation degradation to a single shared plugin-level prompt — that path is removed (replaces the previous D3 fallback paragraph).
 
 ### D2. Merge / layering semantics for project deltas
 
@@ -73,11 +92,13 @@ Legal override kinds, in precedence order (lowest precedence first; later layers
 
 1. **Shipped default** (the host-native agent file in `skills/superteam/`).
 2. **Project delta** (`docs/superpowers/<role>.md` in the consuming repo).
-3. **Operator-prompt override per R26** (canonical model tokens; canonical execution-mode tokens). Operator wins.
+3. **Operator-prompt override per R26** — explicitly **scoped to the model layer only**. The operator-prompt override grammar covers canonical model tokens and canonical execution-mode tokens; it does NOT extend to tool allow/deny or to the system-prompt-append layer. There is no operator-prompt grammar for those layers, and Team Lead does not synthesize one (closes N2). Operator wins for model only; the delta wins for tools and system-prompt-append regardless of operator prompt content.
+
+Model layer enum (closes N3): the closed set of legal `## Model` values in a delta is `{ opus, sonnet, haiku, inherit }`. `inherit` is added explicitly so that a delta for the `team-lead` role (whose shipped default is `inherit`) can be re-stated without halting. `inherit` as a delta value resolves to "use the shipped default model for this role" — which is itself `inherit` for `team-lead`, meaning "inherit from the parent agent's model at dispatch time." For all other roles, a delta of `inherit` is allowed but discouraged; it resolves to the shipped non-`inherit` value and Team Lead emits `superteam delta inherit-redundant: <role>`.
 
 What's legal in a delta:
 
-- **Model override** (`## Model`): one of `opus`, `sonnet`, `haiku`. Replaces the shipped default for that role.
+- **Model override** (`## Model`): one of `opus`, `sonnet`, `haiku`, `inherit`. Replaces the shipped default for that role.
 - **Tool allow / deny** (`## Tools`): `allow` adds tools; `deny` removes shipped tools. Empty allow + empty deny is a no-op.
 - **System-prompt append** (`## System prompt append`): free-form Markdown appended after the shipped system prompt body. Append-only by design — projects cannot redact shipped guardrails. This is the safe-by-default override surface.
 
@@ -86,13 +107,14 @@ What is NOT legal in a delta:
 - Replacing the shipped system prompt wholesale. Append only; no `replace`, no `prepend` that intends to shadow shipped rules.
 - Renaming the role, changing the role's underlying superpowers skill recommendation, or removing required handoff fields.
 - Changing the orchestration contracts owned by `SKILL.md` (gate logic, routing, halt conditions). Those are not per-role surface.
+- **Re-defining or weakening any orchestration invariant owned by SKILL.md (closes N5):** specifically, no append may re-state, redefine, or weaken (a) gate logic, (b) routing rules, (c) halt conditions, (d) done-report contracts (e.g. an append that says "for our project, omit `handoff_commit_sha`"), (e) the model selection grammar, or (f) any rule in the agent file's `## Non-negotiable rules` block. Team Lead lints the append for the closed denylist of invariant-token strings configured in D1's "Mandatory agent-file body structure" section. A match halts dispatch with `superteam halted at Team Lead: project delta for <role> attempts to weaken non-negotiable rules (matched: <pattern>)`. The denylist is policy-bounded — strings, not semantics — so it is open to bypass via paraphrase; that residual is acknowledged in LC2 and tracked as an explicit residual risk. The agent-file `## Non-negotiable rules` block being read first by the role provides the structural defense that paraphrase-bypass cannot beat.
 
 Team Lead detection at delegation time:
 
 1. Compute the path `<repo-root>/docs/superpowers/<role>.md`.
 2. If absent: use shipped default unchanged.
 3. If present: parse the four-section schema. Apply Model and Tools overrides; append the System-prompt section.
-4. Always emit a structured one-line audit log entry on stderr / chat that names which deltas were applied: `superteam delta applied: brainstormer (model, system-prompt-append)`. Silent layering is forbidden — this mirrors R14/R26's discipline against silent inheritance.
+4. Always emit a structured one-line audit log entry that names which deltas were applied: `superteam delta applied: brainstormer (model, system-prompt-append); non-negotiable-rules-sha=<8-char-prefix>`. Silent layering is forbidden — this mirrors R14/R26's discipline against silent inheritance. Audit-log destination (closes N9): the operator-facing chat surface is the **default** destination. Stderr is a fallback that is used only when the host has no chat surface available at dispatch time (e.g. headless CI invocation). When falling back, Team Lead also emits the audit line at the start of its next chat-bearing message so the operator never loses visibility.
 5. After applying a delta, if the operator prompt also contains an R26 model override token, the operator wins (precedence rule above).
 
 Malformed-delta handling:
@@ -101,6 +123,8 @@ Malformed-delta handling:
 - Invalid model value (anything other than `opus`/`sonnet`/`haiku`): halt with `superteam halted at Team Lead: project delta for <role> has invalid model value <value>`. Do not silently drop the override.
 - Frontmatter `agent:` value disagrees with the filename: halt with `superteam halted at Team Lead: project delta for <role> declares agent <other>`.
 - File present but empty (zero bytes) or all-whitespace: treat as no-op, log `superteam delta empty: <role>`. Empty intentionally means "the role exists in this project's mental model but no overrides apply" — useful as a future override anchor.
+- File has valid frontmatter (`agent: <role>` matches filename) but no body / no override sections: treat as no-op, log `superteam delta empty: <role>` (closes N6 case A). Frontmatter-only is a legitimate "anchor file."
+- File has body content (override sections) but **no frontmatter**, or frontmatter without the required `agent:` field: halt with `superteam halted at Team Lead: project delta for <role> is missing required frontmatter agent field` (closes N6 case B). Body-only deltas are not allowed because there is no way to verify the file's intended role.
 
 References to a role that doesn't exist in the shipped roster:
 
@@ -120,7 +144,9 @@ The existing `skills/superteam/agents/openai.yaml` is repurposed: it currently h
 
 The naming `<role>.<host>.yaml` lets future hosts add their own files without colliding (e.g. `<role>.cursor.yaml`).
 
-Team Lead at delegation time selects the correct host file by detecting the host (the same probe used today for execution-mode and model-override capability detection). If the host has no shipped per-role file, Team Lead falls back to the closest portable behavior: invoke the role using the host's generic subagent dispatch with the plugin-level prompt only, and emit `superteam delta missing-host-file: <role>@<host>; falling back to portable defaults`. This keeps the workflow runnable on hosts we have not yet shipped per-role files for, without silently behaving as if a Claude-specific configuration applied.
+Team Lead at delegation time selects the correct host file by detecting the host (the same probe used today for execution-mode and model-override capability detection). The supported host set (per D1) is `{ claude-code, codex }`; both ship per-role files for all six roles. If the active host is outside the supported set, Team Lead halts at pre-flight with `superteam halted at pre-flight: host <host> has no shipped per-role agent files; supported hosts: claude-code, codex` rather than silently degrading every delegation to a single shared plugin-level prompt. There is no per-delegation portable-fallback path; the previous design's silent fallback was a Gate 1 finding (N10) and is removed.
+
+Detecting the active host (closes the "active host" judgment-call red flag): Team Lead probes deterministically in this fixed order at pre-flight: (1) the `CLAUDECODE` / `CLAUDE_CODE_*` env-var family present → `claude-code`; (2) the `CODEX_*` env-var family present → `codex`; (3) otherwise the agent runtime self-identifies via the same capability probe used by R26's model-override detection. The first match wins. The probe result is logged once at pre-flight: `superteam active host: <name> (probe=<source>)`.
 
 ### D4. Migration plan for existing prescriptive content
 
@@ -144,10 +170,10 @@ Supporting files:
 | Canonical roster (prose) | (d) keep — names + ownership only, no procedure |
 | Pre-flight summary | (d) keep |
 | Execution-mode injection | (d) keep — orchestration |
-| Model selection (table + override grammar + binding + capability fallback + loophole closure) | (d) keep — model is a delegation-time decision |
+| Model selection (override grammar + binding + capability fallback + loophole closure) | (d) keep grammar/binding/fallback/loophole text; **delete the per-role default-value table** — the per-role default model values move into the agent-file frontmatter as the single home (closes N8). The remaining `## Model selection` section in SKILL.md links to the agent files for current values rather than restating them. |
 | Canonical rule discovery | (d) keep — orchestration directive to the orchestrator |
 | Artifact handoff authority | (d) keep — gate-relevant invariant |
-| Operator-facing output | (b) move to Team Lead's shipped agent file — this is per-role behavior |
+| Operator-facing output | (d) keep the **detailed rules** in `SKILL.md` as a single-owner orchestration invariant enforced by Team Lead at dispatch time. Each role's agent file restates ONLY the one-line summary ("Write natural prose handoffs; do not dump status reports.") in its `## Operator-facing output (per Team Lead invariant)` section per D1. This avoids the six-owner drift trap from the fresh review's role-ownership dimension finding. |
 | Gate 1 | (d) keep — orchestration gate |
 | Teammate contracts (per-role) | (a) delete + (b) move — the full rule sets per role move into the shipped agent file for that role; SKILL.md keeps a one-sentence ownership statement per role with a link to the agent file |
 | Missing skill warnings | (d) keep — orchestrator-level rule |
@@ -167,24 +193,56 @@ Net effect on `SKILL.md`: shrinks from ~589 lines to ~250 lines, with no per-rol
 Concrete algorithm Team Lead runs once per delegation:
 
 ```python
-def resolve_role_config(role: str) -> RoleConfig:
-    shipped = load_shipped_agent_file(role)            # D1, host-aware (D3)
+def resolve_role_config(role: str, host: str, host_tool_capabilities: set[str]) -> RoleConfig:
+    shipped = load_shipped_agent_file(role, host)      # D1, host-aware (D3)
+    rules_sha = sha256_8(shipped.non_negotiable_rules_block)
     delta_path = repo_root / "docs/superpowers" / f"{role}.md"
     if not delta_path.exists():
-        return shipped                                 # empty / missing -> shipped unchanged
-    parsed = parse_delta_file(delta_path)              # raises on schema violations
+        return shipped                                 # missing -> shipped unchanged
+    raw = read_text(delta_path)
+    if raw.strip() == "":                              # zero-byte / whitespace
+        log_audit(f"superteam delta empty: {role}")
+        return shipped
+    parsed = parse_delta_file(raw)                     # raises on schema violations
+    if not parsed.has_frontmatter and parsed.has_body_sections:
+        halt(f"superteam halted at Team Lead: project delta for "
+             f"{role} is missing required frontmatter agent field")
+    if parsed.has_frontmatter and not parsed.has_body_sections:
+        log_audit(f"superteam delta empty: {role}")
+        return shipped
     if parsed.frontmatter_agent != role:
         halt("superteam halted at Team Lead: project delta for "
              f"{role} declares agent {parsed.frontmatter_agent}")
+    # Forbidden-append lint (N5) — runs before any merge.
+    matched = match_invariant_denylist(parsed.append)
+    if matched:
+        halt(f"superteam halted at Team Lead: project delta for "
+             f"{role} attempts to weaken non-negotiable rules (matched: {matched})")
     config = shipped.copy()
     if parsed.model is not None:
-        if parsed.model not in {"opus", "sonnet", "haiku"}:
+        if parsed.model not in {"opus", "sonnet", "haiku", "inherit"}:
             halt("superteam halted at Team Lead: project delta for "
                  f"{role} has invalid model value {parsed.model}")
-        config.model = parsed.model
-    config.tools = (config.tools | parsed.tools_allow) - parsed.tools_deny
-    config.system_prompt = config.system_prompt + "\n\n" + parsed.append
-    log_audit(f"superteam delta applied: {role} ({applied_fields(parsed)})")
+        if parsed.model == "inherit" and shipped.model != "inherit":
+            log_audit(f"superteam delta inherit-redundant: {role}")
+            # resolves to shipped.model; no override applied
+        else:
+            config.model = parsed.model
+    # Tool merge with host-capability filter (N4).
+    proposed_allow = parsed.tools_allow
+    unavailable = proposed_allow - host_tool_capabilities
+    for tool in unavailable:
+        log_audit(f"superteam delta tool unavailable: {role} {tool}@{host}")
+    proposed_allow = proposed_allow & host_tool_capabilities
+    config.tools = (config.tools | proposed_allow) - parsed.tools_deny
+    if parsed.append:
+        config.system_prompt = config.system_prompt + "\n\n" + parsed.append
+    log_audit(
+        f"superteam delta applied: {role} ({applied_fields(parsed)}); "
+        f"non-negotiable-rules-sha={rules_sha}"
+    )
+    # Operator R26 model override (model layer only — N2) is applied AFTER this,
+    # before binding the dispatch parameter.
     return config
 ```
 
@@ -211,8 +269,9 @@ Each shipped role exists as a host-native agent file at the canonical path with 
 
 - [ ] Verification: `ls skills/superteam/.claude/agents/` returns exactly six files: `team-lead.md`, `brainstormer.md`, `planner.md`, `executor.md`, `reviewer.md`, `finisher.md`.
 - [ ] Verification: each file's frontmatter has `name`, `description`, `model`, `tools` per D1.
-- [ ] Verification: each file's body recommends the role's underlying superpowers skill by name and references `SKILL.md`'s done-report contract anchor instead of redefining it.
-- [ ] Verification: parity files exist at `skills/superteam/agents/<role>.openai.yaml` for all six roles, with the same model/tools/skill recommendation.
+- [ ] Verification (strengthened per N7): each file body contains a section heading exactly `## Required skill` immediately followed by exactly one `superpowers:<name>` line — greppable as `rg -U '^## Required skill\n.*superpowers:' skills/superteam/.claude/agents/<file>.md` matches once.
+- [ ] Verification: each file body references `SKILL.md`'s done-report contract anchor (e.g. `[done-report fields](../../SKILL.md#done-report-contracts)`) and does NOT restate the field list.
+- [ ] Verification (Codex parity, narrowed per N12): for each role, the Codex parity file `skills/superteam/agents/<role>.openai.yaml` is validated against the Codex per-role agent schema. Fields the Codex schema honors (`model`, system-prompt body) are validated for parity with the Claude file. Fields the Codex schema does NOT honor (e.g. fine-grained `tools:` allow/deny, if absent from the schema) are scoped to plugin-level prompt parity only and explicitly noted in the file as "Codex-host scope: <fields>". The verification command runs the Codex schema validator and reports which fields are honored.
 
 ### AC-73-3
 
@@ -234,6 +293,21 @@ For each prior prescriptive contract, the refactor either deletes it (because su
 
 - [ ] Verification: each row in the D4 disposition tables has been carried out in code: removed file (`loopback-trailers.md`, `pr-body-template.md`, `agent-spawn-template.md`); kept file unchanged-in-scope (`pre-flight.md`, `routing-table.md`, `workflow-diagrams.md`); SKILL.md sections moved per the section-disposition table.
 - [ ] Verification: a `grep` for the moved per-role procedural strings (e.g. "shutdown is success-only", "writing-skills before publish") returns hits only in the corresponding agent file or the relevant superpowers skill, not in `SKILL.md`.
+
+### AC-73-7
+
+Every shipped agent file contains the mandatory body structure from D1 — including the `## Non-negotiable rules (cannot be overridden by project delta)` section — in the prescribed order.
+
+- [ ] Verification: for each of the six Claude agent files, `rg -U '^## Required skill\n.*superpowers:' <file>` matches once AND `rg '^## Non-negotiable rules \(cannot be overridden by project delta\)$' <file>` matches once AND `rg '^## Done-report contract reference$' <file>` matches once AND `rg '^## Operator-facing output \(per Team Lead invariant\)$' <file>` matches once.
+- [ ] Verification: the relative order of those four headings in every shipped agent file is `Required skill` → `Non-negotiable rules` → `Done-report contract reference` → `Operator-facing output` (verified by line-number sort of `rg -n` output per file).
+- [ ] Verification: Team Lead's dispatch audit log includes a `non-negotiable-rules-sha=<8-char-prefix>` field on every `superteam delta applied` line during the AC-73-4 fixture run.
+
+### AC-73-8
+
+Token-efficiency size contracts are enforced (closes N11).
+
+- [ ] Verification: `wc -l skills/superteam/SKILL.md` reports ≤ 280.
+- [ ] Verification: for each of the six shipped Claude agent files, `wc -l <file>` reports ≤ 80 for the body (frontmatter excluded; verified by counting from the closing `---` of frontmatter to EOF).
 
 ### AC-73-6
 
@@ -257,19 +331,37 @@ Out-of-band: contributors should expect the `Loopback:` trailer file to disappea
 
 ## Loophole closure
 
-The pivot itself introduces three new disciplines. Each gets an explicit closure.
+The pivot itself introduces three new disciplines plus two new enforcement rules. Each gets an explicit closure. Every new discipline lists a **RED-phase baseline obligation** — the executor work for this design MUST run a baseline scenario without the new rule in place, capture the violating behavior, and only then ship the rule. This mirrors `superpowers:writing-skills` RED→GREEN→REFACTOR.
 
 ### LC1. "The shipped agent file should be the only source of truth, so SKILL.md can be very small"
 
 Reality: orchestration concerns (gates, routing, halts, model selection, done-report contracts) MUST stay in `SKILL.md`. They are cross-role invariants and are how Team Lead enforces the workflow. Moving them into per-role agent files would re-create today's drift problem one layer down. The agent files do NOT redefine done-report contracts, gate logic, or routing — they reference them.
 
+**RED-phase baseline obligation (LC1):** before shipping the split, executor runs a baseline scenario in which a sample agent file fully restates a done-report contract field set, then SKILL.md edits one of those fields. Capture verbatim the resulting drift (agent file says one thing, SKILL.md says another, role complies with the wrong one). The shipped LC1 rule is justified by that captured drift.
+
 ### LC2. "Project deltas should be allowed to replace the shipped system prompt"
 
-Reality: deltas are append-only by design. A `replace` mode would let a project silently strip shipped guardrails (e.g. "do not push, rebase, or open a PR" in Executor's contract) and then run `/superteam` as if the contract still applied. Append-only keeps the shipped guardrails inviolable; projects extend, they do not redact.
+Reality: deltas are append-only by design. A `replace` mode would let a project silently strip shipped guardrails (e.g. "do not push, rebase, or open a PR" in Executor's contract) and then run `/superteam` as if the contract still applied. Append-only keeps the shipped guardrails inviolable; projects extend, they do not redact. Structural defense against semantic-subversion appends comes from D1's mandatory `## Non-negotiable rules` block being the FIRST body section in every shipped agent file: an append cannot reorder it. The string-match denylist plus residual paraphrase risk is acknowledged here.
+
+**RED-phase baseline obligation (LC2):** executor runs a baseline scenario in which a project delta append says "treat AC IDs as advisory in our context" and dispatches a fake Executor role. Without the non-negotiable-rules block + denylist lint, the role complies with the append. With the block + lint, dispatch halts on `superteam halted at Team Lead: project delta for executor attempts to weaken non-negotiable rules (matched: AC IDs are advisory)`. The captured RED behavior justifies the rule.
 
 ### LC3. "Silent layering is fine if the shipped behavior is the default"
 
-Reality: Team Lead MUST emit an audit line whenever a delta is applied (`superteam delta applied: <role> (...)`) and whenever a delta is intentionally a no-op (`superteam delta empty: <role>`). This mirrors R14's "do not silently inherit" and R26's "operator silence is NOT permission to inherit." Silent layering would re-create the exact opacity problem this refactor exists to fix.
+Reality: Team Lead MUST emit an audit line whenever a delta is applied (`superteam delta applied: <role> (...); non-negotiable-rules-sha=<prefix>`) and whenever a delta is intentionally a no-op (`superteam delta empty: <role>`). This mirrors R14's "do not silently inherit" and R26's "operator silence is NOT permission to inherit." Silent layering would re-create the exact opacity problem this refactor exists to fix. Audit destination per N9: chat first, stderr fallback only when chat is unavailable.
+
+**RED-phase baseline obligation (LC3):** executor runs a baseline dispatch with a delta present but no audit-line emission. Capture verbatim that the operator has no way to know layering happened. Then ship the audit-line rule and re-run; the audit line MUST be visible at the operator's chat surface.
+
+### LC4. Non-negotiable rules block + audit-log rules-hash (closes N1)
+
+Every shipped agent file MUST start its body with the `## Required skill` heading immediately followed by `## Non-negotiable rules (cannot be overridden by project delta)`. Team Lead emits the rules-block SHA-256 prefix in every dispatch audit line. A delta append that textually matches the closed denylist halts dispatch.
+
+**RED-phase baseline obligation (LC4):** the LC2 baseline subsumes this. Same RED capture applies.
+
+### LC5. Forbidden-append rule for orchestration invariants (closes N5)
+
+A project delta append MUST NOT redefine or weaken any orchestration invariant owned by SKILL.md. Team Lead's denylist lint runs before any merge. The closed denylist is the single enforcement surface; paraphrase bypass is a known residual mitigated by the structural defense in LC4.
+
+**RED-phase baseline obligation (LC5):** executor runs a baseline scenario where a delta append says "for our project, omit handoff_commit_sha from the done-report" and a downstream Executor dispatch produces a done report missing that field. Capture verbatim that Team Lead's gate would accept the report (because the report follows the append). With LC5's lint shipped, dispatch halts before the role runs.
 
 ### Rationalization table additions
 
@@ -283,18 +375,26 @@ These rows are added to `SKILL.md`'s rationalization table as part of the execut
 | "The host doesn't have a per-role agent file shipped yet, so I'll just guess from the Claude file." | Missing host-file is a logged fallback to portable defaults plus plugin-level prompt only. Do not silently apply a different host's agent file. |
 | "The malformed delta probably means model: sonnet — I'll just use that." | Malformed delta values halt with `superteam halted at Team Lead: project delta for <role> has invalid model value <value>`. No interpretation, no guess, no default-substitution. |
 | "Empty delta file means the project is unfinished — I'll fall back to no override and not log." | Empty deltas are an intentional anchor; they are a no-op AND they log `superteam delta empty: <role>` so future operators see the file was inspected. |
+| "The append says 'AC IDs are advisory in our context' — it's a project preference, I should respect it." | Forbidden by LC5 + the D1 non-negotiable-rules block. The denylist lint halts dispatch on those tokens; paraphrase-bypass is countered by the agent file's first-body-section structural defense. |
+| "The active host probe is ambiguous, I'll guess Claude Code." | Forbidden. D3 specifies a deterministic probe order (`CLAUDECODE` env vars → `CODEX_*` env vars → runtime self-id). First match wins; result logged. No guessing. |
+| "The append redefines a done-report field, but it's clearer than SKILL.md's version." | Forbidden by LC5. Done-report contracts are SKILL.md-owned invariants. Lint halts. |
+| "An append-only delta tells Executor it may push for our repo's special workflow." | Forbidden by LC4. Push authority is in Executor's `## Non-negotiable rules` block; denylist lint matches `may push` / `may open PR` / `may merge`. |
+| "The host has no shipped per-role file, I'll fall back to the plugin-level prompt for every role." | Removed in the updated D3. Out-of-supported-set hosts halt at pre-flight; there is no silent per-delegation degradation. |
 
 ## Red flags
 
 Added to `SKILL.md`'s `## Red flags` list:
 
 - A per-role procedural rule appears in `SKILL.md` after the refactor (it should be in the role's agent file).
-- A delta applied silently (no `superteam delta applied` audit line in chat or stderr).
-- A project delta uses an undocumented section heading or attempts to replace the shipped system prompt rather than append.
+- A delta applied silently (no `superteam delta applied: <role> (...); non-negotiable-rules-sha=<prefix>` audit line on the operator-facing chat surface, with stderr fallback only when chat is unavailable).
+- A project delta uses a section heading outside the closed documented set `{ ## Model, ## Tools, ## System prompt append }`. Any other top-level heading is "undocumented" by definition and is ignored with a warn — the determination is mechanical, not judgmental.
 - A malformed delta is interpreted ("looks like sonnet") instead of halting.
-- Team Lead delegates to a role whose shipped agent file does not exist on the active host, without emitting `superteam delta missing-host-file: <role>@<host>; falling back to portable defaults`.
+- Team Lead delegates without first probing and logging the active host. "Active host" is determined deterministically by D3's probe order (`CLAUDECODE` env vars → `CODEX_*` env vars → runtime self-id) and the result is logged at pre-flight as `superteam active host: <name> (probe=<source>)`. A delegation with no preceding probe-log line is a red flag.
+- The active host is outside the supported set `{ claude-code, codex }` and Team Lead delegates anyway instead of halting at pre-flight.
 - The plugin-level `agents/openai.yaml` is treated as a per-role config surface (it is plugin-level metadata; per-role files are `agents/<role>.openai.yaml`).
 - An orphan `docs/superpowers/<unknown>.md` file is silently used to override an unintended role.
+- A dispatch audit line is missing the `non-negotiable-rules-sha=<prefix>` field.
+- A delta append textually contains a denylist token and dispatch did NOT halt.
 
 ## Out of scope
 
@@ -332,5 +432,34 @@ Dimensions checked from `superpowers:writing-skills`:
 | F8 | brainstormer | medium | D4 (Operator-facing output row) | Moving "operator-facing output" rules into Team Lead's agent file risks losing the cross-role expectation that ALL teammates render natural prose without dumping status reports. | Adjusted: the cross-role expectation is an orchestrator-level invariant (Team Lead ensures it on dispatch); each role's agent file restates the one-liner ("write natural prose handoffs that satisfy workflow invariants"). The detailed rules live with Team Lead because Team Lead enforces them. This is a faithful split; no design body change. |
 
 All findings are dispositioned. None remain open. The dimensions that were re-checked after F4 and F8 adjustments (Stage-gate bypass paths, Role ownership) are clean.
+
+### Fresh-subagent adversarial review (round 2)
+
+`reviewer_context: fresh subagent + same-thread fallback` — Team Lead dispatched a fresh-context adversarial reviewer against the same-thread review's commit (`c8d243f`). The fresh reviewer surfaced new material findings N1–N12 plus dimension-level issues. Findings below were dispositioned in this commit; the design body above has been updated accordingly.
+
+Dimensions re-checked from `superpowers:writing-skills`:
+
+- **Stage-gate bypass paths** — was: fail. Now: clean. N1, N2, N5 closed by the LC4 non-negotiable-rules block, the explicit operator-override scope statement, and the LC5 forbidden-append lint.
+- **Role ownership** — was: partial. Now: clean. F8 / N-equivalent split is single-owner: Team Lead owns operator-facing rules; each agent file restates only the one-line summary.
+- **Red flags** — was: partial. Now: clean. Both judgment bullets replaced with mechanical determinations (closed-heading set; deterministic active-host probe order with logged probe result).
+- **Token-efficiency targets** — was: partial. Now: clean. AC-73-8 elevates targets to AC contracts (`wc -l` on SKILL.md ≤ 280; per-agent body ≤ 80 lines).
+- **RED/GREEN baseline obligations** — was: partial. Now: clean. LC1, LC2, LC3, LC4, LC5 each carry an explicit RED-phase baseline obligation paragraph.
+
+#### Findings table
+
+| # | Severity | Location | Finding | Disposition |
+|---|---|---|---|---|
+| N1 | high | D2 / LC2 / F1 | Append-only system prompt has no structural defense; F1 mitigation was hope, not structure. | Closed by D1's mandatory body structure (`## Non-negotiable rules` block first), Team Lead's rules-block SHA in the audit log, and LC4's closed denylist lint that halts on enumerated forbidden-intent tokens. |
+| N2 | high | D2 (precedence) | Operator-override scope only defined for model. | Closed in D2 precedence list: "explicitly scoped to the model layer only." Tool and prompt-append layers are NOT operator-overridable. D5 algorithm comment and LC4 reflect this. |
+| N3 | medium | D2 / D5 | `inherit` not in closed model enum, but is the team-lead default. | Closed: model enum extended to `{ opus, sonnet, haiku, inherit }`. `inherit` resolves to the shipped value; for non-`team-lead` roles a delta of `inherit` is allowed but logged as `superteam delta inherit-redundant: <role>`. |
+| N4 | medium | D5 | `allow:` granted tools even when host doesn't expose them. | Closed: D5 algorithm filters proposed allow against `host_tool_capabilities` and emits `superteam delta tool unavailable: <role> <tool>@<host>` for each dropped tool. |
+| N5 | medium | D2 (delta legality) | Missing forbidden-append rule for invariants. | Closed: "What is NOT legal in a delta" extended; LC5 ships the closed denylist lint that halts dispatch on match. |
+| N6 | medium | D5 / D2 | Empty-file vs frontmatter-only-no-body vs body-only-no-frontmatter underspecified. | Closed: D2 malformed-delta handling and D5 algorithm distinguish (a) zero-byte/whitespace → `superteam delta empty`, (b) frontmatter-only-no-body → `superteam delta empty`, (c) body-only-no-frontmatter → halt with the missing-frontmatter blocker. |
+| N7 | medium | AC-73-2 / AC-73-5 | Skill-recommendation grep too weak — names appear elsewhere. | Closed: AC-73-2 strengthened to require `## Required skill` heading + immediately-following `superpowers:<name>` line, greppable as `^## Required skill\n.*superpowers:`. AC-73-7 verifies presence + ordering of the four mandatory headings. |
+| N8 | medium | D1 / Model selection split | Team Lead `inherit` lived in two places. | Closed: agent-file frontmatter is the single home for per-role default model values. D4's "Model selection" disposition row deletes the per-role default-value table from SKILL.md and references the agent files instead. |
+| N9 | low | D2 / D5 audit logging | Stderr / chat destination conflated. | Closed: "operator-facing chat surface is the default; stderr is a fallback only when chat is unavailable; on fallback, Team Lead also emits the audit line at the start of its next chat-bearing message." |
+| N10 | medium | D3 / multi-host parity | Silent degradation on hosts without per-role files. | Closed: D1 / D3 enumerate the supported host set as `{ claude-code, codex }` and require shipped per-role files for both. Out-of-set hosts halt at pre-flight. The previous silent per-delegation fallback is removed. |
+| N11 | low | (general) | Token-efficiency targets not tied to ACs. | Closed: AC-73-8 elevates `wc -l skills/superteam/SKILL.md ≤ 280` and per-agent body ≤ 80 lines to AC contracts. |
+| N12 | medium | AC-73-2 Codex parity | Codex parity passes vacuously if Codex schema doesn't honor `model:` / `tools:`. | Closed: AC-73-2 narrowed to require running the Codex per-role schema validator and reporting which fields are honored. Fields the schema doesn't honor are scoped to plugin-level prompt parity only and explicitly noted in the file. |
 
 `adversarial_review_status: findings dispositioned`
