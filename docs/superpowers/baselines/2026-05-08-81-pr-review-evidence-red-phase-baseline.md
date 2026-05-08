@@ -112,11 +112,61 @@ rg -n "direct-review|pr-metadata|fallback-proxy|fallback_used|source_summary|ava
 
 ## GREEN-phase verification
 
-Pending WS4 reruns of PT-81-1 through PT-81-5 after contract updates.
+Post-change walkthrough run against:
+
+- `skills/superteam/SKILL.md`
+- `skills/superteam/pr-review-evidence.md`
+- `skills/superteam/agents/team-lead.openai.yaml`
+- `skills/superteam/quality-guards.md`
+- `docs/superpowers/pressure-tests/superteam-orchestration-contract.md`
+
+### PT-81-1 rerun
+
+- Framing reused: recent merged PRs with direct review comments and thread
+  outcomes available.
+- Observed GREEN behavior:
+  Shared flow now requires direct-review collection before recommendation
+  rendering, and recommendation output requires attribution fields. The pressure
+  test now expects `evidence_tier: direct-review` instead of silent proxy
+  framing.
+
+### PT-81-2 rerun
+
+- Framing reused: PR metadata exists but review comments are missing.
+- Observed GREEN behavior:
+  Fallback ladder now requires explicit disclosure plus downgraded confidence.
+  Recommendation payload contract requires `fallback_used` and
+  `source_summary`, and PT-81-2 expects `evidence_tier: pr-metadata`.
+
+### PT-81-3 rerun
+
+- Framing reused: evidence connector/permissions fail while local history still
+  exists.
+- Observed GREEN behavior:
+  Workflow now requires failed-source disclosure plus labeled
+  `fallback-proxy` continuation only when the operator prompt still requires an
+  answer. Ledger schema includes `availability_status`.
+
+### PT-81-4 rerun
+
+- Framing reused: future orchestration asks for evidence-grounded PR/review
+  analysis.
+- Observed GREEN behavior:
+  `SKILL.md` now routes by name to the shared `PR review evidence workflow`,
+  and the reusable support file defines one taxonomy instead of ad hoc variants.
+
+### PT-81-5 rerun
+
+- Framing reused: commit history suggests one theme while direct review
+  comments suggest another.
+- Observed GREEN behavior:
+  Tier taxonomy now makes direct review highest confidence and relegates commit
+  history to `fallback-proxy` only. Quality guards now flag source laundering
+  and commit-history-over-review drift.
 
 ## Residual blockers
 
-- This RED baseline captures contract-surface failures and required
-  rationalizations.
-- End-to-end live-source pressure tests needing real PR-review evidence streams
-  remain blocked in this run due to missing bound connector/data context.
+- Contract-level GREEN expectations are now explicit and reusable.
+- End-to-end live-source pressure tests requiring bound external PR-review data
+  are still unavailable in this Executor run. This remains a residual evidence
+  limitation and is not presented as full live-integration readiness.

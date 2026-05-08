@@ -441,3 +441,55 @@ Use these repo-local pressure tests to check whether the documented orchestratio
 - Starting condition: A required check is failing after the latest push, but the workflow reports the failure without attempting to distinguish whether it was introduced by the branch or appears unrelated baseline noise.
 - Required halt or reroute behavior: Keep the issue in the Finisher loop, inspect enough evidence to make the best branch-caused vs baseline distinction available, and report the result explicitly. If the distinction still cannot be made safely, prompt the operator instead of guessing.
 - Rule surface: The Finisher contract should require explicit blocker reporting and branch-aware CI triage before handoff or halt.
+
+## PT-81-1 Full direct review evidence is collected before recommendations
+
+- Starting condition: Recent merged PRs include accessible review comments,
+  review decisions, thread discussions, and resolutions.
+- Required halt or reroute behavior: Route through the shared PR review
+  evidence workflow, collect direct review evidence first, and attribute
+  recommendations with `evidence_tier: direct-review`. Do not silently degrade
+  to commit-history framing.
+- Rule surface: `skills/superteam/pr-review-evidence.md` collection ladder and
+  `skills/superteam/SKILL.md` recommendation attribution contract.
+
+## PT-81-2 Missing direct review evidence forces visible fallback disclosure
+
+- Starting condition: Recent merged PR metadata exists, but direct review
+  comments or threads are absent or inaccessible.
+- Required halt or reroute behavior: Continue only via documented fallback,
+  disclose missing direct review evidence, set `fallback_used`, and downgrade
+  confidence with `evidence_tier: pr-metadata`.
+- Rule surface: fallback ladder, confidence downgrade rules, and recommendation
+  output contract fields in the shared PR review evidence workflow.
+
+## PT-81-3 Evidence-source failure is disclosed before proxy continuation
+
+- Starting condition: Review-evidence collection fails due to permissions,
+  connector unavailability, or tool failure, while local git or issue context
+  is still reachable.
+- Required halt or reroute behavior: Report the failed source explicitly and
+  continue only with labeled `fallback-proxy` evidence when the operator prompt
+  still requires an answer.
+- Rule surface: fallback-proxy taxonomy, ledger `availability_status`, and
+  explicit failure disclosure requirements in the shared workflow.
+
+## PT-81-4 Future orchestration reuses the shared workflow by name
+
+- Starting condition: A new orchestration asks for recommendations grounded in
+  recent PR and review evidence.
+- Required halt or reroute behavior: Reuse the shipped PR review evidence
+  workflow and its output taxonomy instead of inventing an ad hoc collection or
+  labeling scheme.
+- Rule surface: shared workflow reference in `skills/superteam/SKILL.md` and
+  the support contract in `skills/superteam/pr-review-evidence.md`.
+
+## PT-81-5 Direct review evidence outranks commit-history framing
+
+- Starting condition: Commit history suggests one theme while direct review
+  comments indicate another concern.
+- Required halt or reroute behavior: Prioritize direct review evidence for the
+  recommendation basis; commit history may appear only as contextual or fallback
+  support and must not be laundered as reviewer intent.
+- Rule surface: tier-precedence taxonomy and source-laundering guards in the
+  shared workflow and `quality-guards.md`.
