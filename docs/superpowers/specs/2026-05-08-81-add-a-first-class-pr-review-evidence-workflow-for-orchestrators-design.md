@@ -32,7 +32,7 @@ Given a new orchestration is built on top of this capability, when its prompt as
 - **R4 Recommendation attribution**: Every final recommendation produced from the workflow must include its evidence tier, evidence source summary, and confidence level. Mixed evidence should name the strongest available tier plus any fallback support.
 - **R5 Reusable contract**: Put the reusable collection and reporting contract in the Superteam skill package, not in a one-off design or repo-specific heuristic. Future orchestrations should be able to reference it by name.
 - **R6 Role ownership**: `Team Lead` owns routing into the contract and deciding when a prompt asks for evidence-grounded PR/review analysis. `Finisher` remains owner of external PR feedback during normal issue-to-PR runs. This workflow is for analysis tasks and must not steal live PR feedback handling from Finisher.
-- **R7 Verification**: Implementation must include pressure tests for full evidence, partial evidence, no direct review evidence, and misleading commit-history-only scenarios.
+- **R7 Verification**: Implementation must follow writing-skills RED/GREEN evidence discipline for this skill/workflow-contract change. Before implementation edits, run baseline pressure tests for full evidence, partial evidence, no direct review evidence, and misleading commit-history-only scenarios; capture the actual failure or rationalization. After implementation, rerun the pressure tests, capture GREEN evidence, record any remaining red flags, and explicitly disclose any pressure test that could not be run. Documentation-only walkthroughs are insufficient readiness evidence.
 
 ## Proposed architecture
 
@@ -87,9 +87,19 @@ Claude-host parity files may also need the same role guidance if present in the 
 
 ## Pressure tests
 
+These are writing-skills pressure tests, not optional documentation walkthroughs. Planner and Executor should preserve the RED/GREEN evidence loop:
+
+1. Before implementation edits, run baseline prompts or subagent pressure tests against the current contract.
+2. Capture the actual RED failure, rationalization, or refusal to use the desired evidence discipline.
+3. After implementation, rerun the same scenarios against the revised contract.
+4. Record GREEN evidence, any remaining rationalizations, and any pressure test that could not be run.
+5. Treat documentation-only walkthroughs as insufficient for readiness when pressure-test or subagent evidence was required but unavailable.
+
 ### PT-81-1: Full direct review evidence
 
 Scenario: The repository has recent merged PRs with review comments, requested changes, approvals, and thread resolutions.
+
+RED evidence to capture: Current behavior either omits direct-review attribution, treats a PR summary as enough, or gives recommendations without an evidence ledger.
 
 Expected behavior: The orchestrator records direct review evidence, attributes recommendations to `direct-review`, uses PR metadata as context, and does not invoke fallback.
 
@@ -99,6 +109,8 @@ Failure signal: Recommendations cite only commit summaries or omit review-commen
 
 Scenario: Recent merged PRs exist, but review comments are absent or inaccessible.
 
+RED evidence to capture: Current behavior either invents reviewer intent, hides missing review comments, or fails to lower confidence.
+
 Expected behavior: The orchestrator reports direct review evidence as unavailable, falls back to PR metadata, labels recommendations as `pr-metadata`, and lowers confidence.
 
 Failure signal: Output implies reviewers said something specific without direct review evidence.
@@ -106,6 +118,8 @@ Failure signal: Output implies reviewers said something specific without direct 
 ### PT-81-3: Connector or permission failure
 
 Scenario: The GitHub evidence source fails while local git history is available.
+
+RED evidence to capture: Current behavior silently continues from local git history or treats the connector failure as irrelevant.
 
 Expected behavior: The orchestrator reports the failed source, uses documented fallback proxies only if the operator task can still be answered, labels them `fallback-proxy`, and names the confidence limitation.
 
@@ -115,6 +129,8 @@ Failure signal: Output hides the collection failure or presents local commit evi
 
 Scenario: A future repo-health or coaching orchestration asks for recommendations grounded in recent PRs and reviews.
 
+RED evidence to capture: Current behavior invents an ad hoc collection plan, source taxonomy, or fallback disclosure standard.
+
 Expected behavior: The prompt references the shared PR review evidence workflow and uses its evidence ledger plus output attribution contract instead of inventing new collection logic.
 
 Failure signal: The orchestration defines an incompatible evidence taxonomy or has no fallback disclosure.
@@ -122,6 +138,8 @@ Failure signal: The orchestration defines an incompatible evidence taxonomy or h
 ### PT-81-5: Misleading commit-history proxy
 
 Scenario: Commit messages suggest one review theme, but available review comments show a different concern.
+
+RED evidence to capture: Current behavior follows the commit-history proxy, overclaims confidence, or fails to prefer direct review comments.
 
 Expected behavior: Direct review evidence wins. Commit history may appear only as supporting `fallback-proxy` or context, not as the primary basis.
 
@@ -133,7 +151,7 @@ Reviewer context: same-thread fallback for the Brainstormer design draft. A fres
 
 Checked writing-skills dimensions:
 
-- **RED/GREEN baseline obligations**: Present. Pressure tests define failure behavior before the contract and expected compliant behavior after implementation.
+- **RED/GREEN baseline obligations**: Present after revision. R7 and the pressure-test section require baseline pressure-test or subagent evidence before implementation, captured failure/rationalization, rerun GREEN evidence after implementation, remaining red-flag disclosure, and explicit disclosure for any pressure test that could not be run.
 - **Rationalization resistance**: Present. The design blocks "commit history is close enough" and "fallback can be silent" rationalizations.
 - **Red flags**: Present. Risks and pressure tests name source laundering, missing fallback disclosure, and Finisher ownership confusion.
 - **Token-efficiency targets**: Present. Runtime skill text is constrained to a short `SKILL.md` trigger plus a support reference for details.
@@ -147,13 +165,14 @@ Checked writing-skills dimensions:
 | brainstormer | material | `## Proposed architecture` | The first architecture pass could blur live PR feedback handling with offline evidence-grounded analysis, which would conflict with Finisher ownership. | Resolved by adding R6, the Finisher ownership note, and an explicit non-goal. |
 | brainstormer | material | `## Requirements` | The first requirement set said to "use fallback signals" but did not force per-recommendation attribution, allowing source laundering in final advice. | Resolved by adding R4 and the final-output fields. |
 | brainstormer | minor | `## Affected files` | The first affected-files list risked over-prescribing agent-file edits before Planner confirms exact surfaces. | Resolved by marking Team Lead and Finisher agent updates as small cues only if needed. |
+| adversarial-review | material | `R7`, `## Pressure tests`, `## Adversarial review preparation`, `## Handoff guidance` | The design defined scenarios but did not require writing-skills RED/GREEN baseline evidence, captured rationalizations, GREEN reruns, or insufficient-evidence disclosure; it also left room for documentation-only walkthroughs as readiness evidence. | Resolved by strengthening R7, adding explicit RED/GREEN pressure-test evidence requirements and per-scenario RED evidence prompts, updating the checked RED/GREEN dimension, and revising handoff guidance to label documentation-only walkthroughs as insufficient readiness evidence. |
 
 Brainstormer same-thread review result: `findings dispositioned`.
 
 ## Clean pass rationale
 
-No blocker or material Brainstormer-originated findings remain open. The draft has explicit AC IDs, a primary evidence path, visible fallback reporting, per-recommendation attribution, reusable contract placement, role ownership boundaries, and pressure tests covering the main rationalization paths. This does not satisfy Gate 1 by itself; Team Lead must still run the independent adversarial design review against the committed artifact.
+No blocker or material findings recorded in this artifact remain open. The draft has explicit AC IDs, a primary evidence path, visible fallback reporting, per-recommendation attribution, reusable contract placement, role ownership boundaries, and writing-skills RED/GREEN pressure-test evidence requirements that close the documentation-walkthrough bypass. Team Lead must still decide whether the revised committed artifact satisfies Gate 1.
 
 ## Handoff guidance
 
-Planner should convert this design into a small implementation plan that preserves the contract split: `SKILL.md` owns trigger and invariant language, while a support reference owns the longer evidence ladder if needed. Executor should avoid adding a heavyweight runtime integration or repo-specific heuristic. Reviewer should treat `skills/superteam/**` changes as installable skill changes and run the required writing-skills and Superteam quality gates. Finisher should ensure the PR body maps verification to AC-81-1 through AC-81-4 and calls out any pressure tests that were performed as documentation walkthroughs rather than live GitHub API tests.
+Planner should convert this design into a small implementation plan that preserves the contract split: `SKILL.md` owns trigger and invariant language, while a support reference owns the longer evidence ladder if needed. The plan must schedule RED baseline pressure tests before implementation edits, require captured rationalizations or failures, and schedule GREEN reruns after implementation. Executor should avoid adding a heavyweight runtime integration or repo-specific heuristic and must preserve the RED evidence rather than replacing it with confidence language. Reviewer should treat `skills/superteam/**` changes as installable skill changes and run the required writing-skills and Superteam quality gates, including checking that pressure-test evidence exists or that missing tests are explicitly disclosed as blockers or residual risk. Finisher should ensure the PR body maps verification to AC-81-1 through AC-81-4 and labels documentation-only walkthroughs as insufficient readiness evidence when pressure-test or subagent evidence was required but not run.
