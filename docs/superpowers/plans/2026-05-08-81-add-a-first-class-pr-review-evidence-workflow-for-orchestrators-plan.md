@@ -28,7 +28,7 @@
 - Do not equate commit history, commit messages, or local diffs with reviewer feedback. Those remain `fallback-proxy` evidence only.
 - Do not silently skip RED/GREEN pressure tests. If a scenario cannot run, record the exact blocker and treat missing evidence as residual risk or a publish blocker.
 - No AC-to-file:line mapping tables in this plan. AC coverage is mapped to workstreams and verification tasks only.
-- Current repo state has shared skill files and Codex role YAML surfaces, but no `.claude/agents/*` parity files. Do not add new host-parity work unless the execution-time repo state changes and that need is proven from the working tree.
+- Keep host-parity scope narrow: this issue needs the Team Lead routing cue on both shipped host surfaces (`skills/superteam/agents/team-lead.openai.yaml` and `skills/superteam/.claude/agents/team-lead.md`). Do not broaden the plan into unrelated Claude-host rewrites beyond that cue.
 
 ## Acceptance Criteria Mapping
 
@@ -47,6 +47,7 @@
 | `skills/superteam/SKILL.md` | Modify | Add the compact workflow trigger, ownership rule, output contract, and support-file pointer. |
 | `skills/superteam/pr-review-evidence.md` | Create | Holds the detailed evidence ladder, ledger schema, fallback rules, and recommendation examples. |
 | `skills/superteam/agents/team-lead.openai.yaml` | Modify | Add or tighten the routing cue for evidence-grounded PR/review analysis requests. |
+| `skills/superteam/.claude/agents/team-lead.md` | Modify | Add the matching narrow Team Lead routing cue on the Claude-host parity surface. |
 | `skills/superteam/agents/finisher.openai.yaml` | Modify only if needed | Change only if the current wording is insufficient to preserve Finisher ownership after the new Team Lead route lands. |
 | `skills/superteam/quality-guards.md` | Modify | Add rationalization closures and red flags for silent fallback, commit-history overclaiming, and source laundering. |
 | `docs/superpowers/pressure-tests/superteam-orchestration-contract.md` | Modify | Add the reusable PT-81-1 through PT-81-5 scenarios and expected rule surface. |
@@ -160,6 +161,7 @@ Keep `SKILL.md` compact and invariant-focused. Put the long-form ladder in a sup
 - Modify: `skills/superteam/SKILL.md`
 - Create: `skills/superteam/pr-review-evidence.md`
 - Modify: `skills/superteam/agents/team-lead.openai.yaml`
+- Modify: `skills/superteam/.claude/agents/team-lead.md`
 - Modify: `skills/superteam/agents/finisher.openai.yaml` only if required by `T2.5`
 
 #### T2.1: Add the shared trigger and ownership contract to `SKILL.md`
@@ -213,7 +215,10 @@ Keep `SKILL.md` compact and invariant-focused. Put the long-form ladder in a sup
 - [ ] **Step 1: Update `skills/superteam/agents/team-lead.openai.yaml`.**
   Add a small routing cue that tells Team Lead to invoke the shared PR review evidence workflow when the operator asks for evidence-grounded PR/review analysis, rather than inventing a fresh collection method.
 
-- [ ] **Step 2: Keep the cue narrow.**
+- [ ] **Step 2: Update `skills/superteam/.claude/agents/team-lead.md` with the same narrow routing cue.**
+  Keep the Claude-host wording aligned with the Codex cue so both shipped Team Lead surfaces route evidence-grounded PR/review analysis through the shared workflow by name.
+
+- [ ] **Step 3: Keep the cue narrow on both hosts.**
   Do not broaden it into ordinary issue execution, CI triage, or generic code review routing.
 
 #### T2.4: Keep the reusable contract discoverable and compact
@@ -241,6 +246,7 @@ Keep `SKILL.md` compact and invariant-focused. Put the long-form ladder in a sup
   git add skills/superteam/SKILL.md \
     skills/superteam/pr-review-evidence.md \
     skills/superteam/agents/team-lead.openai.yaml \
+    skills/superteam/.claude/agents/team-lead.md \
     skills/superteam/agents/finisher.openai.yaml
   git diff --cached --name-only
   ```
@@ -310,6 +316,17 @@ This workstream makes the new contract harder to rationalize away and gives Revi
   ```
 
   Expected: the shared contract is analysis-only and Finisher ownership remains explicit.
+
+- [ ] **Step 3: Add focused Team Lead parity verification.**
+  Run:
+
+  ```bash
+  rg -n "PR review evidence workflow|evidence-grounded PR/review analysis|recent PRs|reviews" \
+    skills/superteam/agents/team-lead.openai.yaml \
+    skills/superteam/.claude/agents/team-lead.md
+  ```
+
+  Expected: both shipped Team Lead surfaces contain the narrow routing cue for the shared workflow.
 
 #### T3.4: Fold follow-up edits into the shipped behavior commit if no new behavior changed after review
 
@@ -432,6 +449,9 @@ rg -n "Finisher|live external PR feedback|analysis tasks" \
   skills/superteam/SKILL.md \
   skills/superteam/agents/team-lead.openai.yaml \
   skills/superteam/agents/finisher.openai.yaml
+rg -n "PR review evidence workflow|evidence-grounded PR/review analysis|recent PRs|reviews" \
+  skills/superteam/agents/team-lead.openai.yaml \
+  skills/superteam/.claude/agents/team-lead.md
 pnpm lint:md
 ```
 
