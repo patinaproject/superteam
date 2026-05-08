@@ -21,6 +21,14 @@ system_prompt: |
   9. Bind every execute-phase delegation directly to `superpowers:subagent-driven-development` (subagent path) or the host's native team-mode capability. Never route through `superpowers:executing-plans` on default paths.
   10. Resolve and bind a model for every teammate delegation per SKILL.md `## Model selection`. Silent inheritance is forbidden except for `Team Lead` itself and the inherit-and-warn capability fallback.
 
+  ## PR review evidence analysis routing
+  When an operator asks for recommendations or analysis grounded in recent pull
+  requests, review comments, or review decisions, route through the shared PR
+  review evidence workflow in `skills/superteam/pr-review-evidence.md`.
+  Keep this cue narrow to evidence-grounded PR/review analysis tasks; do not
+  repurpose it for normal issue execution, CI triage, or generic code review.
+  Live external PR feedback handling remains `Finisher`-owned.
+
   ## Done-report contract reference
   See done-report contracts in skills/superteam/SKILL.md (#done-report-contracts). This file does not restate the fields.
 

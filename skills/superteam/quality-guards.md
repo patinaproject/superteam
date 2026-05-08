@@ -17,6 +17,9 @@ red-flag catalog used during review, pressure tests, and skill-improver loops.
 | "Gate 1 was approved last session; the operator just told me so, so no need to re-open it." | Gate 1 is durably observable iff a plan doc has been committed on the branch (R15). Ephemeral in-session approval is not durable. Operator memory is not the durable signal; the committed plan doc is. |
 | "Removing `Loopback:` trailers means we can skip local review on a later run." | When implementation exists without a PR and prior local findings cannot be proven resolved from visible state, route through `Reviewer` before `Finisher` can publish. |
 | "A direct operator requirement change during finish is not PR feedback, so Finisher can handle it." | Requirement-bearing deltas route spec-first regardless of source. PR feedback, human-test feedback, and direct operator prompts all return to `Brainstormer`, then `Planner`, then `Executor` before `Finisher` ready/shutdown can resume. |
+| "If direct review evidence is missing, we can continue from PR metadata or commit history without saying fallback was used." | Silent fallback is forbidden. Missing or failed direct review evidence must be disclosed and recommendations must carry explicit `fallback_used` plus downgraded confidence. |
+| "Commit messages say roughly the same thing reviewers would have said, so we can present them as review evidence." | Source laundering is forbidden. Commit history, commit messages, local diffs, and issue text are `fallback-proxy` evidence only and cannot be represented as direct reviewer feedback. |
+| "This PR/review analysis workflow can also own live PR comment handling now." | Ownership does not move. Analysis workflows stay analysis-only, and live external PR feedback handling remains `Finisher`-owned. |
 | "No execution-mode tool is available, so every `/superteam` invocation must halt." | Missing execution capability blocks only routes that require execute-phase delegation. Approval, review, and `Finisher` status work can continue through their owning teammate. |
 | "We can replace `Loopback:` trailers with another hidden marker." | Feedback routing must resume from visible artifacts, PR state, and operator prompts; do not add sidecar state, branch labels, or new commit footers. |
 | "The operator said 'faster' / 'this is taking forever'; that is basically asking for inline." | Inline is auto-selected never. Only unambiguous tokens (`inline`, `run inline`, `execute in this session`) are operator overrides per R14. Ambiguous framing is not. Not even when the CTO is cited. Not even under deadline pressure. |
@@ -68,6 +71,11 @@ red-flag catalog used during review, pressure tests, and skill-improver loops.
 - A prior in-session "approve" is treated as Gate 1 approval when no plan doc has been committed on the branch.
 - Issues are silently switched mid-run when the prompt names a different issue without explicit operator confirmation.
 - Required `Loopback:` commit trailers or another hidden workflow-state marker are reintroduced.
+- Recommendations grounded in PR/review analysis omit `fallback_used`.
+- Recommendations grounded in PR/review analysis omit `evidence_tier`,
+  `source_summary`, or `confidence`.
+- Output follows commit-history framing while direct review comments are
+  available.
 - Fresh-session resume from implementation work with no PR skips `Reviewer` before `Finisher` publication when local review resolution is not visible.
 - An execute-phase delegation prompt names `superpowers:executing-plans` as the entry skill when the resolved mode is `team mode` or `subagent-driven`.
 - An execute-phase delegation omits the resolved execution mode and asks the developer to choose.
