@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/patinaproject/superteam/compare/v1.6.0...v1.7.0) (2026-05-08)
+
+
+### Features
+
+* [#81](https://github.com/patinaproject/superteam/issues/81) add PR review evidence workflow ([#82](https://github.com/patinaproject/superteam/issues/82)) ([d3c6246](https://github.com/patinaproject/superteam/commit/d3c624627cdffe09938488a05ba93667076eef8d))
+
 ## [1.6.0](https://github.com/patinaproject/superteam/compare/v1.5.0...v1.6.0) (2026-05-05)
 
 
