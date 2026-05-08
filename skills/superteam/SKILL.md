@@ -260,6 +260,23 @@ When `Team Lead` delegates work, the prompt must explicitly recommend the expect
 
 Do not silently omit expected skill guidance.
 
+## PR review evidence workflow
+
+When the operator asks for recommendations or analysis grounded in recent pull
+requests, review comments, or review decisions, `Team Lead` routes the request
+through the shared `PR review evidence workflow` in
+[pr-review-evidence.md](./pr-review-evidence.md).
+
+This workflow is for analysis tasks only. Live external PR feedback handling
+during issue-to-PR runs remains `Finisher`-owned.
+
+Every recommendation produced through this workflow must include:
+`evidence_tier`, `source_summary`, `confidence`, and `fallback_used`.
+
+When evidence is mixed, report the strongest available tier as
+`evidence_tier`, then disclose fallback support in `source_summary` and
+`fallback_used`.
+
 ## Done-report contracts
 
 Artifact-producing teammate done reports must anchor on committed handoff state rather than uncommitted workspace state.
