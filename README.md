@@ -1,5 +1,9 @@
 # Superteam
 
+> **Archive notice:** Superteam now lives in
+> [`patinaproject/skills`](https://github.com/patinaproject/skills). Use that
+> repository for the current plugin, issues, and updates.
+
 Build with a team of agents using Superpowers.
 
 `superteam` is a Claude Code + Codex plugin. It ships an installable orchestration skill under `skills/superteam/` and is distributed through the [`patinaproject/skills`](https://github.com/patinaproject/skills) marketplace.
